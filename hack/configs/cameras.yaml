@@ -1,0 +1,4 @@
+cameras:
+  - 192.168.1.10
+  - 192.168.1.11
+  # More cameras can be added here

@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Simplified Circuit Pattern -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,10C78.9,10 99,30.1 99,55C99,79.9 78.9,100 54,100C29.1,100 9,79.9 9,55C9,30.1 29.1,10 54,10ZM44,44 L64,44 L64,64 L44,64Z"/>
+    
+    <!-- Connect-4 Chip -->
+    <circle
+        android:cx="54"
+        android:cy="74"
+        android:r="12"
+        android:fillColor="#FFFFFF"/>
+    
+    <!-- Ball Sort Tube -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,34 L38,30 L70,30 L74,34 L74,50 C74,52.2 72.2,54 70,54 L38,54 C35.8,54 34,52.2 34,50Z"/>
+    
+</vector>

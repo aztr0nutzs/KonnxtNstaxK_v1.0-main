@@ -1,0 +1,114 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background Glow -->
+    <path
+        android:fillColor="@color/cyber_glow"
+        android:pathData="M54,0C83.9,0 108,24.1 108,54C108,83.9 83.9,108 54,108C24.1,108 0,83.9 0,54C0,24.1 24.1,0 54,0Z"/>
+    
+    <!-- Main Circuit Board Base -->
+    <path
+        android:fillColor="@color/circuit_base"
+        android:pathData="M54,10C78.9,10 99,30.1 99,55C99,79.9 78.9,100 54,100C29.1,100 9,79.9 9,55C9,30.1 29.1,10 54,10Z"/>
+    
+    <!-- Grid Pattern -->
+    <path
+        android:strokeColor="@color/neon_cyan"
+        android:strokeWidth="0.5"
+        android:pathData="M20,20 L88,20 M20,30 L88,30 M20,40 L88,40 M20,50 L88,50 M20,60 L88,60 M20,70 L88,70 M20,80 L88,80
+                         M30,20 L30,88 M40,20 L40,88 M50,20 L50,88 M60,20 L60,88 M70,20 L70,88 M80,20 L80,88"/>
+    
+    <!-- Central Processor Chip -->
+    <path
+        android:fillColor="@color/chip_base"
+        android:pathData="M44,44 L64,44 L64,64 L44,64 Z"/>
+    <path
+        android:strokeColor="@color/neon_yellow"
+        android:strokeWidth="1.5"
+        android:pathData="M44,44 L64,44 L64,64 L44,64 Z"/>
+    
+    <!-- Ball Sort Tube -->
+    <path
+        android:fillColor="@color/tube_base"
+        android:pathData="M34,34 L38,30 L70,30 L74,34 L74,50 C74,52.2 72.2,54 70,54 L38,54 C35.8,54 34,52.2 34,50Z"/>
+    
+    <!-- Balls in Tube -->
+    <circle
+        android:cx="44"
+        android:cy="44"
+        android:r="4"
+        android:fillColor="@color/neon_red"/>
+    <circle
+        android:cx="54"
+        android:cy="40"
+        android:r="4"
+        android:fillColor="@color/neon_cyan"/>
+    <circle
+        android:cx="64"
+        android:cy="46"
+        android:r="4"
+        android:fillColor="@color/neon_yellow"/>
+    
+    <!-- Connect-4 Chip with 3D Effect -->
+    <circle
+        android:cx="54"
+        android:cy="74"
+        android:r="12"
+        android:fillColor="@color/chip_gradient"/>
+    <circle
+        android:cx="54"
+        android:cy="74"
+        android:r="10"
+        android:fillColor="@color/neon_cyan"/>
+    
+    <!-- Circuit Lines -->
+    <path
+        android:strokeColor="@color/neon_purple"
+        android:strokeWidth="1"
+        android:pathData="M54,10 L54,30 M54,78 L54,88 M20,54 L30,54 M78,54 L88,54"/>
+    
+    <!-- Corner Connectors -->
+    <circle
+        android:cx="20"
+        android:cy="20"
+        android:r="2"
+        android:fillColor="@color/neon_green"/>
+    <circle
+        android:cx="88"
+        android:cy="20"
+        android:r="2"
+        android:fillColor="@color/neon_green"/>
+    <circle
+        android:cx="20"
+        android:cy="88"
+        android:r="2"
+        android:fillColor="@color/neon_green"/>
+    <circle
+        android:cx="88"
+        android:cy="88"
+        android:r="2"
+        android:fillColor="@color/neon_green"/>
+    
+    <!-- Game Title (MINIMAL) -->
+    <path
+        android:strokeColor="@color/neon_pink"
+        android:strokeWidth="0.8"
+        android:pathData="M30,92 L78,92 M32,96 L76,96"/>
+    
+    <!-- Data Stream Effect -->
+    <path
+        android:strokeColor="@color/data_stream"
+        android:strokeWidth="0.5"
+        android:pathData="M15,15 L20,20 M93,15 L88,20 M15,93 L20,88 M93,93 L88,88"/>
+    
+    <!-- Inner Glow Effects -->
+    <circle
+        android:cx="54"
+        android:cy="54"
+        android:r="40"
+        android:fillColor="@color/inner_glow"/>
+    
+</vector>
