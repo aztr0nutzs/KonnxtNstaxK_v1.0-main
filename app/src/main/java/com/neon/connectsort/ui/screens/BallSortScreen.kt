@@ -312,13 +312,6 @@ fun BallSortControls(
         verticalAlignment = Alignment.CenterVertically
     ) {
         NeonButton(
-            text = "UNDO",
-            onClick = { viewModel.undoMove() },
-            neonColor = NeonColors.neonBlue,
-            modifier = Modifier.weight(1f)
-        )
-        
-        NeonButton(
             text = "RESET LEVEL",
             onClick = { viewModel.resetLevel() },
             neonColor = NeonColors.neonRed,

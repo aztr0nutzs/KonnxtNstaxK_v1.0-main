@@ -7,18 +7,31 @@ package com.neon.game.common
 abstract class BaseGameState {
     abstract val score: Int
     abstract val isGameOver: Boolean
-    
+    abstract val moves: Int
+    abstract val turnCount: Int
+    abstract val result: GameResult
+
     /**
      * Reset the game to initial state.
      * Each game implementation must define its own reset logic.
      */
     abstract fun reset(): BaseGameState
-    
+
     /**
-     * Get difficulty level (1 = easy, 2 = medium, 3 = hard).
+     * Get difficulty level.
      * Default implementation returns medium difficulty.
      */
-    open fun getDifficulty(): Int = 2
+    open fun getDifficulty(): GameDifficulty = GameDifficulty.MEDIUM
+}
+
+/**
+ * Represents the outcome of a game.
+ */
+sealed class GameResult {
+    object InProgress : GameResult()
+    data class Win(val winner: Int) : GameResult()
+    object Loss : GameResult()
+    object Draw : GameResult()
 }
 
 /**

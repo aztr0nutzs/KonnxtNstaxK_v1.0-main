@@ -2,7 +2,6 @@ package com.neon.connectsort.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neon.connectsort.core.AppContextHolder
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.connectsort.ui.screens.ShopItem
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,8 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ShopViewModel : ViewModel() {
-    private val repo = AppPreferencesRepository(AppContextHolder.appContext)
+class ShopViewModel(
+    private val repository: AppPreferencesRepository? = null
+) : ViewModel() {
 
     private val _playerCoins = MutableStateFlow(2500)
     val playerCoins: StateFlow<Int> = _playerCoins.asStateFlow()
@@ -22,7 +22,7 @@ class ShopViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            repo.prefsFlow.collect { prefs ->
+            repository?.prefsFlow?.collect { prefs ->
                 _playerCoins.value = prefs.coins
             }
         }
@@ -42,7 +42,7 @@ class ShopViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            repo.setCoins(_playerCoins.value - target.price)
+            repository?.setCoins(_playerCoins.value - target.price)
         }
     }
 

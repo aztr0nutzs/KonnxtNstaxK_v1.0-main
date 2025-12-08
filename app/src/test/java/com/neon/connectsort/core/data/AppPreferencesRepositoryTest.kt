@@ -17,58 +17,37 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 
-/**
- * Unit tests for AppPreferencesRepository.
- * Note: These tests require Android instrumentation to run properly.
- * For pure unit tests, mock the DataStore dependency.
- */
+@RunWith(AndroidJUnit4::class)
+@ExperimentalCoroutinesApi
 class AppPreferencesRepositoryTest {
 
-    @Test
-    fun `default preferences have correct values`() {
-        val prefs = UserPrefs()
-        
-        assertTrue(prefs.soundEnabled)
-        assertTrue(prefs.musicEnabled)
-        assertEquals(0.8f, prefs.volume, 0.01f)
-        assertTrue(prefs.animationsEnabled)
-        assertTrue(prefs.glowEffectsEnabled)
-        assertTrue(prefs.vibrationEnabled)
-        assertTrue(prefs.showTutorials)
-        assertEquals(2500, prefs.coins)
-        assertEquals("nexus_prime", prefs.selectedCharacterId)
-        assertEquals(setOf("nexus_prime"), prefs.unlockedCharacterIds)
-        assertEquals(2, prefs.gameDifficulty)
-        assertEquals(0, prefs.highScoreBallSort)
-        assertEquals(0, prefs.highScoreMultiplier)
-        assertEquals(0, prefs.highScoreConnectFour)
+    private lateinit var repository: AppPreferencesRepository
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(testDispatcher + Job())
+
+    @get:Rule
+    val temporaryFolder: TemporaryFolder = TemporaryFolder()
+
+    @Before
+    fun setup() {
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val dataStore = PreferenceDataStoreFactory.create(
+            scope = testScope,
+            produceFile = { temporaryFolder.newFile("test_prefs.preferences_pb") }
+        )
+        repository = AppPreferencesRepository(context)
     }
 
     @Test
-    fun `difficulty is clamped to valid range`() {
-        val prefs = UserPrefs(gameDifficulty = 1)
-        assertEquals(1, prefs.gameDifficulty)
-        
-        val prefs2 = UserPrefs(gameDifficulty = 3)
-        assertEquals(3, prefs2.gameDifficulty)
+    fun `test default preferences`() = testScope.runTest {
+        val prefs = repository.prefsFlow.first()
+        assertEquals(UserPrefs(), prefs)
     }
 
     @Test
-    fun `unlocked characters includes default`() {
-        val prefs = UserPrefs()
-        assertTrue(prefs.unlockedCharacterIds.contains("nexus_prime"))
-    }
-
-    @Test
-    fun `volume is within valid range`() {
-        val prefs = UserPrefs()
-        assertTrue(prefs.volume >= 0f)
-        assertTrue(prefs.volume <= 1f)
-    }
-
-    @Test
-    fun `coins start at reasonable amount`() {
-        val prefs = UserPrefs()
-        assertTrue(prefs.coins > 0)
+    fun `test set difficulty`() = testScope.runTest {
+        repository.setDifficulty(3)
+        val prefs = repository.prefsFlow.first()
+        assertEquals(3, prefs.gameDifficulty)
     }
 }

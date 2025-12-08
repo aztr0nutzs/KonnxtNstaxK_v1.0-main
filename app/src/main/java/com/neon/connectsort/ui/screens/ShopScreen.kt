@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +41,7 @@ fun ShopScreen(
             NeonButton(
                 text = "← BACK",
                 onClick = { navController.popBackStack() },
-                neonColor = NeonColors.neonBlue,
+                neonColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(100.dp)
             )
             
@@ -50,7 +49,7 @@ fun ShopScreen(
                 text = "ARCADE SHOP",
                 fontSize = 24,
                 fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.neonMagenta
+                neonColor = NeonColors.hologramPink
             )
             
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -63,7 +62,7 @@ fun ShopScreen(
                     text = playerCoins.toString(),
                     fontSize = 24,
                     fontWeight = FontWeight.Bold,
-                    neonColor = NeonColors.neonYellow
+                    neonColor = NeonColors.hologramYellow
                 )
             }
         }
@@ -89,7 +88,7 @@ fun ShopItemCard(
 ) {
     NeonCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = if (item.isPurchased) NeonColors.neonGreen else NeonColors.neonBlue
+        neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramBlue
     ) {
         Row(
             modifier = Modifier
@@ -106,7 +105,7 @@ fun ShopItemCard(
                     text = item.name,
                     fontSize = 18,
                     fontWeight = FontWeight.Bold,
-                    neonColor = if (item.isPurchased) NeonColors.neonGreen else NeonColors.neonCyan
+                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramCyan
                 )
                 
                 Text(
@@ -131,7 +130,7 @@ fun ShopItemCard(
                 NeonButton(
                     text = if (item.isPurchased) "OWNED" else "${item.price} COINS",
                     onClick = onPurchase,
-                    neonColor = if (item.isPurchased) NeonColors.neonGreen else NeonColors.neonYellow,
+                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramYellow,
                     enabled = !item.isPurchased
                 )
             }

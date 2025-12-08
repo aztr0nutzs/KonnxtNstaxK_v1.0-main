@@ -2,15 +2,15 @@ package com.neon.connectsort.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neon.connectsort.core.AppContextHolder
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class CharacterChipsViewModel : ViewModel() {
-    private val repo = AppPreferencesRepository(AppContextHolder.appContext)
+class CharacterChipsViewModel(
+    private val repository: AppPreferencesRepository? = null
+) : ViewModel() {
 
     private val _characters = MutableStateFlow(defaultRoster())
     val characters: StateFlow<List<CharacterChip>> = _characters.asStateFlow()
@@ -26,7 +26,7 @@ class CharacterChipsViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            repo.prefsFlow.collect { prefs ->
+            repository?.prefsFlow?.collect { prefs ->
                 _unlockedCharacters.value = prefs.unlockedCharacterIds
                 _playerCredits.value = prefs.coins
                 _selectedCharacter.value = _characters.value
@@ -41,7 +41,7 @@ class CharacterChipsViewModel : ViewModel() {
 
     fun selectCharacter(character: CharacterChip) {
         if (character.isUnlocked) {
-            viewModelScope.launch { repo.setSelectedCharacter(character.id) }
+            viewModelScope.launch { repository?.setSelectedCharacter(character.id) }
         }
     }
 
@@ -49,9 +49,9 @@ class CharacterChipsViewModel : ViewModel() {
         viewModelScope.launch {
             val currentCoins = _playerCredits.value
             if (currentCoins >= character.price) {
-                repo.setCoins(currentCoins - character.price)
-                repo.unlockCharacter(character.id)
-                repo.setSelectedCharacter(character.id)
+                repository?.setCoins(currentCoins - character.price)
+                repository?.unlockCharacter(character.id)
+                repository?.setSelectedCharacter(character.id)
             }
         }
     }

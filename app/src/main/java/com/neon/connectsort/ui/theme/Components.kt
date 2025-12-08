@@ -33,7 +33,7 @@ fun NeonButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    neonColor: Color = NeonColors.neonCyan
+    neonColor: Color = NeonColors.hologramCyan
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -81,7 +81,7 @@ fun NeonButton(
 @Composable
 fun NeonCard(
     modifier: Modifier = Modifier,
-    neonColor: Color = NeonColors.neonCyan,
+    neonColor: Color = NeonColors.hologramCyan,
     content: @Composable () -> Unit
 ) {
     var glowPhase by remember { mutableFloatStateOf(0f) }
@@ -131,7 +131,7 @@ fun NeonText(
     modifier: Modifier = Modifier,
     fontSize: Int = 16,
     fontWeight: FontWeight = FontWeight.Normal,
-    neonColor: Color = NeonColors.neonCyan,
+    neonColor: Color = NeonColors.hologramCyan,
     withGlow: Boolean = true
 ) {
     Text(
@@ -160,7 +160,7 @@ fun ArcadePanel(
 ) {
     NeonCard(
         modifier = modifier,
-        neonColor = NeonColors.neonBlue
+        neonColor = NeonColors.hologramBlue
     ) {
         Column(
             modifier = Modifier
@@ -173,7 +173,7 @@ fun ArcadePanel(
                     text = it,
                     fontSize = 20,
                     fontWeight = FontWeight.Bold,
-                    neonColor = NeonColors.neonYellow,
+                    neonColor = NeonColors.hologramYellow,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -198,13 +198,13 @@ fun NeonLoadingIndicator() {
             .size(24.dp)
             .drawBehind {
                 drawCircle(
-                    color = NeonColors.neonCyan,
+                    color = NeonColors.hologramCyan,
                     center = center,
                     radius = size.minDimension / 2,
                     style = Stroke(width = 3f)
                 )
                 drawArc(
-                    color = NeonColors.neonMagenta,
+                    color = NeonColors.hologramPink,
                     startAngle = rotation,
                     sweepAngle = 120f,
                     useCenter = false,
@@ -218,9 +218,9 @@ fun NeonLoadingIndicator() {
 fun createNeonBrush(): Brush {
     return Brush.linearGradient(
         colors = listOf(
-            NeonColors.neonCyan,
-            NeonColors.neonMagenta,
-            NeonColors.neonBlue
+            NeonColors.hologramCyan,
+            NeonColors.hologramPink,
+            NeonColors.hologramBlue
         ),
         start = Offset(0f, 0f),
         end = Offset(100f, 100f)

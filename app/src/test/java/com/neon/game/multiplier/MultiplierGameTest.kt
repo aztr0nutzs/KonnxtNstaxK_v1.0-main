@@ -15,42 +15,38 @@ class MultiplierGameTest {
 
     @Test
     fun `initial state has empty board`() {
-        val state = game.state()
-        assertEquals(6, state.board.size)
-        assertEquals(5, state.board[0].size)
-        assertTrue(state.board.all { row -> row.all { it == null } })
+        assertEquals(6, game.board.size)
+        assertEquals(5, game.board[0].size)
+        assertTrue(game.board.all { row -> row.all { it == null } })
     }
 
     @Test
     fun `initial state has correct defaults`() {
-        val state = game.state()
-        assertEquals(0, state.score)
-        assertEquals(1, state.multiplier)
-        assertEquals(0, state.streak)
-        assertEquals(3, state.lives)
-        assertFalse(state.isGameOver)
+        assertEquals(0, game.score)
+        assertEquals(1, game.multiplier)
+        assertEquals(0, game.streak)
+        assertEquals(3, game.lives)
+        assertFalse(game.isGameOver)
     }
 
     @Test
     fun `setMultiplier updates multiplier`() {
         game.setMultiplier(5)
-        val state = game.state()
-        assertEquals(5, state.multiplier)
+        assertEquals(5, game.multiplier)
     }
 
     @Test
     fun `setMultiplier enforces minimum of 1`() {
         game.setMultiplier(0)
-        val state = game.state()
-        assertEquals(1, state.multiplier)
+        assertEquals(1, game.multiplier)
     }
 
     @Test
     fun `drop places chip on board`() {
-        val state = game.drop(2)
+        game.drop(2)
         // Check if any chip was placed (depends on hazard randomness)
-        val hasChip = state.board.any { row -> row.any { it != null } }
-        val hadHazard = state.lastEvent is MultiplierGame.Event.Hazard
+        val hasChip = game.board.any { row -> row.any { it != null } }
+        val hadHazard = game.lastEvent is MultiplierGame.Event.Hazard
         
         assertTrue(hasChip || hadHazard)
     }
@@ -63,9 +59,9 @@ class MultiplierGameTest {
         // Try multiple times to get a successful drop (not hazard)
         while (attempts < 20 && !foundSuccess) {
             game.reset()
-            val state = game.drop(0)
-            if (state.lastEvent is MultiplierGame.Event.Success) {
-                assertTrue(state.score > 0)
+            game.drop(0)
+            if (game.lastEvent is MultiplierGame.Event.Success) {
+                assertTrue(game.score > 0)
                 foundSuccess = true
             }
             attempts++
@@ -81,9 +77,9 @@ class MultiplierGameTest {
         
         while (attempts < 20 && !foundSuccess) {
             game.reset()
-            val state = game.drop(0)
-            if (state.lastEvent is MultiplierGame.Event.Success) {
-                assertEquals(1, state.streak)
+            game.drop(0)
+            if (game.lastEvent is MultiplierGame.Event.Success) {
+                assertEquals(1, game.streak)
                 foundSuccess = true
             }
             attempts++
@@ -99,9 +95,9 @@ class MultiplierGameTest {
         
         while (attempts < 50 && !foundHazard) {
             game.reset()
-            val state = game.drop(0)
-            if (state.lastEvent is MultiplierGame.Event.Hazard) {
-                assertEquals(2, state.lives)
+            game.drop(0)
+            if (game.lastEvent is MultiplierGame.Event.Hazard) {
+                assertEquals(2, game.lives)
                 foundHazard = true
             }
             attempts++
@@ -118,9 +114,9 @@ class MultiplierGameTest {
         while (attempts < 50 && !foundHazard) {
             game.reset()
             game.drop(0) // First drop
-            val state = game.drop(1) // Second drop
-            if (state.lastEvent is MultiplierGame.Event.Hazard) {
-                assertEquals(0, state.streak)
+            game.drop(1) // Second drop
+            if (game.lastEvent is MultiplierGame.Event.Hazard) {
+                assertEquals(0, game.streak)
                 foundHazard = true
             }
             attempts++
@@ -134,15 +130,15 @@ class MultiplierGameTest {
         val testGame = MultiplierGame(maxLives = 1)
         testGame.setMultiplier(10) // High multiplier for guaranteed hazard
         
-        val state = testGame.drop(0)
-        assertTrue(state.isGameOver)
+        testGame.drop(0)
+        assertTrue(testGame.isGameOver)
     }
 
     @Test
     fun `cashOut ends game`() {
-        val state = game.cashOut()
-        assertTrue(state.isGameOver)
-        assertTrue(state.lastEvent is MultiplierGame.Event.CashOut)
+        game.cashOut()
+        assertTrue(game.isGameOver)
+        assertTrue(game.lastEvent is MultiplierGame.Event.CashOut)
     }
 
     @Test
@@ -151,45 +147,47 @@ class MultiplierGameTest {
         game.drop(1)
         game.setMultiplier(5)
         
-        val state = game.reset()
+        game.reset()
         
-        assertTrue(state.board.all { row -> row.all { it == null } })
-        assertEquals(0, state.score)
-        assertEquals(0, state.streak)
-        assertEquals(3, state.lives)
-        assertEquals(1, state.multiplier)
-        assertFalse(state.isGameOver)
+        assertTrue(game.board.all { row -> row.all { it == null } })
+        assertEquals(0, game.score)
+        assertEquals(0, game.streak)
+        assertEquals(3, game.lives)
+        assertEquals(1, game.multiplier)
+        assertFalse(game.isGameOver)
     }
 
     @Test
     fun `drop rejects invalid column`() {
-        val stateBefore = game.state()
-        val stateAfter = game.drop(-1)
+        val scoreBefore = game.score
+        game.drop(-1)
+        val scoreAfter = game.score
         
-        assertEquals(stateBefore.score, stateAfter.score)
-        assertEquals(stateBefore.streak, stateAfter.streak)
+        assertEquals(scoreBefore, scoreAfter)
     }
 
     @Test
     fun `drop rejects after game over`() {
         game.cashOut()
-        val stateBefore = game.state()
-        val stateAfter = game.drop(0)
+        val scoreBefore = game.score
+        game.drop(0)
+        val scoreAfter = game.score
         
-        assertEquals(stateBefore.score, stateAfter.score)
+        assertEquals(scoreBefore, scoreAfter)
     }
 
     @Test
-    fun `setDifficulty updates difficulty`() {
-        game.setDifficulty(GameDifficulty.HARD)
-        val state = game.state()
-        assertEquals(GameDifficulty.HARD, state.difficulty)
+    fun `start updates difficulty`() {
+        game.start(GameDifficulty.HARD)
+        assertEquals(GameDifficulty.HARD, game.getDifficulty())
     }
 
     @Test
     fun `difficulty affects scoring`() {
-        val easyGame = MultiplierGame(difficulty = GameDifficulty.EASY)
-        val hardGame = MultiplierGame(difficulty = GameDifficulty.HARD)
+        val easyGame = MultiplierGame()
+        easyGame.start(GameDifficulty.EASY)
+        val hardGame = MultiplierGame()
+        hardGame.start(GameDifficulty.HARD)
         
         // Try to get successful drops for both
         var easyScore = 0
@@ -197,18 +195,18 @@ class MultiplierGameTest {
         
         for (i in 0 until 50) {
             easyGame.reset()
-            val easyState = easyGame.drop(0)
-            if (easyState.lastEvent is MultiplierGame.Event.Success) {
-                easyScore = easyState.score
+            easyGame.drop(0)
+            if (easyGame.lastEvent is MultiplierGame.Event.Success) {
+                easyScore = easyGame.score
                 break
             }
         }
         
         for (i in 0 until 50) {
             hardGame.reset()
-            val hardState = hardGame.drop(0)
-            if (hardState.lastEvent is MultiplierGame.Event.Success) {
-                hardScore = hardState.score
+            hardGame.drop(0)
+            if (hardGame.lastEvent is MultiplierGame.Event.Success) {
+                hardScore = hardGame.score
                 break
             }
         }

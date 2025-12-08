@@ -42,7 +42,7 @@ fun SettingsScreen(
             NeonButton(
                 text = "← BACK",
                 onClick = { navController.popBackStack() },
-                neonColor = NeonColors.neonBlue,
+                neonColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(100.dp)
             )
             
@@ -50,7 +50,7 @@ fun SettingsScreen(
                 text = "SETTINGS",
                 fontSize = 24,
                 fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.neonCyan
+                neonColor = NeonColors.hologramCyan
             )
             
             Spacer(modifier = Modifier.width(100.dp))
@@ -123,7 +123,7 @@ fun SettingsScreen(
                 NeonButton(
                     text = "RESET PROGRESS",
                     onClick = { viewModel.resetProgress() },
-                    neonColor = NeonColors.neonRed,
+                    neonColor = NeonColors.hologramRed,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -131,7 +131,7 @@ fun SettingsScreen(
                 NeonButton(
                     text = "CLEAR CACHE",
                     onClick = { viewModel.clearCache() },
-                    neonColor = NeonColors.neonYellow,
+                    neonColor = NeonColors.hologramYellow,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -143,7 +143,7 @@ fun SettingsScreen(
 fun SettingsCategory(title: String) {
     Text(
         text = title,
-        color = NeonColors.neonMagenta,
+        color = NeonColors.hologramPink,
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(vertical = 8.dp)
@@ -158,7 +158,7 @@ fun SettingToggle(
 ) {
     NeonCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = if (isChecked) NeonColors.neonGreen else NeonColors.neonBlue
+        neonColor = if (isChecked) NeonColors.hologramGreen else NeonColors.hologramBlue
     ) {
         Row(
             modifier = Modifier
@@ -182,10 +182,10 @@ fun SettingToggle(
                 checked = isChecked,
                 onCheckedChange = null,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = NeonColors.neonGreen,
-                    checkedTrackColor = NeonColors.neonGreen.copy(alpha = 0.5f),
-                    uncheckedThumbColor = NeonColors.neonBlue,
-                    uncheckedTrackColor = NeonColors.neonBlue.copy(alpha = 0.5f)
+                    checkedThumbColor = NeonColors.hologramGreen,
+                    checkedTrackColor = NeonColors.hologramGreen.copy(alpha = 0.5f),
+                    uncheckedThumbColor = NeonColors.hologramBlue,
+                    uncheckedTrackColor = NeonColors.hologramBlue.copy(alpha = 0.5f)
                 )
             )
         }
@@ -200,7 +200,7 @@ fun SettingSlider(
 ) {
     NeonCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = NeonColors.neonCyan
+        neonColor = NeonColors.hologramCyan
     ) {
         Column(
             modifier = Modifier
@@ -221,7 +221,7 @@ fun SettingSlider(
                 
                 Text(
                     text = "${(value * 100).toInt()}%",
-                    color = NeonColors.neonCyan,
+                    color = NeonColors.hologramCyan,
                     fontSize = 16.sp
                 )
             }
@@ -231,9 +231,9 @@ fun SettingSlider(
                 onValueChange = onValueChange,
                 valueRange = 0f..1f,
                 colors = SliderDefaults.colors(
-                    thumbColor = NeonColors.neonCyan,
-                    activeTrackColor = NeonColors.neonCyan,
-                    inactiveTrackColor = NeonColors.neonCyan.copy(alpha = 0.3f)
+                    thumbColor = NeonColors.hologramCyan,
+                    activeTrackColor = NeonColors.hologramCyan,
+                    inactiveTrackColor = NeonColors.hologramCyan.copy(alpha = 0.3f)
                 )
             )
         }

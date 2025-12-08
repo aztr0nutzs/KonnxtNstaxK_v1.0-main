@@ -11,51 +11,49 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.neon.connectsort.ui.NeonGameApp
 import com.neon.connectsort.ui.theme.NeonGameTheme
-import com.neon.connectsort.core.AppContextHolder
 
 @OptIn(ExperimentalAnimationApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppContextHolder.appContext = applicationContext
-        
+        installSplashScreen()
+
         // Enable edge-to-edge display for immersive experience
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
         // Set window background to match holographic theme
         window.navigationBarColor = Color(0xFF000022).toArgb()
         window.statusBarColor = Color(0xFF000022).toArgb()
-        
+
         setContent {
             NeonGameTheme {
-                // Global composition effects
-                CompositionLocalProvider(
-                    
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = NeonGameTheme.colors.depthVoid
                 ) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = NeonGameTheme.colors.depthVoid
-                    ) {
-                        NeonGameApp()
-                    }
+                    NeonGameApp()
                 }
             }
         }
     }
-    
+
     override fun onResume() {
         super.onResume()
-        // Optional: Add immersive mode for full-screen gaming
-        window.decorView.systemUiVisibility = 
-            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
-            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        hideSystemUi()
+    }
+
+    private fun hideSystemUi() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
     }
 }

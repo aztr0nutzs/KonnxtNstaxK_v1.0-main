@@ -1,36 +1,43 @@
 package com.neon.connectsort.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.*
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.*
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.neon.connectsort.ui.theme.*
-import com.neon.connectsort.ui.screens.viewmodels.CharacterChipsViewModel
-import com.neon.connectsort.ui.screens.viewmodels.CharacterChip
-import com.neon.connectsort.ui.screens.viewmodels.Rarity
 import com.neon.connectsort.ui.screens.viewmodels.CharacterAbility
+import com.neon.connectsort.ui.screens.viewmodels.CharacterChip
+import com.neon.connectsort.ui.screens.viewmodels.CharacterChipsViewModel
+import com.neon.connectsort.ui.screens.viewmodels.Rarity
+import com.neon.connectsort.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun CharacterChipsScreen(
@@ -40,16 +47,16 @@ fun CharacterChipsScreen(
     val characters by viewModel.characters.collectAsState()
     val selectedCharacter by viewModel.selectedCharacter.collectAsState()
     val unlockedCharacters by viewModel.unlockedCharacters.collectAsState()
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        HolographicColors.depthVoid,
-                        HolographicColors.depthOcean,
-                        HolographicColors.depthMidnight
+                        NeonColors.depthVoid,
+                        NeonColors.depthOcean,
+                        NeonColors.depthMidnight
                     ),
                     center = Offset(0.3f, 0.3f),
                     radius = 1.5f
@@ -59,13 +66,12 @@ fun CharacterChipsScreen(
                 drawCharacterScreenBackground(size)
             }
     ) {
-        // Animated data particles
         HolographicParticleSystem(
             modifier = Modifier.fillMaxSize(),
             particleCount = 80,
             particleColors = ParticleColors.sparkleParticles
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -73,16 +79,13 @@ fun CharacterChipsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Header with animated title
             CharacterChipsHeader(navController)
-            
-            // Character showcase
+
             SelectedCharacterShowcase(
                 character = selectedCharacter ?: characters.firstOrNull(),
                 onSelect = { viewModel.selectCharacter(it) }
             )
-            
-            // Character roster
+
             CharacterRoster(
                 characters = characters,
                 selectedCharacter = selectedCharacter,
@@ -90,8 +93,7 @@ fun CharacterChipsScreen(
                 onSelectCharacter = { viewModel.selectCharacter(it) },
                 onPurchaseCharacter = { viewModel.purchaseCharacter(it) }
             )
-            
-            // Character abilities panel
+
             selectedCharacter?.let { character ->
                 CharacterAbilitiesPanel(character = character)
             }
@@ -102,7 +104,7 @@ fun CharacterChipsScreen(
 @Composable
 fun CharacterChipsHeader(navController: NavController) {
     var glitchOffset by remember { mutableStateOf(0f) }
-    
+
     LaunchedEffect(Unit) {
         while (true) {
             glitchOffset = (Math.random() * 8 - 4).toFloat()
@@ -111,7 +113,7 @@ fun CharacterChipsHeader(navController: NavController) {
             delay(2000)
         }
     }
-    
+
     HolographicCard(
         modifier = Modifier.fillMaxWidth(),
         title = "NEURAL PROTOCOLS",
@@ -124,18 +126,16 @@ fun CharacterChipsHeader(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Back button
             HolographicButton(
                 text = "← PRIME",
                 onClick = { navController.popBackStack() },
-                glowColor = HolographicColors.hologramPurple,
-                secondaryColor = HolographicColors.hologramPink,
+                glowColor = NeonColors.hologramPurple,
+                secondaryColor = NeonColors.hologramPink,
                 icon = "⌫",
                 buttonType = ButtonType.SECONDARY,
                 modifier = Modifier.width(120.dp)
             )
-            
-            // Title with glitch effect
+
             Box(
                 modifier = Modifier
                     .graphicsLayer {
@@ -145,29 +145,28 @@ fun CharacterChipsHeader(navController: NavController) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "NEURAL NETWORK",
-                        style = HolographicTypography.headlineMedium,
-                        color = HolographicColors.hologramCyan
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = NeonColors.hologramCyan
                     )
                     Text(
                         text = "Protocol Version 2.5.1",
-                        style = HolographicTypography.labelMedium,
-                        color = HolographicColors.hologramGreen
+                        style = MaterialTheme.typography.labelMedium,
+                        color = NeonColors.hologramGreen
                     )
                 }
             }
-            
-            // Currency display
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(HolographicColors.depthDark.copy(alpha = 0.5f))
+                    .background(NeonColors.depthDark.copy(alpha = 0.5f))
                     .border(
                         width = 1.dp,
                         brush = Brush.horizontalGradient(
                             colors = listOf(
-                                HolographicColors.hologramYellow,
-                                HolographicColors.hologramRed
+                                NeonColors.hologramYellow,
+                                NeonColors.hologramRed
                             )
                         ),
                         shape = RoundedCornerShape(8.dp)
@@ -176,13 +175,13 @@ fun CharacterChipsHeader(navController: NavController) {
             ) {
                 Text(
                     text = "NEURAL CREDITS",
-                    style = HolographicTypography.labelSmall,
-                    color = HolographicColors.hologramYellow
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeonColors.hologramYellow
                 )
                 Text(
                     text = "5,280 ⚡",
-                    style = HolographicTypography.titleLarge,
-                    color = HolographicColors.hologramYellow
+                    style = MaterialTheme.typography.titleLarge,
+                    color = NeonColors.hologramYellow
                 )
             }
         }
@@ -199,19 +198,17 @@ fun SelectedCharacterShowcase(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp),
-            title = char.name.toUpperCase(),
+            title = char.name.uppercase(),
             subtitle = char.title
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Animated character portrait
                 CharacterPortrait(
                     character = char,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(32.dp)
                 )
-                
-                // Character info overlay
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -220,34 +217,33 @@ fun SelectedCharacterShowcase(
                 ) {
                     Text(
                         text = "RARITY: ${char.rarity}",
-                        style = HolographicTypography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         color = when (char.rarity) {
-                            Rarity.COMMON -> HolographicColors.hologramBlue
-                            Rarity.RARE -> HolographicColors.hologramPurple
-                            Rarity.EPIC -> HolographicColors.hologramPink
-                            Rarity.LEGENDARY -> HolographicColors.hologramYellow
+                            Rarity.COMMON -> NeonColors.hologramBlue
+                            Rarity.RARE -> NeonColors.hologramPurple
+                            Rarity.EPIC -> NeonColors.hologramPink
+                            Rarity.LEGENDARY -> NeonColors.hologramYellow
                         }
                     )
-                    
+
                     Text(
                         text = "AFFILIATION: ${char.faction}",
-                        style = HolographicTypography.labelSmall,
-                        color = HolographicColors.hologramGreen
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonColors.hologramGreen
                     )
-                    
+
                     Text(
                         text = "NEURAL SYNC: ${char.neuralSync}%",
-                        style = HolographicTypography.labelSmall,
-                        color = HolographicColors.hologramCyan
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonColors.hologramCyan
                     )
                 }
-                
-                // Select button
+
                 HolographicButton(
                     text = if (char.isUnlocked) "ACTIVATE PROTOCOL" else "UNLOCK FOR ${char.price}⚡",
                     onClick = { onSelect(char) },
-                    glowColor = if (char.isUnlocked) HolographicColors.hologramGreen else HolographicColors.hologramYellow,
-                    secondaryColor = if (char.isUnlocked) HolographicColors.hologramCyan else HolographicColors.hologramRed,
+                    glowColor = if (char.isUnlocked) NeonColors.hologramGreen else NeonColors.hologramYellow,
+                    secondaryColor = if (char.isUnlocked) NeonColors.hologramCyan else NeonColors.hologramRed,
                     icon = if (char.isUnlocked) "⚡" else "🔓",
                     buttonType = if (char.isUnlocked) ButtonType.SUCCESS else ButtonType.WARNING,
                     modifier = Modifier
@@ -266,14 +262,14 @@ fun CharacterPortrait(
     modifier: Modifier = Modifier
 ) {
     var animationPhase by remember { mutableStateOf(0f) }
-    
+
     LaunchedEffect(character.id) {
         while (true) {
             animationPhase = (animationPhase + 0.01f) % 1f
             delay(16)
         }
     }
-    
+
     Canvas(modifier = modifier) {
         drawCharacterPortrait(size, character, animationPhase)
     }
@@ -286,8 +282,7 @@ private fun DrawScope.drawCharacterPortrait(
 ) {
     val center = Offset(size.width / 2, size.height / 2)
     val portraitSize = size.minDimension * 0.8f
-    
-    // Background aura
+
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(
@@ -302,20 +297,18 @@ private fun DrawScope.drawCharacterPortrait(
         radius = portraitSize * 0.8f,
         blendMode = BlendMode.Screen
     )
-    
-    // Character silhouette
+
     drawCircle(
         color = character.color.copy(alpha = 0.2f),
         center = center,
         radius = portraitSize * 0.4f
     )
-    
-    // Animated rings
+
     for (i in 0..2) {
         val ringPhase = (phase + i * 0.1f) % 1f
         val ringRadius = portraitSize * (0.3f + ringPhase * 0.2f)
         val ringAlpha = 1f - ringPhase
-        
+
         drawCircle(
             color = character.color.copy(alpha = ringAlpha * 0.3f),
             center = center,
@@ -323,25 +316,23 @@ private fun DrawScope.drawCharacterPortrait(
             style = Stroke(width = 2f)
         )
     }
-    
-    // Character icon/emblem (simple circle marker)
+
     drawCircle(
         color = Color.White.copy(alpha = 0.6f),
         center = center,
         radius = portraitSize * 0.12f
     )
-    
-    // Data streams
+
     for (i in 0..5) {
         val angle = i * 60f + phase * 360f
         val startRadius = portraitSize * 0.3f
         val endRadius = portraitSize * 0.6f
-        
+
         val startX = center.x + cos(Math.toRadians(angle.toDouble())).toFloat() * startRadius
         val startY = center.y + sin(Math.toRadians(angle.toDouble())).toFloat() * startRadius
         val endX = center.x + cos(Math.toRadians(angle.toDouble())).toFloat() * endRadius
         val endY = center.y + sin(Math.toRadians(angle.toDouble())).toFloat() * endRadius
-        
+
         drawLine(
             color = character.color.copy(alpha = 0.5f),
             start = Offset(startX, startY),
@@ -350,8 +341,7 @@ private fun DrawScope.drawCharacterPortrait(
             cap = StrokeCap.Round
         )
     }
-    
-    // Faction emblem
+
     when (character.faction) {
         "Neon Syndicate" -> drawNeonSyndicateEmblem(center, portraitSize * 0.2f, character.color)
         "Circuit Breakers" -> drawCircuitBreakersEmblem(center, portraitSize * 0.2f, character.color)
@@ -413,7 +403,7 @@ fun CharacterChipCard(
         ),
         label = "chipCardScale"
     )
-    
+
     Box(
         modifier = Modifier
             .width(120.dp)
@@ -436,7 +426,6 @@ fun CharacterChipCard(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(12.dp)
         ) {
-            // Character icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -451,46 +440,43 @@ fun CharacterChipCard(
             ) {
                 Text(
                     text = character.icon,
-                    style = HolographicTypography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     color = character.color
                 )
             }
-            
-            // Character name
+
             Text(
                 text = character.name,
-                style = HolographicTypography.labelMedium,
-                color = if (isSelected) character.color else HolographicColors.textHologram,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isSelected) character.color else NeonColors.textHologram,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            
-            // Unlock status
+
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        if (character.isUnlocked) HolographicColors.hologramGreen.copy(alpha = 0.2f)
-                        else HolographicColors.hologramYellow.copy(alpha = 0.2f)
+                        if (character.isUnlocked) NeonColors.hologramGreen.copy(alpha = 0.2f)
+                        else NeonColors.hologramYellow.copy(alpha = 0.2f)
                     )
                     .border(
                         width = 1.dp,
-                        color = if (character.isUnlocked) HolographicColors.hologramGreen 
-                               else HolographicColors.hologramYellow,
+                        color = if (character.isUnlocked) NeonColors.hologramGreen
+                        else NeonColors.hologramYellow,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = if (character.isUnlocked) "UNLOCKED" else "${character.price}⚡",
-                    style = HolographicTypography.labelSmall,
-                    color = if (character.isUnlocked) HolographicColors.hologramGreen 
-                           else HolographicColors.hologramYellow
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (character.isUnlocked) NeonColors.hologramGreen
+                    else NeonColors.hologramYellow
                 )
             }
         }
-        
-        // Rarity indicator
+
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -516,24 +502,22 @@ fun CharacterAbilitiesPanel(character: CharacterChip) {
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Bio section
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = "NEURAL PROFILE",
-                    style = HolographicTypography.labelMedium,
-                    color = HolographicColors.hologramCyan
+                    style = MaterialTheme.typography.labelMedium,
+                    color = NeonColors.hologramCyan
                 )
                 Text(
                     text = character.bio,
-                    style = HolographicTypography.bodyMedium,
-                    color = HolographicColors.textHologram.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NeonColors.textHologram.copy(alpha = 0.9f),
                     lineHeight = 20.sp
                 )
             }
-            
-            // Abilities grid
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxWidth(),
@@ -546,20 +530,19 @@ fun CharacterAbilitiesPanel(character: CharacterChip) {
                     }
                 }
             }
-            
-            // Game mode connection
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = "STORY INTEGRATION",
-                    style = HolographicTypography.labelMedium,
-                    color = HolographicColors.hologramPurple
+                    style = MaterialTheme.typography.labelMedium,
+                    color = NeonColors.hologramPurple
                 )
                 Text(
                     text = character.storyConnection,
-                    style = HolographicTypography.bodySmall,
-                    color = HolographicColors.textHologram.copy(alpha = 0.8f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NeonColors.textHologram.copy(alpha = 0.8f)
                 )
             }
         }
@@ -596,32 +579,31 @@ fun AbilityCard(ability: CharacterAbility) {
                 ) {
                     Text(
                         text = ability.icon,
-                        style = HolographicTypography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         color = ability.color
                     )
                 }
-                
+
                 Column {
                     Text(
                         text = ability.name,
-                        style = HolographicTypography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall,
                         color = ability.color
                     )
                     Text(
                         text = ability.type,
-                        style = HolographicTypography.labelSmall,
-                        color = HolographicColors.textHologram.copy(alpha = 0.7f)
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonColors.textHologram.copy(alpha = 0.7f)
                     )
                 }
             }
-            
+
             Text(
                 text = ability.description,
-                style = HolographicTypography.bodySmall,
-                color = HolographicColors.textHologram.copy(alpha = 0.9f)
+                style = MaterialTheme.typography.bodySmall,
+                color = NeonColors.textHologram.copy(alpha = 0.9f)
             )
-            
-            // Cooldown/Energy cost
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -633,33 +615,33 @@ fun AbilityCard(ability: CharacterAbility) {
                 ) {
                     Text(
                         text = "⚡",
-                        style = HolographicTypography.labelSmall
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White
                     )
                     Text(
                         text = "Energy: ${ability.energyCost}",
-                        style = HolographicTypography.labelSmall,
-                        color = HolographicColors.hologramYellow
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonColors.hologramYellow
                     )
                 }
-                
+
                 Text(
                     text = "CD: ${ability.cooldown}s",
-                    style = HolographicTypography.labelSmall,
-                    color = HolographicColors.hologramBlue
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeonColors.hologramBlue
                 )
             }
         }
     }
 }
 
-// Draw functions for emblems
 private fun DrawScope.drawNeonSyndicateEmblem(center: Offset, size: Float, color: Color) {
     val points = listOf(
         Offset(center.x, center.y - size),
         Offset(center.x + size * 0.866f, center.y + size * 0.5f),
         Offset(center.x - size * 0.866f, center.y + size * 0.5f)
     )
-    
+
     drawPath(
         path = Path().apply {
             moveTo(points[0].x, points[0].y)
@@ -680,14 +662,14 @@ private fun DrawScope.drawCircuitBreakersEmblem(center: Offset, size: Float, col
         radius = size,
         style = Stroke(width = 2f)
     )
-    
+
     drawLine(
         color = color,
         start = Offset(center.x - size, center.y),
         end = Offset(center.x + size, center.y),
         strokeWidth = 2f
     )
-    
+
     drawLine(
         color = color,
         start = Offset(center.x, center.y - size),
@@ -719,20 +701,20 @@ private fun DrawScope.drawDataWraithsEmblem(center: Offset, size: Float, color: 
 private fun DrawScope.drawNeuralCollectiveEmblem(center: Offset, size: Float, color: Color) {
     val innerRadius = size * 0.6f
     val outerRadius = size
-    
+
     for (i in 0..5) {
         val angle = i * 60f
         val innerX = center.x + cos(Math.toRadians(angle.toDouble())).toFloat() * innerRadius
         val innerY = center.y + sin(Math.toRadians(angle.toDouble())).toFloat() * innerRadius
         val outerX = center.x + cos(Math.toRadians(angle.toDouble())).toFloat() * outerRadius
         val outerY = center.y + sin(Math.toRadians(angle.toDouble())).toFloat() * outerRadius
-        
+
         drawCircle(
             color = color,
             center = Offset(innerX, innerY),
             radius = 4f
         )
-        
+
         drawLine(
             color = color,
             start = Offset(innerX, innerY),
@@ -748,14 +730,13 @@ private fun DrawScope.drawCharacterCardBackground(
     isSelected: Boolean
 ) {
     val cornerRadius = 16.dp.toPx()
-    
-    // Background with gradient
+
     drawRoundRect(
         brush = Brush.linearGradient(
             colors = listOf(
-                HolographicColors.depthDark,
-                HolographicColors.depthMidnight,
-                HolographicColors.depthOcean
+                NeonColors.depthDark,
+                NeonColors.depthMidnight,
+                NeonColors.depthOcean
             ),
             start = Offset(0f, 0f),
             end = Offset(size.width, size.height)
@@ -763,8 +744,7 @@ private fun DrawScope.drawCharacterCardBackground(
         size = size,
         cornerRadius = CornerRadius(cornerRadius, cornerRadius)
     )
-    
-    // Border glow if selected
+
     if (isSelected) {
         drawRoundRect(
             brush = Brush.linearGradient(
@@ -782,8 +762,7 @@ private fun DrawScope.drawCharacterCardBackground(
             style = Stroke(width = 3f)
         )
     }
-    
-    // Faint grid pattern
+
     val gridSpacing = 20f
     for (x in 0..(size.width / gridSpacing).toInt()) {
         drawLine(
@@ -793,7 +772,7 @@ private fun DrawScope.drawCharacterCardBackground(
             strokeWidth = 0.5f
         )
     }
-    
+
     for (y in 0..(size.height / gridSpacing).toInt()) {
         drawLine(
             color = character.color.copy(alpha = 0.1f),
@@ -806,18 +785,18 @@ private fun DrawScope.drawCharacterCardBackground(
 
 private fun DrawScope.drawRarityIndicator(size: Size, rarity: Rarity) {
     val color = when (rarity) {
-        Rarity.COMMON -> HolographicColors.hologramBlue
-        Rarity.RARE -> HolographicColors.hologramPurple
-        Rarity.EPIC -> HolographicColors.hologramPink
-        Rarity.LEGENDARY -> HolographicColors.hologramYellow
+        Rarity.COMMON -> NeonColors.hologramBlue
+        Rarity.RARE -> NeonColors.hologramPurple
+        Rarity.EPIC -> NeonColors.hologramPink
+        Rarity.LEGENDARY -> NeonColors.hologramYellow
     }
-    
+
     drawCircle(
         color = color,
         center = Offset(size.width / 2, size.height / 2),
         radius = size.minDimension / 2
     )
-    
+
     if (rarity == Rarity.LEGENDARY) {
         drawCircle(
             color = Color.White.copy(alpha = 0.5f),
@@ -829,7 +808,6 @@ private fun DrawScope.drawRarityIndicator(size: Size, rarity: Rarity) {
 }
 
 private fun DrawScope.drawCharacterScreenBackground(size: Size) {
-    // Deep space gradient
     drawRect(
         brush = Brush.linearGradient(
             colors = listOf(
@@ -843,30 +821,28 @@ private fun DrawScope.drawCharacterScreenBackground(size: Size) {
         ),
         size = size
     )
-    
-    // Data network visualization
+
     val nodeCount = 15
     val nodes = mutableListOf<Offset>()
-    
+
     for (i in 0 until nodeCount) {
         val x = (i * 137) % size.width.toInt() + size.width * 0.1f
         val y = (i * 89) % size.height.toInt() + size.height * 0.1f
         nodes.add(Offset(x, y))
-        
+
         drawCircle(
-            color = HolographicColors.hologramCyan.copy(alpha = 0.2f),
+            color = NeonColors.hologramCyan.copy(alpha = 0.2f),
             center = Offset(x, y),
             radius = 4f
         )
     }
-    
-    // Connect nodes
+
     for (i in nodes.indices) {
         for (j in i + 1 until nodes.size) {
             val distance = (nodes[i] - nodes[j]).getDistance()
             if (distance < 200f) {
                 drawLine(
-                    color = HolographicColors.hologramCyan.copy(alpha = 0.1f),
+                    color = NeonColors.hologramCyan.copy(alpha = 0.1f),
                     start = nodes[i],
                     end = nodes[j],
                     strokeWidth = 1f,

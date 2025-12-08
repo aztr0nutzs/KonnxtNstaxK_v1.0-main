@@ -32,8 +32,8 @@ fun HolographicButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    glowColor: Color = HolographicColors.hologramCyan,
-    secondaryColor: Color = HolographicColors.hologramPurple,
+    glowColor: Color = NeonColors.hologramCyan,
+    secondaryColor: Color = NeonColors.hologramPurple,
     icon: String? = null,
     buttonType: ButtonType = ButtonType.PRIMARY
 ) {
@@ -75,10 +75,10 @@ fun HolographicButton(
     // Button style based on type
     val buttonColors = when (buttonType) {
         ButtonType.PRIMARY -> Pair(glowColor, secondaryColor)
-        ButtonType.SECONDARY -> Pair(HolographicColors.hologramPurple, HolographicColors.hologramPink)
-        ButtonType.SUCCESS -> Pair(HolographicColors.hologramGreen, HolographicColors.hologramCyan)
-        ButtonType.WARNING -> Pair(HolographicColors.hologramYellow, HolographicColors.hologramRed)
-        ButtonType.DANGER -> Pair(HolographicColors.hologramRed, HolographicColors.hologramYellow)
+        ButtonType.SECONDARY -> Pair(NeonColors.hologramPurple, NeonColors.hologramPink)
+        ButtonType.SUCCESS -> Pair(NeonColors.hologramGreen, NeonColors.hologramCyan)
+        ButtonType.WARNING -> Pair(NeonColors.hologramYellow, NeonColors.hologramRed)
+        ButtonType.DANGER -> Pair(NeonColors.hologramRed, NeonColors.hologramYellow)
     }
     
     Canvas(
@@ -116,24 +116,25 @@ fun HolographicButton(
         )
         
         // Draw text
-        drawSimpleText(
-            text = if (isLoading) "..." else text,
-            topLeft = Offset(
-                size.width / 2 - if (isLoading) 20f else size.width * 0.4f,
-                size.height / 2 - 15f
-            ),
-            color = Color.White,
-            fontSize = 18f
-        )
+        drawIntoCanvas { canvas ->
+            val paint = android.graphics.Paint().apply {
+                this.color = Color.White.toArgb()
+                textSize = 18f
+                isAntiAlias = true
+            }
+            canvas.nativeCanvas.drawText(if (isLoading) "..." else text, size.width / 2 - if (isLoading) 20f else size.width * 0.4f, size.height / 2 - 15f, paint)
+        }
         
         // Draw icon if present
         icon?.let {
-            drawSimpleText(
-                text = it,
-                topLeft = Offset(size.width * 0.1f, size.height / 2 - 15f),
-                color = Color.White,
-                fontSize = 18f
-            )
+            drawIntoCanvas { canvas ->
+                val paint = android.graphics.Paint().apply {
+                    this.color = Color.White.toArgb()
+                    textSize = 18f
+                    isAntiAlias = true
+                }
+                canvas.nativeCanvas.drawText(it, size.width * 0.1f, size.height / 2 - 15f, paint)
+            }
         }
         
         // Loading animation
@@ -290,7 +291,7 @@ fun HolographicCard(
             title?.let {
                 Text(
                     text = it,
-                    style = HolographicTypography.headlineMedium,
+                    style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .drawGlitchEffect()
@@ -300,8 +301,8 @@ fun HolographicCard(
             subtitle?.let {
                 Text(
                     text = it,
-                    style = HolographicTypography.titleMedium,
-                    color = HolographicColors.hologramGreen
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonColors.hologramGreen
                 )
             }
             
@@ -334,8 +335,8 @@ private fun DrawScope.drawHolographicCardBackground(size: Size, floatPhase: Floa
     drawRoundRect(
         brush = Brush.linearGradient(
             colors = listOf(
-                HolographicColors.hologramCyan.copy(alpha = 0.3f),
-                HolographicColors.hologramPurple.copy(alpha = 0.3f)
+                NeonColors.hologramCyan.copy(alpha = 0.3f),
+                NeonColors.hologramPurple.copy(alpha = 0.3f)
             ),
             start = Offset(0f, 0f),
             end = Offset(size.width, size.height)
@@ -352,7 +353,7 @@ private fun DrawScope.drawHolographicCardBackground(size: Size, floatPhase: Floa
         brush = Brush.verticalGradient(
             colors = listOf(
                 Color.Transparent,
-                HolographicColors.hologramCyan.copy(alpha = 0.1f),
+                NeonColors.hologramCyan.copy(alpha = 0.1f),
                 Color.Transparent
             ),
             startY = scanY - 50f,
@@ -371,7 +372,7 @@ private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
     for (x in 0..(size.width / gridSpacing).toInt()) {
         val xPos = x * gridSpacing + (phase * gridSpacing) % gridSpacing
         drawLine(
-            color = HolographicColors.gridPrimary.copy(alpha = 0.3f),
+            color = NeonColors.gridPrimary.copy(alpha = 0.3f),
             start = Offset(xPos, 0f),
             end = Offset(xPos, size.height),
             strokeWidth = lineWidth,
@@ -383,7 +384,7 @@ private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
     for (y in 0..(size.height / gridSpacing).toInt()) {
         val yPos = y * gridSpacing + (phase * gridSpacing) % gridSpacing
         drawLine(
-            color = HolographicColors.gridSecondary.copy(alpha = 0.2f),
+            color = NeonColors.gridSecondary.copy(alpha = 0.2f),
             start = Offset(0f, yPos),
             end = Offset(size.width, yPos),
             strokeWidth = lineWidth,
@@ -396,7 +397,7 @@ private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
     for (i in -diagonalCount..diagonalCount) {
         val offset = size.height * (i.toFloat() / diagonalCount) + phase * 100f
         drawLine(
-            color = HolographicColors.hologramPurple.copy(alpha = 0.1f),
+            color = NeonColors.hologramPurple.copy(alpha = 0.1f),
             start = Offset(0f, offset),
             end = Offset(size.width, offset + size.width * 0.5f),
             strokeWidth = lineWidth,
@@ -411,13 +412,13 @@ private fun DrawScope.drawCornerAccents(size: Size) {
     
     // Top-left corner
     drawLine(
-        color = HolographicColors.hologramCyan,
+        color = NeonColors.hologramCyan,
         start = Offset(cornerOffset, cornerOffset),
         end = Offset(cornerOffset + cornerSize, cornerOffset),
         strokeWidth = 2f
     )
     drawLine(
-        color = HolographicColors.hologramCyan,
+        color = NeonColors.hologramCyan,
         start = Offset(cornerOffset, cornerOffset),
         end = Offset(cornerOffset, cornerOffset + cornerSize),
         strokeWidth = 2f
@@ -425,13 +426,13 @@ private fun DrawScope.drawCornerAccents(size: Size) {
     
     // Top-right corner
     drawLine(
-        color = HolographicColors.hologramPurple,
+        color = NeonColors.hologramPurple,
         start = Offset(size.width - cornerOffset - cornerSize, cornerOffset),
         end = Offset(size.width - cornerOffset, cornerOffset),
         strokeWidth = 2f
     )
     drawLine(
-        color = HolographicColors.hologramPurple,
+        color = NeonColors.hologramPurple,
         start = Offset(size.width - cornerOffset, cornerOffset),
         end = Offset(size.width - cornerOffset, cornerOffset + cornerSize),
         strokeWidth = 2f
@@ -439,13 +440,13 @@ private fun DrawScope.drawCornerAccents(size: Size) {
     
     // Bottom-left corner
     drawLine(
-        color = HolographicColors.hologramGreen,
+        color = NeonColors.hologramGreen,
         start = Offset(cornerOffset, size.height - cornerOffset - cornerSize),
         end = Offset(cornerOffset, size.height - cornerOffset),
         strokeWidth = 2f
     )
     drawLine(
-        color = HolographicColors.hologramGreen,
+        color = NeonColors.hologramGreen,
         start = Offset(cornerOffset, size.height - cornerOffset),
         end = Offset(cornerOffset + cornerSize, size.height - cornerOffset),
         strokeWidth = 2f
@@ -453,13 +454,13 @@ private fun DrawScope.drawCornerAccents(size: Size) {
     
     // Bottom-right corner
     drawLine(
-        color = HolographicColors.hologramPink,
+        color = NeonColors.hologramPink,
         start = Offset(size.width - cornerOffset, size.height - cornerOffset - cornerSize),
         end = Offset(size.width - cornerOffset, size.height - cornerOffset),
         strokeWidth = 2f
     )
     drawLine(
-        color = HolographicColors.hologramPink,
+        color = NeonColors.hologramPink,
         start = Offset(size.width - cornerOffset - cornerSize, size.height - cornerOffset),
         end = Offset(size.width - cornerOffset, size.height - cornerOffset),
         strokeWidth = 2f
@@ -470,7 +471,7 @@ private fun DrawScope.drawCornerAccents(size: Size) {
 @Composable
 fun HolographicChip(
     value: Int = 500,
-    color: Color = HolographicColors.playerOne,
+    color: Color = NeonColors.playerOne,
     isActive: Boolean = true,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
@@ -572,15 +573,14 @@ private fun DrawScope.draw3DChip(size: Size, value: Int, color: Color, isActive:
     )
     
     // Value text
-    drawSimpleText(
-        text = value.toString(),
-        color = Color.White,
-        fontSize = 20f,
-        topLeft = Offset(
-            center.x - radius * 0.4f,
-            center.y - radius * 0.3f
-        )
-    )
+    drawIntoCanvas { canvas ->
+        val paint = android.graphics.Paint().apply {
+            this.color = Color.White.toArgb()
+            textSize = 20f
+            isAntiAlias = true
+        }
+        canvas.nativeCanvas.drawText(value.toString(), center.x - radius * 0.4f, center.y - radius * 0.3f, paint)
+    }
     
     // Shine effect
     drawArc(
@@ -605,14 +605,14 @@ fun Modifier.drawGlitchEffect(): Modifier = this.then(
             val glitchOffsetY = (Math.random() * 4 - 2).toFloat()
             
             drawRect(
-                color = HolographicColors.hologramCyan.copy(alpha = 0.3f),
+                color = NeonColors.hologramCyan.copy(alpha = 0.3f),
                 topLeft = Offset(glitchOffsetX, glitchOffsetY),
                 size = size,
                 blendMode = BlendMode.Screen
             )
             
             drawRect(
-                color = HolographicColors.hologramPurple.copy(alpha = 0.2f),
+                color = NeonColors.hologramPurple.copy(alpha = 0.2f),
                 topLeft = Offset(-glitchOffsetX, -glitchOffsetY),
                 size = size,
                 blendMode = BlendMode.Screen
@@ -710,22 +710,3 @@ enum class ButtonType {
     WARNING,
     DANGER
 }
-
-private fun DrawScope.drawSimpleText(
-    text: String,
-    color: Color,
-    fontSize: Float,
-    topLeft: Offset
-) {
-    drawIntoCanvas { canvas ->
-        val paint = android.graphics.Paint().apply {
-            this.color = color.toArgb()
-            textSize = fontSize
-            isAntiAlias = true
-        }
-        canvas.nativeCanvas.drawText(text, topLeft.x, topLeft.y + fontSize, paint)
-    }
-}
-
-// Color extension for darkening
-

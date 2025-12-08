@@ -1,33 +1,46 @@
 package com.neon.game.multiplier
 
+import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameResult
 
-/**
- * Simple risk/reward drop game with difficulty scaling:
- * - Board: rows x cols grid; player drops chips into columns.
- * - Each successful drop adds baseScore * multiplier * streakBonus.
- * - Hazard chance scales with multiplier; on hazard, a life is lost and streak resets.
- * - Game ends when lives hit 0 or board is full.
- * - Difficulty affects hazard chances and scoring multipliers.
- */
 class MultiplierGame(
     private val rows: Int = 6,
     private val cols: Int = 5,
     private val baseScore: Int = 10,
-    private val maxLives: Int = 3,
+    private val maxLives: Int = 3
+) : BaseGameState() {
+
+    // Public state properties
+    var board: Array<Array<Int?>> = emptyBoard()
+        private set
+    override var score: Int = 0
+        private set
+    var multiplier: Int = 1
+        private set
+    var streak: Int = 0
+        private set
+    var bestStreak: Int = 0
+        private set
+    var lives: Int = maxLives
+        private set
+    override var isGameOver: Boolean = false
+        private set
+    var lastEvent: Event = Event.None
+        private set
     private var difficulty: GameDifficulty = GameDifficulty.MEDIUM
-) {
-    data class State(
-        val board: Array<Array<Int?>>,
-        val score: Int,
-        val multiplier: Int,
-        val streak: Int,
-        val bestStreak: Int,
-        val lives: Int,
-        val isGameOver: Boolean,
-        val lastEvent: Event,
-        val difficulty: GameDifficulty
-    )
+
+    // BaseGameState implementation
+    override var moves: Int = 0
+        private set
+    override var turnCount: Int = 0
+        private set
+    override val result: GameResult
+        get() = when {
+            !isGameOver -> GameResult.InProgress
+            lives > 0 -> GameResult.Win(1) // Win by cashing out
+            else -> GameResult.Loss // Lost all lives
+        }
 
     sealed class Event {
         data class Success(val points: Int) : Event()
@@ -36,40 +49,25 @@ class MultiplierGame(
         object None : Event()
     }
 
-    private var board: Array<Array<Int?>> = emptyBoard()
-    private var score = 0
-    private var multiplier = 1
-    private var streak = 0
-    private var bestStreak = 0
-    private var lives = maxLives
-    private var gameOver = false
-    private var lastEvent: Event = Event.None
-
-    fun state(): State = State(
-        board = board.map { it.copyOf() }.toTypedArray(),
-        score = score,
-        multiplier = multiplier,
-        streak = streak,
-        bestStreak = bestStreak,
-        lives = lives,
-        isGameOver = gameOver,
-        lastEvent = lastEvent,
-        difficulty = difficulty
-    )
-    
-    fun setDifficulty(newDifficulty: GameDifficulty) {
+    fun start(newDifficulty: GameDifficulty) {
         difficulty = newDifficulty
+        reset()
     }
 
+    override fun getDifficulty(): GameDifficulty = difficulty
+    
     fun setMultiplier(value: Int) {
+        if (isGameOver) return
         multiplier = value.coerceAtLeast(1)
     }
 
-    fun drop(column: Int): State {
-        if (gameOver || column !in 0 until cols) return state()
-        val row = findRow(column) ?: return state() // column full
+    fun drop(column: Int) {
+        if (isGameOver || column !in 0 until cols) return
+        val row = findRow(column) ?: return // column full
 
-        // Difficulty scaling: Easy = lower hazard, Hard = higher hazard
+        moves++
+        turnCount++
+
         val difficultyModifier = when (difficulty) {
             GameDifficulty.EASY -> 0.7
             GameDifficulty.MEDIUM -> 1.0
@@ -101,7 +99,6 @@ class MultiplierGame(
             streak += 1
             bestStreak = maxOf(bestStreak, streak)
             
-            // Difficulty scaling: Easy = higher scores, Hard = lower scores
             val difficultyScoreModifier = when (difficulty) {
                 GameDifficulty.EASY -> 1.5
                 GameDifficulty.MEDIUM -> 1.0
@@ -115,28 +112,28 @@ class MultiplierGame(
         }
 
         if (lives <= 0 || isBoardFull()) {
-            gameOver = true
+            isGameOver = true
         }
-        return state()
     }
 
-    fun cashOut(): State {
-        if (gameOver) return state()
-        gameOver = true
+    fun cashOut() {
+        if (isGameOver) return
+        isGameOver = true
         lastEvent = Event.CashOut
-        return state()
     }
 
-    fun reset(): State {
+    override fun reset(): BaseGameState {
         board = emptyBoard()
         score = 0
         streak = 0
         bestStreak = 0
         lives = maxLives
-        gameOver = false
+        isGameOver = false
         lastEvent = Event.None
         multiplier = 1
-        return state()
+        moves = 0
+        turnCount = 0
+        return this
     }
 
     private fun emptyBoard(): Array<Array<Int?>> = Array(rows) { arrayOfNulls<Int>(cols) }

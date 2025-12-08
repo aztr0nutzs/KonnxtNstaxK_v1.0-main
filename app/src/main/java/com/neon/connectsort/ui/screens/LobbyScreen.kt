@@ -61,7 +61,7 @@ fun LobbyScreen(
                 text = "CONNECT-SORT",
                 fontSize = 28,
                 fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.neonCyan
+                neonColor = NeonColors.hologramCyan
             )
             Text(
                 text = "Neon arcade hub",
@@ -72,7 +72,7 @@ fun LobbyScreen(
                 text = "Coins: ${state.totalCoins}",
                 fontSize = 16,
                 fontWeight = FontWeight.SemiBold,
-                neonColor = NeonColors.neonYellow
+                neonColor = NeonColors.hologramYellow
             )
         }
 
@@ -127,19 +127,19 @@ fun LobbyScreen(
             NeonButton(
                 text = "SETTINGS",
                 onClick = { navController.toSettings() },
-                neonColor = NeonColors.neonBlue,
+                neonColor = NeonColors.hologramBlue,
                 modifier = Modifier.weight(1f)
             )
             NeonButton(
                 text = "CHIPS",
                 onClick = { navController.toCharacterChips() },
-                neonColor = NeonColors.neonMagenta,
+                neonColor = NeonColors.hologramPink,
                 modifier = Modifier.weight(1f)
             )
             NeonButton(
                 text = "SHOP",
                 onClick = { navController.toShop() },
-                neonColor = NeonColors.neonGreen,
+                neonColor = NeonColors.hologramGreen,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -157,25 +157,25 @@ private fun gameModes(): List<LobbyMode> = listOf(
     LobbyMode(
         name = "Connect 4",
         description = "Classic drop duel vs AI",
-        color = NeonColors.neonCyan,
+        color = NeonColors.hologramCyan,
         onClick = { it.toConnectFour() }
     ),
     LobbyMode(
         name = "Ball Sort",
         description = "Sort the neon vials",
-        color = NeonColors.neonGreen,
+        color = NeonColors.hologramGreen,
         onClick = { it.toBallSort() }
     ),
     LobbyMode(
         name = "Multiplier",
         description = "Risk/reward streaks",
-        color = NeonColors.neonYellow,
+        color = NeonColors.hologramYellow,
         onClick = { it.toMultiplier() }
     ),
     LobbyMode(
         name = "Shop",
         description = "Buy neon upgrades",
-        color = NeonColors.neonMagenta,
+        color = NeonColors.hologramPink,
         onClick = { it.toShop() }
     )
 )

@@ -1,58 +1,63 @@
 package com.neon.connectsort.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.neon.connectsort.core.AppContextHolder
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.game.common.GameDifficulty
 import com.neon.game.multiplier.MultiplierGame
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class MultiplierViewModel(
-    private val repository: AppPreferencesRepository = AppPreferencesRepository(AppContextHolder.appContext)
+    private val repository: AppPreferencesRepository? = null
 ) : ViewModel() {
     private val game = MultiplierGame()
 
-    private val _gameState = MutableStateFlow(mapState(game.state()))
+    private val _gameState = MutableStateFlow(mapToGameState())
     val gameState: StateFlow<MultiplierGameState> = _gameState.asStateFlow()
+
+    fun onStartGame(difficulty: GameDifficulty) {
+        game.start(difficulty)
+        updateState()
+    }
+
+    fun onDrop(column: Int) {
+        game.drop(column)
+        updateState()
+    }
+
+    fun onCashOut() {
+        game.cashOut()
+        updateState()
+    }
+
+    fun onRestart() {
+        game.reset()
+        updateState()
+    }
 
     fun setMultiplier(multiplier: Int) {
         game.setMultiplier(multiplier)
-        _gameState.value = mapState(game.state())
+        updateState()
     }
 
-    fun dropChip(column: Int) {
-        _gameState.value = mapState(game.drop(column))
+    private fun updateState() {
+        _gameState.value = mapToGameState()
     }
 
-    fun cashOut() {
-        _gameState.value = mapState(game.cashOut())
-    }
-
-    fun resetGame() {
-        _gameState.value = mapState(game.reset())
-    }
-    
-    fun setDifficulty(difficulty: GameDifficulty) {
-        game.setDifficulty(difficulty)
-        _gameState.value = mapState(game.state())
-    }
-
-    private fun mapState(state: MultiplierGame.State): MultiplierGameState =
-        MultiplierGameState(
-            board = state.board,
-            score = state.score,
-            currentMultiplier = state.multiplier,
-            currentStreak = state.streak,
-            maxStreak = state.bestStreak,
-            lives = state.lives,
-            lastEvent = state.lastEvent,
-            isGameOver = state.isGameOver,
-            difficulty = state.difficulty
+    private fun mapToGameState(): MultiplierGameState {
+        return MultiplierGameState(
+            board = game.board.map { it.copyOf() }.toTypedArray(),
+            score = game.score,
+            currentMultiplier = game.multiplier,
+            currentStreak = game.streak,
+            maxStreak = game.bestStreak,
+            lives = game.lives,
+            lastEvent = game.lastEvent,
+            isGameOver = game.isGameOver,
+            difficulty = game.getDifficulty()
         )
+    }
 }
 
 data class MultiplierGameState(

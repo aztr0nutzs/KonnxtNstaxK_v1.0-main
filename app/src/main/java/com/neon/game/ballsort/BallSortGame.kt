@@ -1,106 +1,107 @@
 package com.neon.game.ballsort
 
-/**
- * Pure logic for Ball Sort puzzle (no Android/Compose types).
- * Tubes hold integer color ids; capacity defaults to 4 slots per tube.
- * 
- * Exception-safe implementation with proper validation and reset functionality.
- */
-class BallSortGame(
-    private val capacity: Int = 4
-) {
-    /**
-     * Generate a shuffled level with N colors and two empty tubes.
-     * The level is not guaranteed to be optimally minimal but avoids overfilling.
-     * 
-     * @param level The level number (1-based)
-     * @return List of tubes, each containing color IDs
-     * @throws IllegalArgumentException if level is invalid
-     */
-    fun generateLevel(level: Int): List<MutableList<Int>> {
+import com.neon.game.common.BaseGameState
+import com.neon.game.common.GameResult
+
+class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
+
+    private var _tubes: List<MutableList<Int>> = emptyList()
+    val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Expose immutable view
+
+    private var _level: Int = 1
+
+    override var score: Int = 0
+        private set
+    override var moves: Int = 0
+        private set
+    override var turnCount: Int = 0 // Same as moves for this game
+        private set
+    override val isGameOver: Boolean
+        get() = isSolved()
+    override val result: GameResult
+        get() = when {
+            isSolved() -> GameResult.Win(1) // Player 1 wins, placeholder
+            else -> GameResult.InProgress
+        }
+    
+    init {
+        startLevel(1)
+    }
+
+    fun startLevel(level: Int) {
         require(level > 0) { "Level must be positive, got: $level" }
+        _level = level
+        _tubes = generateInitialTubes(level)
+        moves = 0
+        turnCount = 0
+        score = 0
+    }
+
+    private fun generateInitialTubes(level: Int): List<MutableList<Int>> {
         require(capacity > 0) { "Capacity must be positive, got: $capacity" }
         
         val colorCount = (level / 2 + 2).coerceIn(2, 6)
         val colors = (0 until colorCount).flatMap { List(capacity) { it } }.toMutableList()
         val tubeCount = colorCount + 2 // add two empty tubes for maneuvering
 
-        val tubes = MutableList(tubeCount) { mutableListOf<Int>() }
+        val initialTubes = MutableList(tubeCount) { mutableListOf<Int>() }
         colors.shuffle()
         
         // Distribute colors evenly across tubes
         colors.forEachIndexed { index, color ->
             val tubeIndex = index % colorCount // Only fill non-empty tubes initially
-            tubes[tubeIndex].add(color)
+            initialTubes[tubeIndex].add(color)
         }
         
-        return tubes
+        return initialTubes
     }
 
     /**
-     * Check if a move from one tube to another is valid.
-     * 
-     * @param tubes Current game state
-     * @param from Source tube index
-     * @param to Destination tube index
-     * @return true if the move is valid
+     * Rules for a valid move:
+     * 1. The source tube cannot be empty.
+     * 2. The destination tube cannot be full (less than `capacity`).
+     * 3. The top ball of the source tube must match the top ball of the destination tube,
+     *    or the destination tube must be empty.
      */
-    fun isValidMove(tubes: List<List<Int>>, from: Int, to: Int): Boolean {
-        try {
-            if (from == to) return false
-            if (from !in tubes.indices || to !in tubes.indices) return false
-            if (tubes[from].isEmpty()) return false
-            if (tubes[to].size >= capacity) return false
+    fun isValidMove(from: Int, to: Int): Boolean {
+        if (isGameOver) return false
+        if (from == to) return false
+        if (from !in _tubes.indices || to !in _tubes.indices) return false
+        
+        val sourceTube = _tubes[from]
+        val destTube = _tubes[to]
 
-            val ball = tubes[from].last()
-            val target = tubes[to]
-            return target.isEmpty() || target.last() == ball
-        } catch (e: Exception) {
-            // Catch any unexpected exceptions and return false
-            return false
-        }
+        if (sourceTube.isEmpty()) return false
+        if (destTube.size >= capacity) return false
+
+        val ballToMove = sourceTube.last()
+        return destTube.isEmpty() || destTube.last() == ballToMove
     }
 
-    /**
-     * Execute a move from one tube to another.
-     * 
-     * @param tubes Current game state
-     * @param from Source tube index
-     * @param to Destination tube index
-     * @return New game state after the move
-     * @throws IllegalStateException if the move is invalid
-     */
-    fun move(tubes: List<List<Int>>, from: Int, to: Int): List<MutableList<Int>> {
-        require(isValidMove(tubes, from, to)) { 
+    fun move(from: Int, to: Int) {
+        require(isValidMove(from, to)) { 
             "Invalid move from tube $from to tube $to" 
         }
         
-        val snapshot = tubes.map { it.toMutableList() }.toMutableList()
-        val ball = snapshot[from].removeLast()
-        snapshot[to].add(ball)
-        return snapshot
+        val ball = _tubes[from].removeLast()
+        _tubes[to].add(ball)
+        moves++
+        turnCount++
     }
 
     /**
-     * Check if the puzzle is solved.
-     * A puzzle is solved when all tubes are either empty or contain only one color at full capacity.
-     * 
-     * @param tubes Current game state
-     * @return true if the puzzle is solved
+     * A puzzle is solved when every tube is either:
+     * 1. Empty.
+     * 2. Full to `capacity` with balls of a single color.
      */
-    fun isSolved(tubes: List<List<Int>>): Boolean {
-        return tubes.all { tube ->
+    fun isSolved(): Boolean {
+        return _tubes.all { tube ->
             tube.isEmpty() || (tube.size == capacity && tube.distinct().size == 1)
         }
     }
     
-    /**
-     * Reset the game by generating a new level.
-     * 
-     * @param level The level to generate
-     * @return New game state
-     */
-    fun reset(level: Int): List<MutableList<Int>> {
-        return generateLevel(level)
+    override fun reset(): BallSortGame {
+        startLevel(_level)
+        return this
     }
 }

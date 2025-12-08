@@ -72,6 +72,10 @@ class AppPreferencesRepository(private val context: Context) {
         )
     }
 
+    val difficultyFlow: Flow<Int> = context.userPreferencesDataStore.data.map {
+        it[Keys.DIFFICULTY] ?: 2
+    }
+
     suspend fun setSound(enabled: Boolean) = write { it[Keys.SOUND] = enabled }
     suspend fun setMusic(enabled: Boolean) = write { it[Keys.MUSIC] = enabled }
     suspend fun setVolume(value: Float) = write { it[Keys.VOLUME] = value }
@@ -80,38 +84,34 @@ class AppPreferencesRepository(private val context: Context) {
     suspend fun setVibration(enabled: Boolean) = write { it[Keys.VIBRATION] = enabled }
     suspend fun setTutorials(enabled: Boolean) = write { it[Keys.TUTORIALS] = enabled }
 
-    suspend fun setCoins(coins: Int) = context.userPreferencesDataStore.edit { prefs ->
-        prefs[Keys.COINS] = coins
-    }
+    suspend fun setCoins(coins: Int) = write { it[Keys.COINS] = coins }
 
-    suspend fun setSelectedCharacter(id: String) = context.userPreferencesDataStore.edit { prefs ->
-        prefs[Keys.SELECTED_CHAR] = id
-    }
+    suspend fun setSelectedCharacter(id: String) = write { it[Keys.SELECTED_CHAR] = id }
 
-    suspend fun unlockCharacter(id: String) = context.userPreferencesDataStore.edit { prefs ->
+    suspend fun unlockCharacter(id: String) = write { prefs ->
         val current = prefs[Keys.UNLOCKED] ?: setOf("nexus_prime")
         prefs[Keys.UNLOCKED] = current + id
     }
     
-    suspend fun setDifficulty(difficulty: Int) = context.userPreferencesDataStore.edit { prefs ->
+    suspend fun setDifficulty(difficulty: Int) = write { prefs ->
         prefs[Keys.DIFFICULTY] = difficulty.coerceIn(1, 3)
     }
     
-    suspend fun setHighScoreBallSort(score: Int) = context.userPreferencesDataStore.edit { prefs ->
+    suspend fun setHighScoreBallSort(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_BALL_SORT] ?: 0
         if (score > current) {
             prefs[Keys.HIGH_SCORE_BALL_SORT] = score
         }
     }
     
-    suspend fun setHighScoreMultiplier(score: Int) = context.userPreferencesDataStore.edit { prefs ->
+    suspend fun setHighScoreMultiplier(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_MULTIPLIER] ?: 0
         if (score > current) {
             prefs[Keys.HIGH_SCORE_MULTIPLIER] = score
         }
     }
     
-    suspend fun setHighScoreConnectFour(score: Int) = context.userPreferencesDataStore.edit { prefs ->
+    suspend fun setHighScoreConnectFour(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_CONNECT_FOUR] ?: 0
         if (score > current) {
             prefs[Keys.HIGH_SCORE_CONNECT_FOUR] = score

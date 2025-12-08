@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.MaterialTheme
 import com.neon.connectsort.ui.screens.viewmodels.ConnectFourViewModel
-import com.neon.connectsort.ui.theme.HolographicColors
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonGameTheme
 import com.neon.connectsort.ui.theme.NeonButton
@@ -50,19 +49,19 @@ fun ConnectFourScreen(
             NeonButton(
                 text = "← LOBBY",
                 onClick = { navController.popBackStack() },
-                neonColor = NeonColors.neonBlue,
+                neonColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(110.dp)
             )
             NeonText(
                 text = "CONNECT 4",
                 fontSize = 24,
                 fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.neonCyan
+                neonColor = NeonColors.hologramCyan
             )
             NeonButton(
                 text = "RESET",
                 onClick = { viewModel.resetGame() },
-                neonColor = NeonColors.neonRed,
+                neonColor = NeonColors.hologramRed,
                 modifier = Modifier.width(110.dp)
             )
         }
@@ -72,8 +71,8 @@ fun ConnectFourScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ScorePill("PLAYER", gameState.playerScore, HolographicColors.playerOne)
-            ScorePill("AI", gameState.aiScore, HolographicColors.playerTwo)
+            ScorePill("PLAYER", gameState.playerScore, NeonColors.playerOne)
+            ScorePill("AI", gameState.aiScore, NeonColors.playerTwo)
         }
 
         // Board
@@ -97,7 +96,7 @@ fun ConnectFourScreen(
                         val cx = c * cellW + cellW / 2
                         val cy = r * cellH + cellH / 2
                         drawCircle(
-                            color = NeonColors.neonBlue.copy(alpha = 0.25f),
+                            color = NeonColors.hologramBlue.copy(alpha = 0.25f),
                             radius = cellW.coerceAtMost(cellH) * 0.4f,
                             center = Offset(cx, cy),
                             style = Stroke(width = 3f)
@@ -111,7 +110,7 @@ fun ConnectFourScreen(
                         value?.let { player ->
                             val cx = c * cellW + cellW / 2
                             val cy = r * cellH + cellH / 2
-                            val color = if (player == 1) HolographicColors.playerOne else HolographicColors.playerTwo
+                            val color = if (player == 1) NeonColors.playerOne else NeonColors.playerTwo
                             drawCircle(
                                 color = color,
                                 radius = cellW.coerceAtMost(cellH) * 0.35f,
@@ -125,7 +124,7 @@ fun ConnectFourScreen(
                     val cx = col * cellW + cellW / 2
                     val cy = row * cellH + cellH / 2
                     drawCircle(
-                        color = NeonColors.neonYellow.copy(alpha = 0.5f),
+                        color = NeonColors.hologramYellow.copy(alpha = 0.5f),
                         radius = cellW.coerceAtMost(cellH) * 0.42f,
                         center = Offset(cx, cy),
                         style = Stroke(width = 6f)

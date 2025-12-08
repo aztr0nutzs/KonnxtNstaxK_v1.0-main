@@ -1,6 +1,9 @@
 package com.neon.game.connectfour
 
-class ConnectFourGame {
+import com.neon.game.common.BaseGameState
+import com.neon.game.common.GameResult
+
+class ConnectFourGame : BaseGameState() {
     companion object {
         const val ROWS = 6
         const val COLS = 7
@@ -9,21 +12,33 @@ class ConnectFourGame {
     
     private val board = Array(ROWS) { arrayOfNulls<Int>(COLS) }
     private var currentPlayer = 1
-    private var winner = 0
     private var winningLine = mutableListOf<Pair<Int, Int>>()
     
+    override var score: Int = 0
+    override var isGameOver: Boolean = false
+    override var moves: Int = 0
+    override var turnCount: Int = 0
+    override var result: GameResult = GameResult.InProgress
+        private set
+
     fun dropChip(column: Int, player: Int): Int? {
         if (column !in 0 until COLS) return null
-        if (winner != 0) return null
+        if (isGameOver) return null
         
         for (row in ROWS - 1 downTo 0) {
             if (board[row][column] == null) {
                 board[row][column] = player
                 currentPlayer = if (player == 1) 2 else 1
+                moves++
+                turnCount++
                 
                 // Check for win
                 if (checkWin(player)) {
-                    winner = player
+                    isGameOver = true
+                    result = GameResult.Win(player)
+                } else if (isBoardFull()) {
+                    isGameOver = true
+                    result = GameResult.Draw
                 }
                 return row
             }
@@ -113,19 +128,22 @@ class ConnectFourGame {
     
     fun getCurrentPlayer(): Int = currentPlayer
     
-    fun getWinner(): Int = winner
-    
     fun getWinningLine(): List<Pair<Int, Int>> = winningLine
     
-    fun reset() {
+    override fun reset(): BaseGameState {
         for (row in 0 until ROWS) {
             for (col in 0 until COLS) {
                 board[row][col] = null
             }
         }
         currentPlayer = 1
-        winner = 0
         winningLine.clear()
+        score = 0
+        isGameOver = false
+        moves = 0
+        turnCount = 0
+        result = GameResult.InProgress
+        return this
     }
     
     fun isBoardFull(): Boolean {

@@ -1,16 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="cyber_background">#FF050512</color>
-    <color name="cyber_glow">#3300FFFF</color>
-    <color name="circuit_base">#FF0F1A33</color>
-    <color name="neon_cyan">#FF00FFFF</color>
-    <color name="chip_base">#FF061020</color>
-    <color name="neon_yellow">#FFFFF55A</color>
-    <color name="tube_base">#FF14243C</color>
-    <color name="neon_red">#FFFF3D71</color>
-    <color name="chip_gradient">#B300D2FF</color>
-    <color name="neon_purple">#FF9D00FF</color>
-    <color name="neon_green">#FF00FFAA</color>
-    <color name="neon_pink">#FFFF00FF</color>
-    <color name="data_stream">#66FFFFFF</color>
-    <color name="inner_glow">#2200FFFF</color>
+    <color name="neon_background">#FF0B0B1C</color>
 </resources>
