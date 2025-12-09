@@ -171,8 +171,9 @@ val Modifier.holographicBorder: Modifier
         shape = RoundedCornerShape(NeonGameTheme.dimensions.cornerRadius)
     )
 
+@Composable
 fun Modifier.holoButton(): Modifier = this
-    .holographicBorder()
+    .holographicBorder
     .padding(8.dp)
     .clip(RoundedCornerShape(16.dp))
 

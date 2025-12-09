@@ -40,7 +40,13 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     private fun generateInitialTubes(level: Int): List<MutableList<Int>> {
         require(capacity > 0) { "Capacity must be positive, got: $capacity" }
 
-        val colorCount = (level / 2 + 2).coerceIn(2, 6)
+        val baseColorCount = (level / 2 + 2).coerceIn(2, 6)
+        val difficultyBonus = when (getDifficulty()) {
+            GameDifficulty.EASY -> 0
+            GameDifficulty.MEDIUM -> 1
+            GameDifficulty.HARD -> 2
+        }
+        val colorCount = (baseColorCount + difficultyBonus).coerceIn(2, 8)
         val colors = (0 until colorCount).flatMap { List(capacity) { it } }.toMutableList()
         val tubeCount = colorCount + 2 // add empty tubes for maneuvering
 

@@ -62,3 +62,20 @@
 **Decision:**
 - **Dedicated component package:** The holographic button/card/panel/particle toolkit lives under `ui.components.HolographicComponents`, making it obvious that these widgets (which rely on `NeonColors`/`HolographicGradients`) are reusable primitives rather than screen-specific code.
 - **Screen reliance:** Lobby, Shop, Settings, and CharacterChips import `com.neon.connectsort.ui.components.*` so their primary actions and major panels all rely on the same glowing button and card widgets. The shared components include the animations, glow borders, and gradients that make a single style feel cohesive across the app.
+
+---
+
+## 2025-12-10 - Preferences & progression
+
+**Decision:**
+- **Preferences schema:** `AppPreferencesRepository` now exposes `AudioSettings(soundEnabled, musicEnabled, volume)` plus flow helpers (`getAudioSettingsFlow()`, `getDifficultyFlow()`, `getUnlockedChipsFlow()`) so screens can react to each concern independently.
+- **Key names documented:** Stored keys (`sound`, `music`, `volume`, `game_difficulty`, `unlocked_chars`, `high_score_*`) live in `AppPreferencesRepository.Keys`, and reset helpers (e.g., `setAudioSettings`, `unlockChip`) coalesce writes so downstream code can reason about persistence without duplicating key handling.
+- **Gameplay wiring:** ViewModels (Settings, Lobby, BallSort, Multiplier, CharacterChips) now consume those flows, feed difficulty into each game, and record new highs/unlocks back through the repository, keeping progression consistent across restarts.
+
+## 2025-12-09 - Gradle tooling
+
+**Decision:** The sandboxed environment lacks a default `java` in `PATH`, and exporting `JAVA_HOME` when invoking `gradlew` triggered quoting errors in the stock wrapper script. To keep the workflow stable, I now point `org.gradle.java.home` at the JetBrains JBR bundled with Android Studio and run the Gradle distribution binary with that JBR on my `PATH` when invoking tests or builds. This approach keeps the existing wrapper metadata intact while providing a reliable JDK.
+
+## 2025-12-09 - Adaptive icon placement
+
+**Decision:** `<adaptive-icon>` assets must only live in API-26+ qualified resource directories to satisfy the aapt2 validator. I removed the redundant `mipmap-anydpi/ic_launcher_round.xml` (the adaptive icon is still defined under `mipmap-anydpi-v26`) so the base folder only contains legacy icons, which allows resource linking to succeed on the project’s current `minSdk` without extra tools tags.

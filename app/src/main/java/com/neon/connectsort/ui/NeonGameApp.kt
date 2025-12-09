@@ -8,13 +8,17 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.userPreferencesDataStore
 import com.neon.connectsort.navigation.AppDestination
 import com.neon.connectsort.ui.screens.*
 import com.neon.connectsort.ui.screens.viewmodels.*
@@ -22,16 +26,19 @@ import com.neon.connectsort.ui.screens.viewmodels.*
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun NeonGameApp() {
+    val context = LocalContext.current
+    val repository = remember { AppPreferencesRepository(context.userPreferencesDataStore) }
+    val viewModelFactory = remember(repository) { PreferencesViewModelFactory(repository) }
     val navController = rememberAnimatedNavController()
 
     // ViewModels
-    val lobbyViewModel: LobbyViewModel = viewModel()
-    val connectFourViewModel: ConnectFourViewModel = viewModel()
-    val ballSortViewModel: BallSortViewModel = viewModel()
-    val multiplierViewModel: MultiplierViewModel = viewModel()
-    val shopViewModel: ShopViewModel = viewModel()
-    val settingsViewModel: SettingsViewModel = viewModel()
-    val characterChipsViewModel: CharacterChipsViewModel = viewModel()
+    val lobbyViewModel: LobbyViewModel = viewModel(factory = viewModelFactory)
+    val connectFourViewModel: ConnectFourViewModel = viewModel(factory = viewModelFactory)
+    val ballSortViewModel: BallSortViewModel = viewModel(factory = viewModelFactory)
+    val multiplierViewModel: MultiplierViewModel = viewModel(factory = viewModelFactory)
+    val shopViewModel: ShopViewModel = viewModel(factory = viewModelFactory)
+    val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
+    val characterChipsViewModel: CharacterChipsViewModel = viewModel(factory = viewModelFactory)
 
     AnimatedNavHost(
         navController = navController,

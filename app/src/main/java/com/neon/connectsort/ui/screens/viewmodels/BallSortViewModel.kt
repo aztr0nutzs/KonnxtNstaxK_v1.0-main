@@ -6,12 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.game.ballsort.BallSortGame
+import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class BallSortViewModel(
-    private val repository: AppPreferencesRepository? = null
+    private val repository: AppPreferencesRepository
 ) : ViewModel() {
     private val game = BallSortGame()
 
@@ -23,6 +27,28 @@ class BallSortViewModel(
 
     private val _animationState = MutableStateFlow<BallAnimationState?>(null)
     val animationState: StateFlow<BallAnimationState?> = _animationState.asStateFlow()
+
+    private val _bestMoves = MutableStateFlow<Int?>(null)
+    private var hasRecordedLevelComplete = false
+
+    init {
+        viewModelScope.launch {
+            repository.prefsFlow.collect { prefs ->
+                _bestMoves.value = prefs.highScoreBallSort.takeIf { it > 0 }
+                updateState()
+            }
+        }
+
+        viewModelScope.launch {
+            repository.getDifficultyFlow().collect { difficulty ->
+                if (game.getDifficulty() != difficulty) {
+                    game.reset(difficulty)
+                    game.startLevel(game.level)
+                    updateState()
+                }
+            }
+        }
+    }
 
     fun loadLevel(level: Int) {
         game.startLevel(level)
@@ -53,7 +79,6 @@ class BallSortViewModel(
         viewModelScope.launch {
             _animationState.value = BallAnimationState(fromTube, toTube, 0f)
 
-            // Animation loop
             for (progress in 0..100 step 10) {
                 _animationState.value = _animationState.value?.copy(progress = progress / 100f)
                 delay(16)
@@ -68,12 +93,26 @@ class BallSortViewModel(
     }
 
     fun resetLevel() {
-        game.reset()
+        game.reset(game.getDifficulty())
+        game.startLevel(game.level)
         updateState()
     }
 
     private fun updateState() {
         _gameState.value = mapToGameState()
+        if (game.isSolved()) {
+            maybeSaveBestMoves()
+        } else {
+            hasRecordedLevelComplete = false
+        }
+    }
+
+    private fun maybeSaveBestMoves() {
+        if (hasRecordedLevelComplete) return
+        hasRecordedLevelComplete = true
+        viewModelScope.launch {
+            repository.setHighScoreBallSort(game.moves)
+        }
     }
 
     private fun mapToGameState(): BallSortGameState {
@@ -89,14 +128,10 @@ class BallSortViewModel(
             tubes = game.tubes.map { tube -> tube.map { palette[it % palette.size] } },
             level = game.level,
             moves = game.moves,
-            bestMoves = getBestMoves(game.level),
-            isLevelComplete = game.isSolved()
+            bestMoves = _bestMoves.value,
+            isLevelComplete = game.isSolved(),
+            difficulty = game.getDifficulty()
         )
-    }
-
-    private fun getBestMoves(level: Int): Int? {
-        // TODO: Load from repository when best scores are implemented
-        return null
     }
 }
 
@@ -105,7 +140,8 @@ data class BallSortGameState(
     val level: Int = 1,
     val moves: Int = 0,
     val bestMoves: Int? = null,
-    val isLevelComplete: Boolean = false
+    val isLevelComplete: Boolean = false,
+    val difficulty: GameDifficulty = GameDifficulty.MEDIUM
 )
 
 data class BallAnimationState(

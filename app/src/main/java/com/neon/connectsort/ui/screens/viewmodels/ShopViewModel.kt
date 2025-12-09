@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ShopViewModel(
-    private val repository: AppPreferencesRepository? = null
+    private val repository: AppPreferencesRepository
 ) : ViewModel() {
 
     private val _playerCoins = MutableStateFlow(2500)
@@ -22,7 +22,7 @@ class ShopViewModel(
 
     init {
         viewModelScope.launch {
-            repository?.prefsFlow?.collect { prefs ->
+            repository.prefsFlow.collect { prefs ->
                 _playerCoins.value = prefs.coins
             }
         }
@@ -42,7 +42,7 @@ class ShopViewModel(
         }
 
         viewModelScope.launch {
-            repository?.setCoins(_playerCoins.value - target.price)
+            repository.setCoins(_playerCoins.value - target.price)
         }
     }
 

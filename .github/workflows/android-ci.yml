@@ -34,14 +34,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: Run Lint
-      run: ./gradlew lint
-      
-    - name: Run Unit Tests
-      run: ./gradlew test
-      
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Run Gradle validation
+      run: ./gradlew clean lint test assembleDebug
       
     - name: Upload Lint Results
       if: always()

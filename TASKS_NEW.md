@@ -321,3 +321,306 @@ Goal: Introduce a virtual currency + rewards system and wire it into the existin
 
 Status: [TODO]
 Goal: Define a simple in-game currency and reward sources.
+
+Files:
+
+    app/src/main/java/com/neon/connectsort/core/domain/CurrencyBalance.kt (new)
+
+    app/src/main/java/com/neon/connectsort/core/data/EconomyRepository.kt (new)
+
+    app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/LobbyViewModel.kt
+
+    app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/ShopViewModel.kt
+
+Actions:
+
+    Define a CurrencyBalance data class and EconomyRepository:
+
+        Holds amount of “Neon Coins” (or similar).
+
+        Exposes Flow for current balance.
+
+    Decide on reward rules:
+
+        Win a game → +X coins (scaled by mode + difficulty).
+
+        Complete a story chapter → bonus coins.
+
+    Hook game ViewModels:
+
+        After a win/chapter completion, update EconomyRepository.
+
+Verification:
+
+./gradlew :app:testDebugUnitTest --tests "*Economy*"
+./gradlew assembleDebug
+
+Done when:
+
+    Currency increases when winning games.
+
+    Lobby or HUD can display the current balance via ViewModel.
+
+Notes:
+
+    Document coin reward formula in docs/DECISIONS.md.
+
+10.2 Shop items & purchases
+
+Status: [TODO]
+Goal: Make the Shop screen actually sell things: chips, cosmetics, etc., using the new currency.
+
+Files:
+
+    app/src/main/java/com/neon/connectsort/ui/screens/ShopScreen.kt
+
+    app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/ShopViewModel.kt
+
+    app/src/main/java/com/neon/connectsort/core/data/EconomyRepository.kt
+
+    app/src/main/java/com/neon/connectsort/core/data/ChipRepository.kt
+
+Actions:
+
+    Define a set of purchasable items:
+
+        New chips.
+
+        Cosmetic themes or board skins.
+
+    In ShopViewModel:
+
+        Provide list of shop items (name, price, type).
+
+        Implement purchase(itemId) which:
+
+            Checks balance.
+
+            Deducts coins if affordable.
+
+            Unlocks the chip/theme via repository.
+
+    In ShopScreen:
+
+        Display price and purchase button.
+
+        Show disabled state if not enough currency.
+
+        Indicate already purchased items.
+
+Verification:
+
+./gradlew assembleDebug
+
+Done when:
+
+    Player can earn coins by playing and spend them in the Shop to unlock chips or cosmetics.
+
+    Purchases persist across app restarts once wired to persistence.
+
+Notes:
+
+    Hook persistence into AppPreferencesRepository or a dedicated DataStore as needed.
+
+Phase 11 – Audio, VFX & Feel
+
+Goal: Make the game feel like a polished neon arcade: audio feedback, better animations, and subtle polish.
+11.1 Core SFX & mute controls
+
+Status: [TODO]
+Goal: Add sound effects for core actions and a mute/volume toggle in Settings.
+
+Files:
+
+    app/src/main/res/raw/ (new SFX files)
+
+    app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/SettingsViewModel.kt
+
+    app/src/main/java/com/neon/connectsort/ui/screens/SettingsScreen.kt
+
+    Places where game actions happen (game ViewModels or composables)
+
+Actions:
+
+    Add 3–5 short SFX:
+
+        Chip drop.
+
+        Win.
+
+        Lose.
+
+        Menu click.
+
+    Extend Settings persistence:
+
+        Volume or “SFX enabled” boolean.
+
+    Trigger SFX:
+
+        On chip placements, wins, and navigation clicks, respecting mute setting.
+
+Verification:
+
+./gradlew assembleDebug
+
+Done when:
+
+    Core actions play SFX.
+
+    Turning SFX off in Settings actually mutes them.
+
+Notes:
+
+    Avoid heavy libraries; use standard Android sound APIs.
+
+11.2 Animation & transitions polish
+
+Status: [TODO]
+Goal: Improve animations for chip movements, screen transitions, and lobby highlights without breaking performance.
+
+Files:
+
+    app/src/main/java/com/neon/connectsort/ui/screens/*
+
+    app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt
+
+    app/src/main/java/com/neon/connectsort/ui/theme/Effects.kt
+
+Actions:
+
+    Use animate*AsState and AnimatedVisibility for:
+
+        Chip drop/fall.
+
+        Win banners appearing.
+
+        Lobby buttons hover/press states.
+
+    If using AnimatedNavHost:
+
+        Add subtle slide/fade transitions between major screens.
+
+    Keep animations optional or tuned so they don’t feel sluggish on lower-end devices.
+
+Verification:
+
+./gradlew assembleDebug
+
+Done when:
+
+    Animations feel present and smooth but not obnoxious.
+
+    No new jank or crashes from animation code.
+
+Notes:
+
+    Document any global animation timing decisions in docs/DECISIONS.md.
+
+Phase 12 – Analytics, Crash Reporting & Release Prep
+
+Goal: Make the project ship-able: crash reporting, simple analytics, build variants, and Play Store readiness.
+12.1 Crash reporting & simple analytics hook
+
+Status: [TODO]
+Goal: Integrate a lightweight crash + event reporting pipeline (e.g., Firebase Crashlytics + Analytics), at least behind a build flag.
+
+Files:
+
+    app/build.gradle.kts
+
+    app/src/main/AndroidManifest.xml
+
+    app/src/main/java/com/neon/connectsort/core/analytics/AnalyticsLogger.kt (new)
+
+    App entry points (e.g., MainActivity, NeonGameApp)
+
+Actions:
+
+    Add dependencies (if you choose Firebase or similar) in build.gradle.kts.
+
+    Add a small AnalyticsLogger interface:
+
+        Methods like logScreenView(name), logEvent(name, params).
+
+    Wire minimal events:
+
+        Game started/ended.
+
+        Chapter completed.
+
+        Purchase made.
+
+    Ensure crash reporting is initialized only in non-debug builds (if possible).
+
+Verification:
+
+./gradlew assembleDebug
+
+Done when:
+
+    Analytics logger compiles and no runtime crash occurs if the service is misconfigured (fail safe).
+
+    Events are fired in the expected places (you can logcat or stub to verify in debug).
+
+Notes:
+
+    Keep it minimal; this is about readiness, not full data science.
+
+12.2 Build variants, ProGuard, and release bundle
+
+Status: [TODO]
+Goal: Produce a signed, obfuscated release bundle suitable for Play Store upload.
+
+Files:
+
+    app/build.gradle.kts
+
+    gradle.properties
+
+    /keystore (ignored in VCS, local only)
+
+    Any ProGuard rules file (e.g., app/proguard-rules.pro)
+
+Actions:
+
+    Configure build types:
+
+        debug and release with appropriate minifyEnabled and shrinkResources flags for release.
+
+    Ensure proguard-rules.pro preserves:
+
+        Entry points for Compose.
+
+        Any reflection-heavy frameworks (if used).
+
+    Add signing config:
+
+        Reference keystore via local.properties or keystore.properties (never commit raw creds).
+
+    Build a release bundle:
+
+    ./gradlew bundleRelease
+
+Verification:
+
+    bundleRelease completes without errors.
+
+    Install a signed APK/AAB on a test device and verify:
+
+        App launches and plays fully.
+
+        No obvious missing classes due to obfuscation.
+
+Done when:
+
+    You have a reproducible release build path described in BUILD_NOTES.md (or similar).
+
+    Release build is functionally equivalent to debug build for core features.
+
+Notes:
+
+    Write exact signing/build steps in docs/WORKLOG.md or BUILD_NOTES.md.
+
+End of advanced feature wave TASKS.md.
+Once these phases are green, you’ve moved from “cool prototype” to “actual shippable neon arcade app with story, progression, and economy.”

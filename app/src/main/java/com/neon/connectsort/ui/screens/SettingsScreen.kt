@@ -68,21 +68,21 @@ fun SettingsScreen(
             item {
                 SettingToggle(
                     label = "Sound Effects",
-                    isChecked = settings.soundEnabled,
+                    isChecked = settings.audio.soundEnabled,
                     onCheckedChange = { viewModel.toggleSound() }
                 )
             }
             item {
                 SettingToggle(
                     label = "Background Music",
-                    isChecked = settings.musicEnabled,
+                    isChecked = settings.audio.musicEnabled,
                     onCheckedChange = { viewModel.toggleMusic() }
                 )
             }
             item {
                 SettingSlider(
                     label = "Volume",
-                    value = settings.volume,
+                    value = settings.audio.volume,
                     onValueChange = { viewModel.setVolume(it) }
                 )
             }
@@ -106,7 +106,7 @@ fun SettingsScreen(
             item { SettingsCategory("Game") }
             item {
                  DifficultySelector(
-                    difficulty = settings.gameDifficulty,
+                    difficulty = settings.gameDifficulty.level,
                     onDifficultyChange = { viewModel.setDifficulty(it) }
                 )
             }

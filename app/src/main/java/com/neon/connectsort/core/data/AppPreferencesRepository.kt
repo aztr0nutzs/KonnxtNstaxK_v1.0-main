@@ -11,11 +11,14 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private const val PREFS_NAME = "user_prefs"
 val Context.userPreferencesDataStore: DataStore<Preferences> by preferencesDataStore(PREFS_NAME)
+
+private val DEFAULT_UNLOCKED_CHARACTERS = setOf("nexus_prime")
 
 data class UserPrefs(
     val soundEnabled: Boolean = true,
@@ -27,11 +30,17 @@ data class UserPrefs(
     val showTutorials: Boolean = true,
     val coins: Int = 2500,
     val selectedCharacterId: String = "nexus_prime",
-    val unlockedCharacterIds: Set<String> = setOf("nexus_prime"),
+    val unlockedCharacterIds: Set<String> = DEFAULT_UNLOCKED_CHARACTERS,
     val gameDifficulty: Int = 2, // 1=Easy, 2=Medium, 3=Hard
     val highScoreBallSort: Int = 0,
     val highScoreMultiplier: Int = 0,
     val highScoreConnectFour: Int = 0
+)
+
+data class AudioSettings(
+    val soundEnabled: Boolean = true,
+    val musicEnabled: Boolean = true,
+    val volume: Float = 0.8f
 )
 
 class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
@@ -64,7 +73,7 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             showTutorials = prefs[Keys.TUTORIALS] ?: true,
             coins = prefs[Keys.COINS] ?: 2500,
             selectedCharacterId = prefs[Keys.SELECTED_CHAR] ?: "nexus_prime",
-            unlockedCharacterIds = prefs[Keys.UNLOCKED] ?: setOf("nexus_prime"),
+            unlockedCharacterIds = prefs[Keys.UNLOCKED] ?: DEFAULT_UNLOCKED_CHARACTERS,
             gameDifficulty = prefs[Keys.DIFFICULTY] ?: 2,
             highScoreBallSort = prefs[Keys.HIGH_SCORE_BALL_SORT] ?: 0,
             highScoreMultiplier = prefs[Keys.HIGH_SCORE_MULTIPLIER] ?: 0,
@@ -72,8 +81,20 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         )
     }
 
-    val difficultyFlow: Flow<Int> = dataStore.data.map {
-        it[Keys.DIFFICULTY] ?: 2
+    fun getDifficultyFlow(): Flow<GameDifficulty> = dataStore.data.map {
+        GameDifficulty.fromLevel(it[Keys.DIFFICULTY] ?: 2)
+    }
+
+    fun getUnlockedChipsFlow(): Flow<Set<String>> = dataStore.data.map {
+        it[Keys.UNLOCKED] ?: DEFAULT_UNLOCKED_CHARACTERS
+    }
+
+    fun getAudioSettingsFlow(): Flow<AudioSettings> = dataStore.data.map { prefs ->
+        AudioSettings(
+            soundEnabled = prefs[Keys.SOUND] ?: true,
+            musicEnabled = prefs[Keys.MUSIC] ?: true,
+            volume = prefs[Keys.VOLUME] ?: 0.8f
+        )
     }
 
     suspend fun setSound(enabled: Boolean) = write { it[Keys.SOUND] = enabled }
@@ -88,9 +109,15 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setSelectedCharacter(id: String) = write { it[Keys.SELECTED_CHAR] = id }
 
-    suspend fun unlockCharacter(id: String) = write { prefs ->
-        val current = prefs[Keys.UNLOCKED] ?: setOf("nexus_prime")
+    suspend fun unlockChip(id: String) = write { prefs ->
+        val current = prefs[Keys.UNLOCKED] ?: DEFAULT_UNLOCKED_CHARACTERS
         prefs[Keys.UNLOCKED] = current + id
+    }
+
+    suspend fun setAudioSettings(settings: AudioSettings) = write { prefs ->
+        prefs[Keys.SOUND] = settings.soundEnabled
+        prefs[Keys.MUSIC] = settings.musicEnabled
+        prefs[Keys.VOLUME] = settings.volume.coerceIn(0f, 1f)
     }
     
     suspend fun setDifficulty(difficulty: Int) = write { prefs ->

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -49,10 +50,14 @@ class LobbyViewModelTest {
         repository.setHighScoreMultiplier(100)
         repository.setDifficulty(3)
 
-        val state = viewModel.state.first()
+        val state = viewModel.state.first {
+            it.highScoreBallSort == 10
+                && it.highScoreMultiplier == 100
+                && it.gameDifficulty == GameDifficulty.HARD
+        }
 
         assertEquals(10, state.highScoreBallSort)
         assertEquals(100, state.highScoreMultiplier)
-        assertEquals(3, state.gameDifficulty)
+        assertEquals(GameDifficulty.HARD, state.gameDifficulty)
     }
 }

@@ -6,10 +6,11 @@ import com.neon.connectsort.core.data.AppPreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class CharacterChipsViewModel(
-    private val repository: AppPreferencesRepository? = null
+    private val repository: AppPreferencesRepository
 ) : ViewModel() {
 
     private val _characters = MutableStateFlow(defaultRoster())
@@ -26,8 +27,13 @@ class CharacterChipsViewModel(
 
     init {
         viewModelScope.launch {
-            repository?.prefsFlow?.collect { prefs ->
-                _unlockedCharacters.value = prefs.unlockedCharacterIds
+            repository.getUnlockedChipsFlow().collect { unlocked ->
+                _unlockedCharacters.value = unlocked
+            }
+        }
+
+        viewModelScope.launch {
+            repository.prefsFlow.collect { prefs ->
                 _playerCredits.value = prefs.coins
                 _selectedCharacter.value = _characters.value
                     .map { it.copy(isUnlocked = prefs.unlockedCharacterIds.contains(it.id)) }
@@ -40,18 +46,18 @@ class CharacterChipsViewModel(
     }
 
     fun selectCharacter(character: CharacterChip) {
-        if (character.isUnlocked) {
-            viewModelScope.launch { repository?.setSelectedCharacter(character.id) }
-        }
+            if (character.isUnlocked) {
+                viewModelScope.launch { repository.setSelectedCharacter(character.id) }
+            }
     }
 
     fun purchaseCharacter(character: CharacterChip) {
         viewModelScope.launch {
             val currentCoins = _playerCredits.value
             if (currentCoins >= character.price) {
-                repository?.setCoins(currentCoins - character.price)
-                repository?.unlockCharacter(character.id)
-                repository?.setSelectedCharacter(character.id)
+                repository.setCoins(currentCoins - character.price)
+                repository.unlockChip(character.id)
+                repository.setSelectedCharacter(character.id)
             }
         }
     }

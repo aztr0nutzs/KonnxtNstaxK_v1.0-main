@@ -66,6 +66,24 @@ fun ConnectFourScreen(
             )
         }
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            NeonText(
+                text = "Difficulty: ${gameState.difficulty.displayName}",
+                fontSize = 14,
+                fontWeight = FontWeight.SemiBold,
+                neonColor = NeonColors.hologramPink
+            )
+            NeonText(
+                text = "Best wins: ${gameState.bestScore}",
+                fontSize = 14,
+                fontWeight = FontWeight.SemiBold,
+                neonColor = NeonColors.hologramYellow
+            )
+        }
+
         // Scores
         Row(
             modifier = Modifier.fillMaxWidth(),

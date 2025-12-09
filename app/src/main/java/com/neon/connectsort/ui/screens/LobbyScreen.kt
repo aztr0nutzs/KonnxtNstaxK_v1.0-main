@@ -3,23 +3,29 @@ package com.neon.connectsort.ui.screens
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -31,8 +37,10 @@ import com.neon.connectsort.navigation.toSettings
 import com.neon.connectsort.navigation.toShop
 import com.neon.connectsort.ui.components.HolographicButton
 import com.neon.connectsort.ui.components.HolographicCard
+import com.neon.connectsort.ui.screens.viewmodels.LobbyState
 import com.neon.connectsort.ui.screens.viewmodels.LobbyViewModel
 import com.neon.connectsort.ui.theme.NeonColors
+import com.neon.connectsort.ui.theme.NeonCard
 import com.neon.connectsort.ui.theme.NeonGameTheme
 import com.neon.connectsort.ui.theme.NeonText
 
@@ -67,13 +75,35 @@ fun LobbyScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
-                NeonText(
-                    text = "Coins: ${state.totalCoins}",
-                    fontSize = 16,
-                    fontWeight = FontWeight.SemiBold,
-                    neonColor = NeonColors.hologramYellow
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NeonText(
+                        text = "Coins: ${state.totalCoins}",
+                        fontSize = 16,
+                        fontWeight = FontWeight.SemiBold,
+                        neonColor = NeonColors.hologramYellow
+                    )
+                    NeonText(
+                        text = "Difficulty: ${state.gameDifficulty.displayName}",
+                        fontSize = 14,
+                        neonColor = NeonColors.hologramPink
+                    )
+                }
+                Text(
+                    text = "Pilot: ${characterNameFor(state.selectedCharacterId)}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            StatsRow(state)
+            Spacer(modifier = Modifier.height(12.dp))
+            ChipRow(state)
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Game mode grid
             LazyVerticalGrid(
@@ -205,4 +235,134 @@ private fun gameModes(): List<LobbyMode> = listOf(
         color = NeonColors.hologramPink,
         onClick = { it.toShop() }
     )
+)
+
+@Composable
+private fun StatsRow(state: LobbyState) {
+    val scrollState = rememberScrollState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatBadge("Difficulty", state.gameDifficulty.displayName, NeonColors.hologramPink)
+        StatBadge("Connect 4", displayScore(state.highScoreConnectFour), NeonColors.hologramCyan)
+        StatBadge("Ball Sort", displayScore(state.highScoreBallSort), NeonColors.hologramGreen)
+        StatBadge("Multiplier", displayScore(state.highScoreMultiplier), NeonColors.hologramYellow)
+    }
+}
+
+@Composable
+private fun StatBadge(label: String, value: String, neonColor: Color) {
+    NeonCard(
+        modifier = Modifier
+            .width(120.dp)
+            .height(90.dp),
+        neonColor = neonColor
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+            NeonText(
+                text = value,
+                fontSize = 18,
+                fontWeight = FontWeight.Bold,
+                neonColor = neonColor
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChipRow(state: LobbyState) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(130.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp)
+    ) {
+        items(chipCatalog) { chip ->
+            val unlocked = state.unlockedCharacterIds.contains(chip.id)
+            ChipBadge(
+                meta = chip,
+                isUnlocked = unlocked,
+                isSelected = state.selectedCharacterId == chip.id
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChipBadge(meta: ChipMeta, isUnlocked: Boolean, isSelected: Boolean) {
+    val baseColor = when {
+        isSelected -> NeonColors.hologramYellow
+        isUnlocked -> meta.color
+        else -> NeonColors.hologramCyan
+    }
+
+    NeonCard(
+        modifier = Modifier
+            .width(120.dp)
+            .height(110.dp)
+            .alpha(if (isUnlocked) 1f else 0.35f),
+        neonColor = baseColor
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            NeonText(
+                text = meta.displayName,
+                fontSize = 16,
+                fontWeight = FontWeight.Bold,
+                neonColor = if (isUnlocked) NeonColors.hologramCyan else NeonColors.hologramPink
+            )
+            Text(
+                text = if (isUnlocked) "Unlocked" else "Locked",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+            Text(
+                text = meta.description,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 10.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+private fun displayScore(score: Int): String = if (score > 0) score.toString() else "—"
+
+private fun characterNameFor(id: String?): String =
+    chipCatalog.firstOrNull { it.id == id }?.displayName ?: "Neon Operator"
+
+private data class ChipMeta(
+    val id: String,
+    val displayName: String,
+    val description: String,
+    val color: Color
+)
+
+private val chipCatalog = listOf(
+    ChipMeta("nexus_prime", "NEXUS", "Baseline neural interface.", NeonColors.hologramCyan),
+    ChipMeta("cypher", "CYPHER", "Cryptographic analyst.", NeonColors.hologramPink),
+    ChipMeta("spectre", "SPECTRE", "Phantom data wraith.", NeonColors.hologramGreen),
+    ChipMeta("valkyrie", "VALKYRIE", "Aegis enforcer.", NeonColors.hologramYellow),
+    ChipMeta("oracle", "ORACLE", "Temporal seer.", NeonColors.hologramBlue),
+    ChipMeta("chimera", "CHIMERA", "Hybrid construct.", NeonColors.hologramRed)
 )

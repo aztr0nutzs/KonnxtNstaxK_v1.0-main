@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.neon.connectsort.core.data.AppPreferencesRepository
-import com.neon.connectsort.game.common.GameDifficulty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -47,9 +46,11 @@ class SettingsViewModelTest {
 
     @Test
     fun `toggleSound updates soundEnabled`() = runTest {
-        val initialSettings = viewModel.settings.first()
+        val initialAudio = viewModel.settings.first().audio
         viewModel.toggleSound()
-        val newSettings = viewModel.settings.first()
-        assertEquals(!initialSettings.soundEnabled, newSettings.soundEnabled)
+        val newAudio = viewModel.settings.first {
+            it.audio.soundEnabled != initialAudio.soundEnabled
+        }.audio
+        assertEquals(!initialAudio.soundEnabled, newAudio.soundEnabled)
     }
 }

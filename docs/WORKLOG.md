@@ -231,3 +231,63 @@
 - **Dedicated package:** The holographic widget set (buttons, cards, particle systems, etc.) now lives under `ui.components`, leaving `ui.theme` for tokens/styles and making the shared library reusable across screens.
 - **Screen adoption:** Lobby/Shop/Settings/CharacterChips now import `com.neon.connectsort.ui.components.*`, while Lobby explicitly requests `HolographicButton`/`HolographicCard`, so all primary actions and panels rely on the same visuals.
 - **Verification:** `./gradlew assembleDebug`
+
+## 2025-12-09 - Phase 4: Persistence & Progression
+
+**Task:** 4.1 Preferences & progression integration
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/ConnectFourViewModel.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/PreferencesViewModelFactory.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/LobbyViewModel.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/ConnectFourScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt`
+
+**Summary:**
+- Injected `AppPreferencesRepository` into every gameplay ViewModel, wired `ConnectFourViewModel` to difficulty/high-score flows, and ensured best wins get recorded through the shared persistence helpers.
+- Extended `LobbyViewModel` and the lobby screen to surface difficulty and per-mode best-score metadata so the hub reflects stored progression.
+- Kept the preference-backed `PreferencesViewModelFactory` in sync so settings, lobby, and gameplay all use the same repository instance.
+
+## 2025-12-09 - Phase 5: Tests & CI
+
+**Task:** 5.1 Game unit tests & 5.2 Basic CI workflow
+
+**Files Changed:**
+- `app/src/main/java/com/neon/game/common/GameCommonTest.kt`
+- `app/src/test/java/com/neon/connectsort/core/data/AppPreferencesRepositoryTest.kt`
+- `app/src/test/java/com/neon/connectsort/ui/screens/viewmodels/LobbyViewModelTest.kt`
+- `app/src/test/java/com/neon/connectsort/ui/screens/viewmodels/SettingsViewModelTest.kt`
+- `app/build.gradle.kts`
+- `.github/workflows/android-ci.yml`
+
+**Summary:**
+- Added a cross-game `GameCommonTest` covering `BaseGameState`, `GameResult`, and `GameDifficulty` plus backbone fixes so the shared contracts stay rock solid.
+- Adjusted the preference-backed ViewModel tests to wait for emitted updates and added the missing Robolectric dependency.
+- Swapped the CI job to a single `./gradlew clean lint test assembleDebug` step to match the task requirements.
+
+## 2025-12-09 - Phase 6: Manifest, Icons & Branding
+
+**Task:** 6.1 Manifest cleanup & 6.2 Icons and branding
+
+**Files Changed:**
+- `app/src/main/AndroidManifest.xml`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/mipmap-anydpi` (directory removed)
+
+**Summary:**
+- Declared the manifest `package`, dropped the unused `VIBRATE` permission, and left only the required `INTERNET` entry so the APK manifest stays tight.
+- Updated `@string/app_name` to “Neon Connect & Sort” (`&amp;`) and dropped the redundant adaptive icon in the base `mipmap-anydpi` folder in favor of the API-26 variant.
+
+## 2025-12-09 - Phase 7: Visual Polish & UX
+
+**Task:** 7.1 Consistent lobby and mode selection UX
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/Effects.kt`
+
+**Summary:**
+- Added stat badges for difficulty, best scores, and coins plus a hero description so the lobby reflects the player’s progression at a glance.
+- Introduced a horizontal chip rack that highlights unlocked characters versus locked ones while calling out the currently selected avatar.
+- Made the holographic helper composable-aware so the new badges can be composed safely.
