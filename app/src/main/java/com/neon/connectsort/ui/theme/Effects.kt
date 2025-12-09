@@ -1,12 +1,15 @@
 package com.neon.connectsort.ui.theme
 
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 object HolographicGradients {
     val cyanToPurple = listOf(
@@ -167,6 +170,11 @@ val Modifier.holographicBorder: Modifier
         ),
         shape = RoundedCornerShape(NeonGameTheme.dimensions.cornerRadius)
     )
+
+fun Modifier.holoButton(): Modifier = this
+    .holographicBorder()
+    .padding(8.dp)
+    .clip(RoundedCornerShape(16.dp))
 
 fun Color.asHolographicBrush(): Brush {
     return Brush.linearGradient(

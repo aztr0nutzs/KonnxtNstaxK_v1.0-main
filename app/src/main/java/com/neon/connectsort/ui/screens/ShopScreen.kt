@@ -4,15 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.neon.connectsort.ui.theme.*
 import com.neon.connectsort.ui.screens.viewmodels.ShopViewModel
@@ -25,57 +25,58 @@ fun ShopScreen(
     val shopItems by viewModel.shopItems.collectAsState()
     val playerCoins by viewModel.playerCoins.collectAsState()
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NeonColors.neonBackground)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize()) {
+        HolographicParticleSystem()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(NeonColors.neonBackground)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            NeonButton(
-                text = "← BACK",
-                onClick = { navController.popBackStack() },
-                neonColor = NeonColors.hologramBlue,
-                modifier = Modifier.width(100.dp)
-            )
-            
-            NeonText(
-                text = "ARCADE SHOP",
-                fontSize = 24,
-                fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.hologramPink
-            )
-            
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.width(100.dp).holographicBorder()
+                ) {
+                    Text(text = "← BACK", style = MaterialTheme.typography.labelMedium)
+                }
+                
                 Text(
-                    text = "COINS",
-                    color = NeonColors.textSecondary,
-                    fontSize = 12.sp
+                    text = "ARCADE SHOP",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = NeonColors.hologramPink
                 )
-                NeonText(
-                    text = playerCoins.toString(),
-                    fontSize = 24,
-                    fontWeight = FontWeight.Bold,
-                    neonColor = NeonColors.hologramYellow
-                )
+                
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "COINS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonColors.textSecondary
+                    )
+                    Text(
+                        text = playerCoins.toString(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = NeonColors.hologramYellow
+                    )
+                }
             }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Shop items
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(shopItems) { item ->
-                ShopItemCard(item = item, onPurchase = { viewModel.purchaseItem(item.id) })
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Shop items
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(shopItems) { item ->
+                    ShopItemCard(item = item, onPurchase = { viewModel.purchaseItem(item.id) })
+                }
             }
         }
     }
@@ -86,9 +87,8 @@ fun ShopItemCard(
     item: ShopItem,
     onPurchase: () -> Unit
 ) {
-    NeonCard(
-        modifier = Modifier.fillMaxWidth(),
-        neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramBlue
+    Box(
+        modifier = Modifier.fillMaxWidth().holographicBorder()
     ) {
         Row(
             modifier = Modifier
@@ -101,17 +101,16 @@ fun ShopItemCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                NeonText(
+                Text(
                     text = item.name,
-                    fontSize = 18,
-                    fontWeight = FontWeight.Bold,
-                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramCyan
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramCyan
                 )
                 
                 Text(
                     text = item.description,
-                    color = NeonColors.textSecondary,
-                    fontSize = 14.sp
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NeonColors.textSecondary
                 )
                 
                 Row(
@@ -120,19 +119,23 @@ fun ShopItemCard(
                 ) {
                     Text(
                         text = "Effect: ${item.effect}",
-                        color = NeonColors.textSecondary,
-                        fontSize = 12.sp
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NeonColors.textSecondary
                     )
                 }
             }
             
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                NeonButton(
-                    text = if (item.isPurchased) "OWNED" else "${item.price} COINS",
+                Button(
                     onClick = onPurchase,
-                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramYellow,
+                    modifier = Modifier.holographicBorder(),
                     enabled = !item.isPurchased
-                )
+                ) {
+                    Text(
+                        text = if (item.isPurchased) "OWNED" else "${item.price} COINS", 
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             }
         }
     }

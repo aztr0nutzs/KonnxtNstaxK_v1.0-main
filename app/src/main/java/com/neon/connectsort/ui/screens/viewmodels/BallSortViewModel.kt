@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.ui.screens.GameUiState
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.game.ballsort.BallSortGame
 import kotlinx.coroutines.delay
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class BallSortViewModel(
-    private val repository: AppPreferencesRepository? = null
+    private val repository: AppPreferencesRepository
 ) : ViewModel() {
     private val game = BallSortGame()
 
@@ -25,7 +26,7 @@ class BallSortViewModel(
     )
 
     private val _gameState = MutableStateFlow(mapToGameState())
-    val gameState: StateFlow<BallSortGameState> = _gameState.asStateFlow()
+    val gameState: StateFlow<GameUiState> = _gameState.asStateFlow()
     
     private val _selectedTube = MutableStateFlow<Int?>(null)
     val selectedTube: StateFlow<Int?> = _selectedTube.asStateFlow()
@@ -39,6 +40,8 @@ class BallSortViewModel(
     }
     
     fun selectTube(index: Int) {
+        if (index !in game.tubes.indices) return // Guard against invalid index
+
         when (val selected = _selectedTube.value) {
             null -> {
                 if (game.tubes[index].isNotEmpty()) {
@@ -69,6 +72,9 @@ class BallSortViewModel(
             }
             
             game.move(fromTube, toTube)
+            if (game.isSolved()) {
+                repository.setHighScoreBallSort(game.moves)
+            }
             updateState()
             
             _selectedTube.value = null
@@ -82,32 +88,22 @@ class BallSortViewModel(
     }
     
     private fun updateState() {
-        _gameState.value = mapToGameState()
+        viewModelScope.launch {
+            val bestMoves = repository.prefsFlow.map { it.highScoreBallSort }.first()
+            _gameState.value = mapToGameState(bestMoves)
+        }
     }
 
-    private fun mapToGameState(): BallSortGameState {
-        return BallSortGameState(
+    private fun mapToGameState(bestMoves: Int? = null): GameUiState {
+        return GameUiState(
             tubes = game.tubes.map { tube -> tube.map { palette[it % palette.size] } },
-            level = game.moves, // This seems wrong, should be game.level
+            level = game.level,
             moves = game.moves,
-            bestMoves = getBestMoves(game.moves), // This seems wrong, should be game.level
+            bestMoves = bestMoves,
             isLevelComplete = game.isSolved()
         )
     }
-    
-    private fun getBestMoves(level: Int): Int? {
-        // TODO: Load from repository when best scores are implemented
-        return null
-    }
 }
-
-data class BallSortGameState(
-    val tubes: List<List<Color>> = emptyList(),
-    val level: Int = 1,
-    val moves: Int = 0,
-    val bestMoves: Int? = null,
-    val isLevelComplete: Boolean = false
-)
 
 data class BallAnimationState(
     val fromTube: Int,

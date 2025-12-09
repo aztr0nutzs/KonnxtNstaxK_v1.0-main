@@ -99,7 +99,7 @@ class AppPreferencesRepository(private val context: Context) {
     
     suspend fun setHighScoreBallSort(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_BALL_SORT] ?: 0
-        if (score > current) {
+        if (current == 0 || score < current) {
             prefs[Keys.HIGH_SCORE_BALL_SORT] = score
         }
     }

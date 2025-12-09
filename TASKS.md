@@ -1,544 +1,519 @@
-# TASKS.md – KonnxtNstaxK_v1.0-main
+# TASKS.md – Neon ConnectSort Refactor & Stabilization Plan
 
-**Project:** Neon Connect & Sort  
-**Root:** `KonnxtNstaxK_v1.0-main/`  
-**App module:** `app/`  
-**Package:** `com.neon.connectsort`  
+Project: **KonnxtNstaxK_v1.0-main-main**  
+Package: `com.neon.connectsort`  
+Module: `app`
 
-This file defines a **sequential, production-focused task list** for stabilizing and expanding the project.  
-Tasks are grouped by phase and written so an AI agent or human dev can execute them reliably.
+This file defines a **systematic, multi-phase task list** for stabilizing, polishing, and expanding the Neon ConnectSort project.
 
----
-
-## Conventions
-
-- **Status tags:**
-  - `[TODO]` = not started
-  - `[WIP]`  = in progress
-  - `[DONE]` = completed and verified
-- For each task:
-  - **Edit only the files listed.**
-  - **Run the verification commands** at the end of the task.
-  - If you add new files, **append them** to this document under the relevant task.
+Each task is written so an AI coding agent or a human dev can pick it up and complete it **end-to-end** without guessing.
 
 ---
 
-## Phase 0 – Baseline Sanity Check
+## 0. How To Use This File
 
-### 0.1 Project opens and builds cleanly
+- Each task has a checkbox: `- [ ]` → not done, `- [x]` → done.
+- When an AI agent picks up a task, it should:
+  1. Mark it as `IN_PROGRESS` in a comment.
+  2. Edit the specified files.
+  3. Run the listed commands.
+  4. Update this file: mark the checkbox as `[x]` and add a short note under **Notes**.
 
-**Status:** `[TODO]`  
-**Goal:** Ensure the project compiles and runs before deeper refactors.
+Example update pattern:
 
-**Files to look at:**
-- `settings.gradle.kts`
-- `build.gradle.kts` (root + `app/`)
-- `app/src/main/AndroidManifest.xml`
-- `app/src/main/java/com/neon/connectsort/MainActivity.kt`
+```markdown
+- [x] P1.1 – Unify BallSort game state ⇨ **Completed by Codex**, 2025-12-08
+  - Notes: Fixed move validation, added solved state, updated ViewModel to use StateFlow.
+PHASE 1 – Game Logic Stability (CRITICAL)
 
-**Actions:**
-1. Open project in Android Studio.
-2. Confirm Kotlin & Gradle versions are compatible with your installed Android Studio.
-3. Fix any obvious red errors (mismatched package names, missing resources).
-4. Ensure `applicationId` in `app/build.gradle.kts` matches manifest package `com.neon.connectsort`.
+Focus: Make Ball Sort + Multiplier 100% stable and correctly synced with the UI.
 
-**Verification:**
-```bash
-./gradlew clean assembleDebug
-Done when:
+P1.1 – Unify Ball Sort game state with UI
 
-assembleDebug completes without errors.
-
-Phase 1 – Game Logic Stabilization
-1.1 Ball Sort – crash and rules audit
-
-Status: [TODO]
-Goal: Ball Sort mode never crashes, follows clear rules, and is restartable.
-
+Status: - [ ]
 Files:
 
 app/src/main/java/com/neon/game/ballsort/BallSortGame.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/BallSortViewModel.kt
 
 app/src/main/java/com/neon/connectsort/ui/screens/BallSortScreen.kt
 
-(If present) app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/BallSortViewModel.kt
+Tasks:
 
-Actions:
+Ensure BallSortGame:
 
-Audit BallSortGame:
+Uses BaseGameState fields consistently (score, moves, turnCount, isGameOver, result).
 
-Identify all operations that index into collections or stacks.
+Correctly sets result = GameResult.WIN when solved and GameResult.IN_PROGRESS otherwise.
 
-Add checks so no invalid index or empty-pop can occur.
+Update BallSortViewModel to:
 
-Add a clear reset() function that regenerates a valid initial puzzle state.
+Expose a StateFlow<BallSortUiState> (or equivalent) that includes tubes, selectedTube, moves, score, and gameResult.
 
-Define and document rules in code comments:
+Call emit() / update { ... } after every move and reset.
 
-Max stack height.
+Update BallSortScreen to:
 
-Allowed moves.
+React to gameResult and show win/lose banners.
 
-Win condition.
-
-Ensure BallSortScreen:
-
-Calls reset() from restart UI actions.
-
-Never directly mutates game state without going through ViewModel/logic methods.
-
-If there is a BallSortViewModel:
-
-Expose immutable UI state (e.g., StateFlow or MutableState).
-
-Provide functions like onTubeSelected(fromIndex, toIndex) that call BallSortGame.
-
-Verification:
-./gradlew :app:testDebugUnitTest --tests "*BallSort*"
-./gradlew assembleDebug
-
-
-Done when:
-
-Ball Sort game runs repeatedly without crashes.
-
-Restart always yields a consistent playable state.
-
-1.2 Multiplier mode – fully functional
-
-Status: [TODO]
-Goal: Multiplier game is actually playable, with visible scoring and difficulty.
-
-Files:
-
-app/src/main/java/com/neon/game/multiplier/MultiplierGame.kt
-
-app/src/main/java/com/neon/connectsort/ui/screens/MultiplierScreen.kt
-
-app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/MultiplierViewModel.kt
-
-app/src/test/java/.../MultiplierGameTest.kt (or create it)
-
-Actions:
-
-In MultiplierGame.kt:
-
-Define core state model (current value, multiplier, streaks, etc.).
-
-Implement methods: start(difficulty), applyMove(...), reset(), isGameOver().
-
-In MultiplierViewModel:
-
-Wrap MultiplierGame and expose UI state and intents:
-
-uiState, onUserAction(...), onRestart().
-
-Make sure difficulty is configurable (easy/normal/hard).
-
-In MultiplierScreen:
-
-Render score, current multiplier, and any timers/turns left.
-
-Wire buttons/controls to ViewModel actions, not directly to MultiplierGame.
-
-Create/extend MultiplierGameTest.kt:
-
-Test scoring logic, edge cases, and reset behavior.
+Properly call viewModel.resetLevel() or equivalent on reset button.
 
 Verification:
 
-./gradlew :app:testDebugUnitTest --tests "*Multiplier*"
-./gradlew assembleDebug
+Run: ./gradlew :app:testDebugUnitTest --tests "*BallSortGameTest*"
 
+Manually:
 
-Done when:
+Launch Ball Sort.
 
-Multiplier mode can be launched, played, and restarted from the UI.
+Play through until solved.
 
-Unit tests cover core logic and pass.
+Confirm UI updates instantly and reset works without crashes.
 
-1.3 Shared game base / utilities
+P1.2 – Harden Ball Sort move validation
 
-Status: [TODO]
-Goal: Reduce duplication across games and centralize common logic.
-
+Status: - [ ]
 Files:
-
-app/src/main/java/com/neon/game/connectfour/ConnectFourGame.kt
 
 app/src/main/java/com/neon/game/ballsort/BallSortGame.kt
 
-app/src/main/java/com/neon/game/multiplier/MultiplierGame.kt
+Tasks:
 
-New file: app/src/main/java/com/neon/game/common/BaseGameState.kt (or similar)
+Add safe guards to:
 
-Actions:
+Reject moves where from or to are out of bounds.
 
-Identify repeated concepts:
+Reject moves when from == to.
 
-Score, moves, turn count, difficulty.
+Reject moves when source tube is empty or destination tube is full.
 
-Create BaseGameState or a small set of common types in game/common/:
+Replace any raw index access with validated helper functions, e.g.:
 
-e.g., GameDifficulty, GameResult, shared reset() / isGameOver().
-
-Refactor each game to use the shared types without breaking semantics.
+Ensure invalid moves do not mutate game state or crash.
 
 Verification:
-./gradlew :app:testDebugUnitTest
-./gradlew assembleDebug
 
+Extend BallSortGameTest with invalid move cases:
 
-Done when:
+Out of range indices.
 
-No copy-paste of basic game structures across game files.
+Moves from empty tube.
 
-All games still work and tests pass.
+Moves to full tube.
 
-Phase 2 – Navigation & ViewModels
-2.1 Navigation graph correctness
+Run: ./gradlew :app:testDebugUnitTest --tests "*BallSortGameTest*"
 
-Status: [TODO]
-Goal: All screens are reachable with consistent routes and back-stack behavior.
+P1.3 – Synchronize Multiplier game state & UI
 
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/game/multiplier/MultiplierGame.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/MultiplierViewModel.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/MultiplierScreen.kt
+
+Tasks:
+
+Ensure MultiplierGame:
+
+Correctly uses BaseGameState fields for score, moves, isGameOver, result.
+
+Sets result = GameResult.LOSE when lives are exhausted, and GameResult.WIN when player cashes out successfully.
+
+Update MultiplierViewModel to:
+
+Expose a single StateFlow<MultiplierUiState> including board, lives, multiplier, streak, lastEvent, and result.
+
+Reset all relevant fields on reset() and emit new state.
+
+Update MultiplierScreen:
+
+Show clear “Game Over” and “You Won” states based on result.
+
+Disable interactions when isGameOver == true.
+
+Verification:
+
+Run: ./gradlew :app:testDebugUnitTest --tests "*MultiplierGameTest*"
+
+Manual: play multiple rounds, including losing all lives and cashing out.
+
+PHASE 2 – Unified Theming & Neon Effects (HIGH)
+
+Focus: Make the game look consistently neon/holographic across all screens.
+
+P2.1 – Clean up theme resources and remove dead file
+
+Status: - [ ]
+Files:
+
+app/src/main/res/values/themes.xml
+
+app/src/main/res/values/styles.xml
+
+app/src/main/java/com/neon/connectsort/ui/theme/NeonGameTheme.kt
+
+Tasks:
+
+Either:
+
+Remove empty themes.xml completely, or
+
+Populate it with valid theme definitions and reference them from styles.xml.
+
+Ensure AndroidManifest.xml uses @style/Theme.NeonConnectSort as the app theme.
+
+Align Compose NeonGameTheme with XML theme:
+
+Colors and typography should match.
+
+Verification:
+
+Project builds with no theme-related warnings.
+
+App launches with consistent status bar/nav bar colors.
+
+P2.2 – Standardize neon color palette & glow
+
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/connectsort/ui/theme/Colors.kt
+
+app/src/main/java/com/neon/connectsort/ui/theme/Effects.kt
+
+Tasks:
+
+Consolidate all neon colors into a single object NeonColors.
+
+Replace any .value / ULong conversions with Color(0xFFxxxxxx.toInt()) style or Color(0xFFxxxxxx).
+
+Add reusable modifiers:
+fun Modifier.holoButton(): Modifier
+fun Modifier.holoCard(): Modifier
+
+Use HolographicGradients for button and card backgrounds.
+
+Verification:
+
+All screens compile with no color-type issues.
+
+Visual check: Lobby, game modes, and settings all share the same neon look.
+
+P2.3 – Apply holographic components across screens
+
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/ShopScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/SettingsScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/ConnectFourScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/BallSortScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/MultiplierScreen.kt
+
+Tasks:
+
+Replace plain Button containers with Modifier.holoButton().
+
+Wrap major content sections (e.g. score panels, difficulty display) in holoCard().
+
+Ensure typography is consistent using definitions from Typography.kt.
+
+Verification:
+
+App runs and all major screens show holographic borders and neon gradients.
+
+No mismatched padding / text sizes between screens.
+
+PHASE 3 – Data Persistence & Difficulty (HIGH)
+
+Focus: Make difficulty and high scores persistent and actually used by the games.
+
+P3.1 – Extend AppPreferencesRepository for difficulty and scores
+
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/connectsort/core/data/AppPreferencesRepository.kt
+
+Tasks:
+
+Add functions:
+suspend fun saveDifficulty(level: Int)
+fun observeDifficulty(): Flow<Int>
+
+suspend fun saveBestScore(mode: String, score: Int)
+fun observeBestScore(mode: String): Flow<Int>
+
+Implement using the existing underlying DataStore / preferences mechanism.
+
+Verification:
+
+Add or update AppPreferencesRepositoryTest to cover these new functions.
+
+Run: ./gradlew :app:testDebugUnitTest --tests "*AppPreferencesRepositoryTest*"
+
+P3.2 – Wire difficulty to Settings and game ViewModels
+
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/SettingsViewModel.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/SettingsScreen.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/BallSortViewModel.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/MultiplierViewModel.kt
+
+Tasks:
+
+In SettingsViewModel:
+
+Read difficulty from AppPreferencesRepository.observeDifficulty() and expose it as StateFlow<Int>.
+
+Provide a setDifficulty(level: Int) function that calls saveDifficulty(level).
+
+In game ViewModels:
+
+On init, subscribe to difficulty and apply to BallSortGame / MultiplierGame (using GameDifficulty.fromLevel(level)).
+
+In SettingsScreen:
+
+Make the difficulty slider or selector reflect the current difficulty from the ViewModel.
+
+Verification:
+
+Change difficulty in Settings.
+
+Start Ball Sort / Multiplier, confirm different behavior (e.g., more/less complexity).
+
+Restart app → difficulty persists.
+
+P3.3 – Persist and display best scores
+
+Status: - [ ]
+Files:
+
+app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/LobbyViewModel.kt
+
+app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt
+
+app/src/main/java/com/neon/connectsort/core/data/AppPreferencesRepository.kt
+
+Tasks:
+
+In LobbyViewModel:
+
+Observe best scores for each mode via repository ("connect4", "ballsort", "multiplier").
+
+Expose these as part of a LobbyUiState.
+
+In LobbyScreen:
+
+Display best scores in game cards.
+
+In game ViewModels:
+
+When a game is won with a better score, update via saveBestScore.
+
+Verification:
+
+Win each game mode with some score.
+
+Verify Lobby shows updated best scores.
+
+Restart app → scores persist.
+
+PHASE 4 – Navigation & Transitions (MODERATE)
+
+Focus: Smooth, animated navigation between screens.
+
+P4.1 – Reintroduce AnimatedNavHost with Accompanist
+
+Status: - [ ]
 Files:
 
 app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt
 
 app/src/main/java/com/neon/connectsort/navigation/AppDestinations.kt
 
-All ui/screens/*Screen.kt
+build.gradle.kts (app module, if dependency missing)
 
-Actions:
+Tasks:
 
-Confirm AppDestinations contains routes for:
+Ensure accompanist-navigation-animation dependency is present.
 
-Lobby, ConnectFour, BallSort, Multiplier, Shop, Settings, CharacterChips, etc.
+Replace NavHost with AnimatedNavHost.
 
-Ensure NeonGameApp:
+Add enter/exit transitions:
 
-Sets up a single NavHost or AnimatedNavHost with those routes.
+Lobby → Game screens: slide in from right, fade in.
 
-Standardize navigation:
+Game → Lobby: slide out to left.
 
-All navigation calls use route constants from AppDestinations.
-
-Back navigation pops correctly to Lobby or previous screen.
+Lobby ↔ Settings/Shop: fade transitions.
 
 Verification:
 
-./gradlew assembleDebug
+App compiles and runs.
 
+No nav-related crashes.
 
-Done when:
+Transitions play correctly when switching screens.
 
-You can move between Lobby → all modes → Settings → Shop → back without crashes or dead ends.
+PHASE 5 – UI / Layout Consistency (MODERATE)
 
-2.2 ViewModel wiring and lifecycle
+Focus: Make Lobby, Shop, Settings feel like one cohesive neon suite.
 
-Status: [TODO]
-Goal: Every screen with non-trivial state has a ViewModel, and state is not lost on rotation.
+P5.1 – Normalize paddings, fonts, and layout grid
 
-Files:
-
-app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/*.kt
-
-Associated *Screen.kt files.
-
-Actions:
-
-Ensure each main screen has a ViewModel:
-
-Lobby, ConnectFour, BallSort, Multiplier, Shop, Settings, CharacterChips.
-
-Instantiate ViewModels correctly:
-
-Use hiltViewModel() or viewModel() inside composables, not manual singletons.
-
-Move business logic out of composables:
-
-Keep composables as “dumb views” that render uiState and trigger events.
-
-Confirm state survives configuration changes (rotate emulator).
-
-Verification:
-./gradlew :app:testDebugUnitTest
-./gradlew assembleDebug
-
-Done when:
-
-Rotating the device doesn’t reset games or settings unexpectedly.
-
-No composable directly mutates underlying game logic classes.
-
-Phase 3 – Theming & Holographic UI
-3.1 Unified neon color system
-
-Status: [TODO]
-Goal: One canonical source of truth for neon colors with no type mismatches.
-
-Files:
-
-app/src/main/java/com/neon/connectsort/ui/theme/Colors.kt
-
-app/src/main/java/com/neon/connectsort/ui/theme/NeonGameTheme.kt
-
-app/src/main/java/com/neon/connectsort/ui/components/HolographicComponents.kt
-
-app/src/main/java/com/neon/connectsort/MainActivity.kt
-
-Actions:
-
-Create or finalize NeonColors:
-
-Define primary/secondary/accent, glow, background, surface, error, etc.
-
-Fix any usage of .value on Color:
-
-Convert safely: Color(neonColor.value.toInt()) only if needed for system bars.
-
-Apply neon colors consistently:
-
-Buttons, chips, game boards, and backgrounds all use NeonColors.
-
-Ensure NeonGameTheme wraps the entire NeonGameApp and uses Material3 theme APIs.
-
-Verification:
-./gradlew assembleDebug
-
-Done when:
-
-There are no ULong vs Int color crashes.
-
-Visual style across screens is clearly consistent and neon/cyberpunk themed.
-
-3.2 Holographic components library
-
-Status: [TODO]
-Goal: Use shared UI components for glowing buttons, cards, panels.
-
-Files:
-
-app/src/main/java/com/neon/connectsort/ui/components/HolographicComponents.kt
-
-All ui/screens/*Screen.kt
-
-Actions:
-
-Define reusable components:
-
-NeonButton, NeonCard, NeonPanel, etc.
-
-Refactor screens to use these instead of inline Button/Card definitions.
-
-Keep API generic:
-
-Accept modifier, onClick, enabled, content lambdas for flexibility.
-
-Verification:
-./gradlew assembleDebug
-
-Done when:
-
-Screens mostly use the shared holographic components.
-
-No screen defines its own completely custom “neon” button unless truly unique.
-
-Phase 4 – Persistence & Progression
-4.1 Preferences & progression integration
-
-Status: [TODO]
-Goal: Difficulty, audio settings, and chip unlocks persist between sessions.
-
-Files:
-
-app/src/main/java/com/neon/connectsort/core/data/AppPreferencesRepository.kt
-
-app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/SettingsViewModel.kt
-
-Any ViewModel consuming difficulty or chip unlock data.
-
-Actions:
-
-Ensure AppPreferencesRepository uses DataStore or SharedPreferences reliably.
-
-Implement methods:
-
-getDifficultyFlow(), setDifficulty(...)
-
-getUnlockedChipsFlow(), unlockChip(id: String)
-
-getAudioSettingsFlow(), setAudioSettings(...)
-
-Wire Settings screen to these flows:
-
-UI sliders/toggles update repository.
-
-Repository updates propagate back to game ViewModels.
-
-Verification:
-./gradlew :app:testDebugUnitTest --tests "*Preferences*"
-./gradlew assembleDebug
-
-Done when:
-
-Changing difficulty or volume persists after app restart.
-
-Chip unlocks remain unlocked across sessions.
-
-Phase 5 – Tests & CI
-5.1 Game unit tests
-
-Status: [TODO]
-Goal: Each game has solid test coverage for its core rules.
-
-Files:
-
-app/src/test/java/.../ConnectFourGameTest.kt
-
-app/src/test/java/.../BallSortGameTest.kt
-
-app/src/test/java/.../MultiplierGameTest.kt
-
-Actions:
-
-Write or complete tests for:
-
-Connect-4 win detection, invalid moves.
-
-Ball Sort valid & invalid moves, solved state.
-
-Multiplier scoring, streaks, and reset logic.
-
-Ensure tests don’t touch Android framework (pure JVM).
-
-Verification:
-
-./gradlew :app:testDebugUnitTest
-
-Done when:
-
-All tests pass.
-
-You can safely refactor logic without fear of silent breakage.
-
-5.2 Basic CI workflow
-
-Status: [TODO]
-Goal: CI ensures no broken commits land in main.
-
-Files:
-
-New: .github/workflows/android-ci.yml
-
-Actions:
-
-Add a CI workflow that:
-
-Checks out repo.
-
-Uses Gradle build action.
-
-Runs: ./gradlew clean lint test assembleDebug.
-
-Keep the YAML simple and robust; no secrets required.
-
-Verification:
-
-Push to GitHub and confirm the CI job runs and passes.
-
-Done when:
-
-Every push/PR runs CI, and failing builds are visible in GitHub.
-
-Phase 6 – Manifest, Icons & Packaging
-6.1 Manifest cleanup
-
-Status: [TODO]
-Goal: Manifest is clean, precise, and aligned with the app.
-
-Files:
-
-app/src/main/AndroidManifest.xml
-
-Actions:
-
-Confirm:
-
-package="com.neon.connectsort"
-
-android:theme="@style/Theme.NeonConnectSort"
-
-Add only necessary permissions:
-
-INTERNET
-
-ACCESS_NETWORK_STATE (if used for online features)
-
-Remove unused permissions and legacy attributes.
-
-Verification:
-./gradlew assembleDebug
-
-Done when:
-
-No manifest-related build warnings.
-
-Theme and package are consistent.
-
-6.2 Icons and branding
-
-Status: [TODO]
-Goal: The app has proper adaptive icons and a consistent name.
-
-Files:
-
-app/src/main/res/mipmap-*/*
-
-app/src/main/res/values/strings.xml
-
-Actions:
-
-Define app name in strings.xml (e.g., "Neon Connect & Sort").
-
-Set adaptive icons:
-
-ic_launcher.xml referencing foreground/background drawables.
-
-Update any references in manifest to use the new icons and app name.
-
-Verification:
-./gradlew assembleDebug
-
-Done when:
-
-App installs with correct name and icon on device/emulator.
-
-Phase 7 – Visual Polish & UX (Optional but Recommended)
-7.1 Consistent lobby and mode selection UX
-
-Status: [TODO]
-Goal: Lobby feels like the central hub of a neon arcade, not just a menu.
-
+Status: - [ ]
 Files:
 
 app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt
 
-Shared holographic components.
+app/src/main/java/com/neon/connectsort/ui/screens/ShopScreen.kt
 
-Actions:
+app/src/main/java/com/neon/connectsort/ui/screens/SettingsScreen.kt
 
-Use holographic components for all lobby actions.
+Tasks:
 
-Show basic player stats (win counts, last mode played, difficulty).
+Standardize main content padding to 16.dp.
 
-Highlight locked/unlocked chips or modes visually.
+Use heading typography for titles, body for descriptions, consistent sizes for buttons.
+
+Use a consistent grid/column layout (e.g. Column with verticalArrangement = spacedBy(12.dp)).
 
 Verification:
-./gradlew assembleDebug
 
-Done when:
+Visual check: all three screens have the same spacing and typography system.
 
-Lobby conveys progress and options clearly and looks visually consistent with the rest of the game.
+No cramped or misaligned elements.
 
-End of TASKS.md
+PHASE 6 – Testing & CI (LOW)
+
+Focus: Confidence and regression protection.
+
+P6.1 – Extend unit tests for games and preferences
+
+Status: - [ ]
+Files:
+
+app/src/test/java/... (existing tests)
+
+build.gradle.kts (if any test plugins needed)
+
+Tasks:
+
+Extend existing tests to cover:
+
+Ball Sort invalid move handling.
+
+Multiplier lose/win conditions.
+
+Difficulty persistence and retrieval.
+
+Ensure tests are deterministic (no randomness without a fixed seed).
+
+Verification:
+
+Run: ./gradlew :app:testDebugUnitTest.
+
+All tests pass.
+
+P6.2 – Ensure CI runs full build + tests
+
+Status: - [ ]
+Files:
+
+.github/workflows/android-ci.yml
+
+Tasks:
+
+Verify workflow runs:
+
+./gradlew clean lint test assembleDebug
+
+Optionally add coverage reporting:
+
+Apply jacoco or kover and upload reports as CI artifacts.
+
+Verification:
+
+Push to a branch → GitHub Actions workflow passes.
+
+PHASE 7 – Manifest & Resource Cleanup (LOW)
+
+Focus: Polish and remove landmines.
+
+P7.1 – Clean manifest & adaptive icons
+
+Status: - [ ]
+Files:
+
+app/src/main/AndroidManifest.xml
+
+app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+
+app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+Tasks:
+
+Remove any duplicate permissions (e.g., multiple INTERNET entries).
+
+Confirm app theme and splash theme are correct and consistent.
+
+Ensure launcher icons are valid and load correctly.
+
+Verification:
+
+Build and install APK.
+
+Check launcher icon and app name on device.
+
+Confirm there are no manifest-related warnings in the build output.
+
+FINAL VERIFICATION
+
+Once all tasks above have been checked off:
+
+Run full build:
+./gradlew clean assembleDebug
+Run all tests:
+./gradlew lint test
+
+Manually verify:
+
+All three game modes:
+
+Launch, play, win/lose, reset, and reflect difficulty properly.
+
+Lobby:
+
+Shows difficulty and best scores per mode.
+
+Settings:
+
+Difficulty + sound/vibration persist across app restarts.
+
+Visuals:
+
+All screens share consistent neon/holographic feel and smooth navigation animations.
+
+When all of the above are true, this phase of the project can be considered stable and ready for the next feature wave (story mode, online play, lobby chat, etc.).
+
+Next natural move after this is you start assigning specific blocks (e.g., “PHASE 1 – P1.1 + P1.2”) to Codex/Gemini with a short wrapper prompt like:
+
+> “Open `docs/TASKS.md`, focus on P1.1 and P1.2 only. Do not touch anything else yet…”
+
+That keeps the AI from free-styling and forces it to chew through the project in a sane order.

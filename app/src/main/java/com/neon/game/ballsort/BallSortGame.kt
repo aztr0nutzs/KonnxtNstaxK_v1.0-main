@@ -9,6 +9,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Expose immutable view
 
     private var _level: Int = 1
+    val level: Int get() = _level
 
     override var score: Int = 0
         private set
@@ -38,7 +39,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     }
 
     private fun generateInitialTubes(level: Int): List<MutableList<Int>> {
-        require(capacity > 0) { "Capacity must be positive, got: $capacity" }
+        require(capacity > 0) { "Capacity must be positive, got: $capacity" })
         
         val colorCount = (level / 2 + 2).coerceIn(2, 6)
         val colors = (0 until colorCount).flatMap { List(capacity) { it } }.toMutableList()
