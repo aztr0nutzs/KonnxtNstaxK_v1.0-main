@@ -44,7 +44,9 @@ fun NeonGameApp() {
             )
         }
         composable(
-            route = "${AppDestination.BallSort.route}?${AppDestination.BallSort.levelArg}={${AppDestination.BallSort.levelArg}}",
+            route = AppDestination.BallSort.buildRoute(
+                level = -1 // Placeholder, will be replaced by argument
+            ).replace("={-1}", "={${AppDestination.BallSort.levelArg}}"),
             arguments = listOf(
                 navArgument(AppDestination.BallSort.levelArg) {
                     type = NavType.IntType

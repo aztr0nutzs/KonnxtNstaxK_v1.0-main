@@ -88,9 +88,9 @@ class BallSortViewModel(
     private fun mapToGameState(): BallSortGameState {
         return BallSortGameState(
             tubes = game.tubes.map { tube -> tube.map { palette[it % palette.size] } },
-            level = game.moves, // This seems wrong, should be game.level
+            level = game.level,
             moves = game.moves,
-            bestMoves = getBestMoves(game.moves), // This seems wrong, should be game.level
+            bestMoves = getBestMoves(game.level),
             isLevelComplete = game.isSolved()
         )
     }

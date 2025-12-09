@@ -54,11 +54,6 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        // Aligned with Kotlin 2.0.21 (Compose Compiler 1.7.3)
-        kotlinCompilerExtensionVersion = "1.7.3"
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

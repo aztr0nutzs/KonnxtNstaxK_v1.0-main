@@ -16,28 +16,19 @@ class MultiplierViewModel(
     private val _gameState = MutableStateFlow(mapToGameState())
     val gameState: StateFlow<MultiplierGameState> = _gameState.asStateFlow()
 
+    fun onUserAction(action: MultiplierGame.Action) {
+        game.applyMove(action)
+        updateState()
+    }
+
     fun onStartGame(difficulty: GameDifficulty) {
         game.start(difficulty)
         updateState()
     }
 
-    fun onDrop(column: Int) {
-        game.drop(column)
-        updateState()
-    }
-
-    fun onCashOut() {
-        game.cashOut()
-        updateState()
-    }
-
     fun onRestart() {
-        game.reset()
-        updateState()
-    }
-
-    fun setMultiplier(multiplier: Int) {
-        game.setMultiplier(multiplier)
+        // Restart the game with the current difficulty
+        game.start(game.getDifficulty())
         updateState()
     }
 

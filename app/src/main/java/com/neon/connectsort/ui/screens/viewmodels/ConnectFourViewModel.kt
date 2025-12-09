@@ -13,50 +13,50 @@ import kotlinx.coroutines.flow.*
 class ConnectFourViewModel : ViewModel() {
     private val game = ConnectFourGame()
     private val ai = ConnectFourAi()
-    
+
     private val _gameState = MutableStateFlow(ConnectFourGameState())
     val gameState: StateFlow<ConnectFourGameState> = _gameState.asStateFlow()
-    
+
     private val _animateDrops = MutableStateFlow<List<Pair<Int, Int>>>(emptyList())
     val animateDrops: StateFlow<List<Pair<Int, Int>>> = _animateDrops.asStateFlow()
-    
+
     private var moveHistory = mutableListOf<ConnectFourGameState>()
-    
+
     init {
         updateGameState()
     }
-    
+
     fun dropChip(column: Int) {
-        if (game.isGameOver) return
-        
-        val playerRow = game.dropChip(column, 1) ?: return
-        updateGameState()
+        if (game.isGameOver || game.getCurrentPlayer() != 1) return
 
-        // AI move
-        viewModelScope.launch {
-            delay(500) // Small delay for visual feedback
+        if (game.dropChip(column)) {
+            updateGameState()
 
+            // AI move
             if (!game.isGameOver) {
-                val aiColumn = ai.getBestMove(game.getBoard(), 2)
-                if (aiColumn != -1) {
-                    game.dropChip(aiColumn, 2)
-                    updateGameState()
+                viewModelScope.launch {
+                    delay(500) // Small delay for visual feedback
+                    val aiColumn = ai.getBestMove(game.getBoard(), 2)
+                    if (aiColumn != -1) {
+                        game.dropChip(aiColumn)
+                        updateGameState()
+                    }
                 }
             }
         }
     }
-    
+
     fun resetGame() {
         game.reset()
         moveHistory.clear()
         updateGameState()
     }
-    
+
     private fun updateGameState() {
         val board = game.getBoard()
         val currentPlayer = game.getCurrentPlayer()
         val winningLine = game.getWinningLine()
-        
+
         val winner = when (val gameResult = game.result) {
             is GameResult.Win -> gameResult.winner
             else -> 0
@@ -71,7 +71,7 @@ class ConnectFourViewModel : ViewModel() {
             aiScore = if (winner == 2) gameState.value.aiScore + 1 else gameState.value.aiScore,
             isDraw = game.result is GameResult.Draw
         )
-        
+
         _gameState.value = newState
         moveHistory.add(newState)
     }

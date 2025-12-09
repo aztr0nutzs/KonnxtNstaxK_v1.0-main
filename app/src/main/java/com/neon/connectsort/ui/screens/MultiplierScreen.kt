@@ -52,7 +52,11 @@ fun MultiplierScreen(
             // Game board
             MultiplierBoard(
                 state = gameState,
-                onColumnClick = { col -> if (!gameState.isGameOver) viewModel.onDrop(col) }
+                onColumnClick = { col -> 
+                    if (!gameState.isGameOver) {
+                        viewModel.onUserAction(MultiplierGame.Action.Drop(col))
+                    }
+                }
             )
             
             // Game controls
@@ -237,7 +241,7 @@ fun MultiplierControls(
     ) {
         NeonButton(
             text = "CASH OUT",
-            onClick = { viewModel.onCashOut() },
+            onClick = { viewModel.onUserAction(MultiplierGame.Action.CashOut) },
             neonColor = NeonColors.hologramYellow,
             modifier = Modifier.weight(1f),
             enabled = !gameState.isGameOver && gameState.score > 0
