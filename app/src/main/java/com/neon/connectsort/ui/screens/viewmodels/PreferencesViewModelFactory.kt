@@ -3,6 +3,7 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.ui.screens.viewmodels.StoryHubViewModel
 
 class PreferencesViewModelFactory(
     private val repository: AppPreferencesRepository
@@ -17,6 +18,7 @@ class PreferencesViewModelFactory(
             modelClass.isAssignableFrom(ShopViewModel::class.java) -> ShopViewModel(repository)
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(repository)
             modelClass.isAssignableFrom(CharacterChipsViewModel::class.java) -> CharacterChipsViewModel(repository)
+            modelClass.isAssignableFrom(StoryHubViewModel::class.java) -> StoryHubViewModel(repository)
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         } as T
     }

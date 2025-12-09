@@ -18,6 +18,7 @@ sealed class AppDestination(val route: String) {
     object Shop : AppDestination("shop")
     object Settings : AppDestination("settings")
     object CharacterChips : AppDestination("characterchips")
+    object StoryHub : AppDestination("storyhub")
 }
 
 // Typed navigation helpers
@@ -50,4 +51,8 @@ fun NavController.toSettings() {
 
 fun NavController.toCharacterChips() {
     navigate(AppDestination.CharacterChips.route) { launchSingleTop = true }
+}
+
+fun NavController.toStoryHub() {
+    navigate(AppDestination.StoryHub.route) { launchSingleTop = true }
 }

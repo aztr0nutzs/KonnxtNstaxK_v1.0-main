@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -22,6 +25,8 @@ import androidx.compose.material3.MaterialTheme
 import com.neon.connectsort.ui.screens.viewmodels.ConnectFourViewModel
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonGameTheme
+import com.neon.connectsort.navigation.activeStoryChapterId
+import com.neon.connectsort.navigation.publishStoryResult
 import com.neon.connectsort.ui.theme.NeonButton
 import com.neon.connectsort.ui.theme.NeonCard
 import com.neon.connectsort.ui.theme.NeonText
@@ -32,6 +37,19 @@ fun ConnectFourScreen(
     viewModel: ConnectFourViewModel
 ) {
     val gameState by viewModel.gameState.collectAsState()
+    val storyChapterId = navController.activeStoryChapterId()
+    var storyResultSent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(gameState.isGameOver, storyChapterId, storyResultSent) {
+        if (storyChapterId != null && gameState.isGameOver && !storyResultSent) {
+            val success = gameState.winner == 1
+            navController.publishStoryResult(success)
+            storyResultSent = true
+        }
+        if (!gameState.isGameOver && storyResultSent) {
+            storyResultSent = false
+        }
+    }
 
     Column(
         modifier = Modifier

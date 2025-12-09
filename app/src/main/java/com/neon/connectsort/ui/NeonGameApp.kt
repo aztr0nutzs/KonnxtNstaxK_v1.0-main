@@ -21,6 +21,7 @@ import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.connectsort.core.data.userPreferencesDataStore
 import com.neon.connectsort.navigation.AppDestination
 import com.neon.connectsort.ui.screens.*
+import com.neon.connectsort.ui.screens.story.StoryHubScreen
 import com.neon.connectsort.ui.screens.viewmodels.*
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -39,6 +40,7 @@ fun NeonGameApp() {
     val shopViewModel: ShopViewModel = viewModel(factory = viewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
     val characterChipsViewModel: CharacterChipsViewModel = viewModel(factory = viewModelFactory)
+    val storyHubViewModel: StoryHubViewModel = viewModel(factory = viewModelFactory)
 
     AnimatedNavHost(
         navController = navController,
@@ -51,6 +53,16 @@ fun NeonGameApp() {
             LobbyScreen(
                 navController = navController,
                 viewModel = lobbyViewModel
+            )
+        }
+        composable(
+            route = AppDestination.StoryHub.route,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            StoryHubScreen(
+                navController = navController,
+                viewModel = storyHubViewModel
             )
         }
         composable(

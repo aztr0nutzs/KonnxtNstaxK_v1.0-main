@@ -35,6 +35,7 @@ import com.neon.connectsort.navigation.toConnectFour
 import com.neon.connectsort.navigation.toMultiplier
 import com.neon.connectsort.navigation.toSettings
 import com.neon.connectsort.navigation.toShop
+import com.neon.connectsort.navigation.toStoryHub
 import com.neon.connectsort.ui.components.HolographicButton
 import com.neon.connectsort.ui.components.HolographicCard
 import com.neon.connectsort.ui.screens.viewmodels.LobbyState
@@ -99,6 +100,13 @@ fun LobbyScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+            HolographicButton(
+                text = "STORY MODE",
+                onClick = { navController.toStoryHub() },
+                glowColor = NeonColors.hologramYellow,
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(modifier = Modifier.height(12.dp))
             StatsRow(state)
             Spacer(modifier = Modifier.height(12.dp))
