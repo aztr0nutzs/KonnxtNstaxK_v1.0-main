@@ -35,6 +35,7 @@ import com.neon.connectsort.ui.screens.viewmodels.CharacterChip
 import com.neon.connectsort.ui.screens.viewmodels.CharacterChipsViewModel
 import com.neon.connectsort.ui.screens.viewmodels.Rarity
 import com.neon.connectsort.ui.theme.*
+import com.neon.connectsort.ui.components.*
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin

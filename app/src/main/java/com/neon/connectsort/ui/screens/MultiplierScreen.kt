@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import com.neon.connectsort.ui.theme.*
+import com.neon.connectsort.navigation.toLobby
 import com.neon.game.multiplier.MultiplierGame
 import com.neon.connectsort.ui.screens.viewmodels.MultiplierGameState
 import com.neon.connectsort.ui.screens.viewmodels.MultiplierViewModel
@@ -68,11 +69,11 @@ fun MultiplierScreen(
         
         // Game over overlay
         if (gameState.isGameOver) {
-            MultiplierGameOverOverlay(
-                finalScore = gameState.score,
-                onPlayAgain = { viewModel.onRestart() },
-                onBackToLobby = { navController.popBackStack() }
-            )
+        MultiplierGameOverOverlay(
+            finalScore = gameState.score,
+            onPlayAgain = { viewModel.onRestart() },
+            onBackToLobby = { navController.toLobby() }
+        )
         }
     }
 }
@@ -371,10 +372,10 @@ fun MultiplierGameOverOverlay(
                         neonColor = NeonColors.hologramBlue,
                         modifier = Modifier.fillMaxWidth()
                     )
-                }
             }
         }
     }
+}
 }
 
 @Composable

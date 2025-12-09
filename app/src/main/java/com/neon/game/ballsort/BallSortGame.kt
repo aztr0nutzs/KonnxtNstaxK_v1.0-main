@@ -1,7 +1,7 @@
 package com.neon.game.ballsort
 
 import com.neon.game.common.BaseGameState
-import com.neon.game.common.GameResult
+import com.neon.game.common.GameDifficulty
 
 /**
  * Manages the state and logic for the Ball Sort puzzle game.
@@ -11,48 +11,22 @@ import com.neon.game.common.GameResult
  * to its capacity.
  *
  * @property capacity The maximum number of balls each tube can hold.
- *
- * Core Rules:
- * - A move is valid if:
- *   1. The source tube is not empty.
- *   2. The destination tube is not full.
- *   3. The ball being moved is the same color as the top ball in the destination tube,
- *      OR the destination tube is empty.
- *
- * - Win Condition:
- *   The game is won when every tube is either empty or is completely full with balls
- *   of a single, matching color.
- *
- * - State:
- *   The game state is represented by a list of tubes (`_tubes`), where each tube is a
- *   list of integers representing the colors of the balls.
  */
 class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
 
     internal var _tubes: List<MutableList<Int>> = emptyList()
-    val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Expose immutable view
+    val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Immutable view
 
     var level: Int = 1
         private set
-
-    override var score: Int = 0
-        private set
-    override var moves: Int = 0
-        private set
-    override var turnCount: Int = 0 // Same as moves for this game
-        private set
-    override val isGameOver: Boolean
-        get() = isSolved()
-    override val result: GameResult
-        get() = when {
-            isSolved() -> GameResult.Win(1) // Player 1 wins, placeholder
-            else -> GameResult.InProgress
-        }
 
     init {
         startLevel(1)
     }
 
+    /**
+     * Prepare a fresh level configuration.
+     */
     fun startLevel(level: Int) {
         require(level > 0) { "Level must be positive, got: $level" }
         this.level = level
@@ -60,6 +34,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         moves = 0
         turnCount = 0
         score = 0
+        markInProgress()
     }
 
     private fun generateInitialTubes(level: Int): List<MutableList<Int>> {
@@ -67,14 +42,13 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
 
         val colorCount = (level / 2 + 2).coerceIn(2, 6)
         val colors = (0 until colorCount).flatMap { List(capacity) { it } }.toMutableList()
-        val tubeCount = colorCount + 2 // add two empty tubes for maneuvering
+        val tubeCount = colorCount + 2 // add empty tubes for maneuvering
 
         val initialTubes = MutableList(tubeCount) { mutableListOf<Int>() }
         colors.shuffle()
 
-        // Distribute colors evenly across tubes
         colors.forEachIndexed { index, color ->
-            val tubeIndex = index % colorCount // Only fill non-empty tubes initially
+            val tubeIndex = index % colorCount
             initialTubes[tubeIndex].add(color)
         }
 
@@ -82,11 +56,8 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     }
 
     /**
-     * Rules for a valid move:
-     * 1. The source tube cannot be empty.
-     * 2. The destination tube cannot be full (less than `capacity`).
-     * 3. The top ball of the source tube must match the top ball of the destination tube,
-     *    or the destination tube must be empty.
+     * A move is valid when the source is not empty, destination is not full,
+     * and either the destination is empty or matches the ball color.
      */
     fun isValidMove(from: Int, to: Int): Boolean {
         if (isGameOver) return false
@@ -110,12 +81,16 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         _tubes[to].add(ball)
         moves++
         turnCount++
+
+        if (isSolved()) {
+            markWin()
+        } else {
+            markInProgress()
+        }
     }
 
     /**
-     * A puzzle is solved when every tube is either:
-     * 1. Empty.
-     * 2. Full to `capacity` with balls of a single color.
+     * A puzzle is solved when each tube is empty or uniformly filled.
      */
     fun isSolved(): Boolean {
         return _tubes.all { tube ->
@@ -123,7 +98,8 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         }
     }
 
-    override fun reset(): BallSortGame {
+    override fun reset(newDifficulty: GameDifficulty): BallSortGame {
+        super.reset(newDifficulty)
         startLevel(level)
         return this
     }

@@ -1,7 +1,7 @@
 package com.neon.game.connectfour
 
 import com.neon.game.common.BaseGameState
-import com.neon.game.common.GameResult
+import com.neon.game.common.GameDifficulty
 
 class ConnectFourGame : BaseGameState() {
 
@@ -14,25 +14,8 @@ class ConnectFourGame : BaseGameState() {
     private var board = Array(ROWS) { arrayOfNulls<Int>(COLS) }
     private var currentPlayer = 1
     private var winningLine = emptyList<Pair<Int, Int>>()
-    private var lastWinner: Int? = null
 
     // BaseGameState Overrides
-    override var score: Int = 0
-        private set
-    override var moves: Int = 0
-        private set
-    override var turnCount: Int = 0
-        private set
-    override val isGameOver: Boolean
-        get() = result != GameResult.InProgress
-
-    override val result: GameResult
-        get() {
-            lastWinner?.let { return GameResult.Win(it) }
-            if (isBoardFull()) return GameResult.Draw
-            return GameResult.InProgress
-        }
-
     fun getBoard(): Array<Array<Int?>> = board.map { it.copyOf() }.toTypedArray()
 
     fun getCurrentPlayer(): Int = currentPlayer
@@ -49,9 +32,12 @@ class ConnectFourGame : BaseGameState() {
         turnCount++
 
         if (checkForWin(row, column)) {
-            lastWinner = currentPlayer
+            markWin(currentPlayer)
+        } else if (isBoardFull()) {
+            markDraw()
         } else {
             currentPlayer = if (currentPlayer == 1) 2 else 1
+            markInProgress()
         }
 
         return true
@@ -107,14 +93,11 @@ class ConnectFourGame : BaseGameState() {
         return false
     }
 
-    override fun reset(): BaseGameState {
+    override fun reset(newDifficulty: GameDifficulty): ConnectFourGame {
         board = Array(ROWS) { arrayOfNulls(COLS) }
         currentPlayer = 1
         winningLine = emptyList()
-        lastWinner = null
-        score = 0
-        moves = 0
-        turnCount = 0
+        super.reset(newDifficulty)
         return this
     }
 }

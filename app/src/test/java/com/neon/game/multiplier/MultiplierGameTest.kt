@@ -43,16 +43,15 @@ class MultiplierGameTest {
     @Test
     fun `lives decrease on hazard`() {
         val game = MultiplierGame()
-        game._difficulty = GameDifficulty.HARD // Increase hazard chance
+        game.start(GameDifficulty.HARD)
         game.applyMove(MultiplierGame.Action.SetMultiplier(10))
         val initialLives = game.lives
-        
-        // Drop chips until a hazard occurs
-        while(game.lives == initialLives && !game.isGameOver) {
+
+        while (game.lives == initialLives && !game.isGameOver) {
             game.applyMove(MultiplierGame.Action.Drop(0))
         }
-        
-        if(!game.isGameOver) {
+
+        if (!game.isGameOver) {
             assertEquals(initialLives - 1, game.lives)
         }
     }
@@ -60,14 +59,13 @@ class MultiplierGameTest {
     @Test
     fun `game over when lives reach zero`() {
         val game = MultiplierGame(maxLives = 1)
-        game._difficulty = GameDifficulty.HARD // Increase hazard chance
+        game.start(GameDifficulty.HARD)
         game.applyMove(MultiplierGame.Action.SetMultiplier(10))
-        
-        // Drop chips until game is over
-        while(!game.isGameOver) {
+
+        while (!game.isGameOver) {
             game.applyMove(MultiplierGame.Action.Drop(0))
         }
-        
+
         assertTrue(game.isGameOver)
         assertEquals(0, game.lives)
     }

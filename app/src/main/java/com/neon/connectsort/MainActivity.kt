@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -18,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.neon.connectsort.ui.NeonGameApp
 import com.neon.connectsort.ui.theme.NeonGameTheme
+import com.neon.connectsort.ui.theme.NeonPalette
 
 @OptIn(ExperimentalAnimationApi::class)
 class MainActivity : ComponentActivity() {
@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Set window background to match holographic theme
-        window.navigationBarColor = Color(0xFF000022).toArgb()
-        window.statusBarColor = Color(0xFF000022).toArgb()
+        window.navigationBarColor = NeonPalette.background.toArgb()
+        window.statusBarColor = NeonPalette.background.toArgb()
 
         setContent {
             NeonGameTheme {

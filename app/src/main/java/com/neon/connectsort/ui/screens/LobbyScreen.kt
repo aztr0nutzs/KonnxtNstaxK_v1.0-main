@@ -29,9 +29,9 @@ import com.neon.connectsort.navigation.toConnectFour
 import com.neon.connectsort.navigation.toMultiplier
 import com.neon.connectsort.navigation.toSettings
 import com.neon.connectsort.navigation.toShop
+import com.neon.connectsort.ui.components.HolographicButton
+import com.neon.connectsort.ui.components.HolographicCard
 import com.neon.connectsort.ui.screens.viewmodels.LobbyViewModel
-import com.neon.connectsort.ui.theme.HolographicButton
-import com.neon.connectsort.ui.theme.HolographicCard
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonGameTheme
 import com.neon.connectsort.ui.theme.NeonText

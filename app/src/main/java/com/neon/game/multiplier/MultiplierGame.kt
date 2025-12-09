@@ -2,7 +2,6 @@ package com.neon.game.multiplier
 
 import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
-import com.neon.game.common.GameResult
 
 /**
  * Manages the state and logic for the Multiplier risk-based game.
@@ -18,10 +17,7 @@ class MultiplierGame(
     private val maxLives: Int = 3
 ) : BaseGameState() {
 
-    // Game State
     var board: Array<Array<Int?>> = emptyBoard()
-        private set
-    override var score: Int = 0
         private set
     var multiplier: Int = 1
         private set
@@ -31,24 +27,9 @@ class MultiplierGame(
         private set
     var lives: Int = maxLives
         private set
-    override var isGameOver: Boolean = false
-        private set
     internal var lastEvent: Event = Event.None
         private set
 
-    // BaseGameState Overrides
-    override var moves: Int = 0
-        private set
-    override var turnCount: Int = 0
-        private set
-    override val result: GameResult
-        get() = when {
-            !isGameOver -> GameResult.InProgress
-            lives > 0 -> GameResult.Win(1) // Player wins by cashing out
-            else -> GameResult.Loss
-        }
-
-    // Game-specific events and actions
     sealed class Event {
         data class Success(val points: Int) : Event()
         object Hazard : Event()
@@ -62,14 +43,9 @@ class MultiplierGame(
         object CashOut : Action()
     }
 
-    internal var _difficulty: GameDifficulty = GameDifficulty.MEDIUM
-
     fun start(newDifficulty: GameDifficulty) {
-        _difficulty = newDifficulty
-        reset()
+        reset(newDifficulty)
     }
-
-    override fun getDifficulty(): GameDifficulty = _difficulty
 
     fun applyMove(action: Action) {
         if (isGameOver) return
@@ -86,18 +62,19 @@ class MultiplierGame(
     }
 
     private fun cashOut() {
-        isGameOver = true
         lastEvent = Event.CashOut
+        markWin()
     }
 
     private fun drop(column: Int) {
         if (column !in 0 until cols) return
-        val row = findRow(column) ?: return // Column is full
+        val row = findRow(column) ?: return
 
         moves++
         turnCount++
 
-        val difficultyModifier = when (_difficulty) {
+        val activeDifficulty = getDifficulty()
+        val difficultyModifier = when (activeDifficulty) {
             GameDifficulty.EASY -> 0.7
             GameDifficulty.MEDIUM -> 1.0
             GameDifficulty.HARD -> 1.4
@@ -119,38 +96,38 @@ class MultiplierGame(
             streak = 0
             lastEvent = Event.Hazard
         } else {
-            board[row][column] = 1 // Mark as filled
+            board[row][column] = 1
             streak += 1
             bestStreak = maxOf(bestStreak, streak)
 
-            val difficultyScoreModifier = when (_difficulty) {
+            val difficultyScoreModifier = when (activeDifficulty) {
                 GameDifficulty.EASY -> 1.5
                 GameDifficulty.MEDIUM -> 1.0
                 GameDifficulty.HARD -> 0.75
             }
 
             val streakBonus = 1 + (streak / 3)
-            val gained = (baseScore * multiplier * streakBonus * difficultyScoreModifier).toInt()
+            val gained =
+                (baseScore * multiplier * streakBonus * difficultyScoreModifier).toInt()
             score += gained
             lastEvent = Event.Success(gained)
         }
 
-        if (lives <= 0 || isBoardFull()) {
-            isGameOver = true
+        when {
+            lives <= 0 -> markLoss()
+            isBoardFull() -> markWin()
+            else -> markInProgress()
         }
     }
 
-    override fun reset(): BaseGameState {
+    override fun reset(newDifficulty: GameDifficulty): MultiplierGame {
         board = emptyBoard()
-        score = 0
         streak = 0
         bestStreak = 0
         lives = maxLives
-        isGameOver = false
         lastEvent = Event.None
         multiplier = 1
-        moves = 0
-        turnCount = 0
+        super.reset(newDifficulty)
         return this
     }
 

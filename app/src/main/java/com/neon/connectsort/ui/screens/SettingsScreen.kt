@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.neon.connectsort.ui.theme.*
+import com.neon.connectsort.ui.components.*
 import com.neon.connectsort.ui.screens.viewmodels.SettingsViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.lazy.items

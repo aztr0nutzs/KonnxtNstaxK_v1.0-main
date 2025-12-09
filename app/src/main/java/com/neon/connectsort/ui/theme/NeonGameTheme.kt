@@ -10,19 +10,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 private val holographicDarkColorScheme = darkColorScheme(
-    primary = NeonColors.hologramCyan,
-    secondary = NeonColors.hologramPurple,
-    tertiary = NeonColors.hologramGreen,
-    background = NeonColors.depthVoid,
-    surface = NeonColors.depthMidnight,
-    surfaceVariant = NeonColors.depthOcean,
-    error = NeonColors.hologramRed,
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onBackground = NeonColors.textHologram,
-    onSurface = NeonColors.textHologram.copy(alpha = 0.9f),
-    onSurfaceVariant = NeonColors.textHologram.copy(alpha = 0.7f),
-    onError = Color.Black
+    primary = NeonPalette.primary,
+    secondary = NeonPalette.secondary,
+    tertiary = NeonPalette.accent,
+    background = NeonPalette.background,
+    surface = NeonPalette.surface,
+    surfaceVariant = NeonPalette.surfaceVariant,
+    error = NeonPalette.error,
+    onPrimary = NeonPalette.onPrimary,
+    onSecondary = NeonPalette.onSecondary,
+    onBackground = NeonPalette.onBackground,
+    onSurface = NeonPalette.onSurface,
+    onSurfaceVariant = NeonPalette.onSurfaceVariant,
+    onError = NeonPalette.onError
 )
 
 object NeonGameTheme {

@@ -78,7 +78,8 @@ class ConnectFourGameTest {
         game.dropChip(3) // P1 wins
 
         assertTrue(game.isGameOver)
-        assertEquals(GameResult.Win(1), game.result)
+        assertEquals(GameResult.WIN, game.gameResult)
+        assertEquals(1, game.winner)
     }
 
     @Test
@@ -92,7 +93,8 @@ class ConnectFourGameTest {
         game.dropChip(0) // P1 wins
 
         assertTrue(game.isGameOver)
-        assertEquals(GameResult.Win(1), game.result)
+        assertEquals(GameResult.WIN, game.gameResult)
+        assertEquals(1, game.winner)
     }
 
     @Test
@@ -110,7 +112,8 @@ class ConnectFourGameTest {
         game.dropChip(3) // P1 wins
 
         assertTrue(game.isGameOver)
-        assertEquals(GameResult.Win(1), game.result)
+        assertEquals(GameResult.WIN, game.gameResult)
+        assertEquals(1, game.winner)
     }
 
     @Test
@@ -128,7 +131,8 @@ class ConnectFourGameTest {
         game.dropChip(0) // P1 wins
         
         assertTrue(game.isGameOver)
-        assertEquals(GameResult.Win(1), game.result)
+        assertEquals(GameResult.WIN, game.gameResult)
+        assertEquals(1, game.winner)
     }
 
     @Test
@@ -144,7 +148,7 @@ class ConnectFourGameTest {
         }
 
         assertTrue(game.isGameOver)
-        assertTrue(game.result is GameResult.Win || game.result is GameResult.Draw)
+        assertTrue(game.gameResult == GameResult.WIN || game.gameResult == GameResult.DRAW)
     }
 
 

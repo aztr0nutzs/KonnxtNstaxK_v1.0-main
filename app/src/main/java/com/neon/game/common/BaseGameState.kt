@@ -4,49 +4,68 @@ package com.neon.game.common
  * Shared base class for all game states.
  * Provides common properties and reset functionality.
  */
-abstract class BaseGameState {
-    abstract val score: Int
-    abstract val isGameOver: Boolean
-    abstract val moves: Int
-    abstract val turnCount: Int
-    abstract val result: GameResult
+open class BaseGameState(
+    initialDifficulty: GameDifficulty = GameDifficulty.MEDIUM
+) {
+    var score: Int = 0
+        protected set
+    var moves: Int = 0
+        protected set
+    var turnCount: Int = 0
+        protected set
+    protected var difficultyLevel: GameDifficulty = initialDifficulty
+        protected set
+    var gameResult: GameResult = GameResult.IN_PROGRESS
+        protected set
+    var winner: Int? = null
+        protected set
+
+    val isGameOver: Boolean
+        get() = gameResult.isTerminal()
+    val isDraw: Boolean
+        get() = gameResult == GameResult.DRAW
+    val isWin: Boolean
+        get() = gameResult == GameResult.WIN
+    val isLoss: Boolean
+        get() = gameResult == GameResult.LOSS
 
     /**
      * Reset the game to initial state.
-     * Each game implementation must define its own reset logic.
+     * Each concrete game implementation can extend or override this behavior.
      */
-    abstract fun reset(): BaseGameState
+    open fun reset(newDifficulty: GameDifficulty = difficultyLevel): BaseGameState {
+        score = 0
+        moves = 0
+        turnCount = 0
+        winner = null
+        difficultyLevel = newDifficulty
+        gameResult = GameResult.IN_PROGRESS
+        return this
+    }
 
     /**
-     * Get difficulty level.
-     * Default implementation returns medium difficulty.
+     * Return the current difficulty.
      */
-    open fun getDifficulty(): GameDifficulty = GameDifficulty.MEDIUM
-}
+    open fun getDifficulty(): GameDifficulty = difficultyLevel
 
-/**
- * Represents the outcome of a game.
- */
-sealed class GameResult {
-    object InProgress : GameResult()
-    data class Win(val winner: Int) : GameResult()
-    object Loss : GameResult()
-    object Draw : GameResult()
-}
+    protected fun setResult(result: GameResult, winner: Int? = null) {
+        gameResult = result
+        this.winner = if (result == GameResult.WIN) winner else null
+    }
 
-/**
- * Difficulty levels for games.
- */
-enum class GameDifficulty(val level: Int, val displayName: String) {
-    EASY(1, "Easy"),
-    MEDIUM(2, "Medium"),
-    HARD(3, "Hard");
-    
-    companion object {
-        fun fromLevel(level: Int): GameDifficulty = when (level) {
-            1 -> EASY
-            3 -> HARD
-            else -> MEDIUM
-        }
+    protected fun markInProgress() {
+        setResult(GameResult.IN_PROGRESS)
+    }
+
+    protected fun markWin(winner: Int? = null) {
+        setResult(GameResult.WIN, winner)
+    }
+
+    protected fun markLoss() {
+        setResult(GameResult.LOSS)
+    }
+
+    protected fun markDraw() {
+        setResult(GameResult.DRAW)
     }
 }

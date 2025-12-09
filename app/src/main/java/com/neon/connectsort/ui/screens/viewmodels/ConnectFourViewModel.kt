@@ -57,19 +57,15 @@ class ConnectFourViewModel : ViewModel() {
         val currentPlayer = game.getCurrentPlayer()
         val winningLine = game.getWinningLine()
 
-        val winner = when (val gameResult = game.result) {
-            is GameResult.Win -> gameResult.winner
-            else -> 0
-        }
-
+        val winnerId = game.winner ?: 0
         val newState = ConnectFourGameState(
             board = board,
             currentPlayer = currentPlayer,
-            winner = winner,
+            winner = winnerId,
             winningLine = winningLine,
-            playerScore = if (winner == 1) gameState.value.playerScore + 1 else gameState.value.playerScore,
-            aiScore = if (winner == 2) gameState.value.aiScore + 1 else gameState.value.aiScore,
-            isDraw = game.result is GameResult.Draw
+            playerScore = if (winnerId == 1) gameState.value.playerScore + 1 else gameState.value.playerScore,
+            aiScore = if (winnerId == 2) gameState.value.aiScore + 1 else gameState.value.aiScore,
+            isDraw = game.gameResult == GameResult.DRAW
         )
 
         _gameState.value = newState

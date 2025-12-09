@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.Text
 import com.neon.connectsort.ui.theme.*
+import com.neon.connectsort.navigation.toLobby
 import com.neon.connectsort.ui.screens.viewmodels.BallAnimationState
 import com.neon.connectsort.ui.screens.viewmodels.BallSortGameState
 import com.neon.connectsort.ui.screens.viewmodels.BallSortViewModel
@@ -76,7 +77,7 @@ fun BallSortScreen(
                 level = gameState.level,
                 moves = gameState.moves,
                 onNextLevel = { viewModel.loadLevel(gameState.level + 1) },
-                onBackToLobby = { navController.popBackStack() }
+                onBackToLobby = { navController.toLobby() }
             )
         }
     }
