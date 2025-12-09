@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,7 +37,7 @@ class MainActivity : ComponentActivity() {
             NeonGameTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = NeonGameTheme.colors.depthVoid
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     NeonGameApp()
                 }

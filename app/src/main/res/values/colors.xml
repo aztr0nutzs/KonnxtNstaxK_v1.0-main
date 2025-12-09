@@ -15,4 +15,7 @@
     <color name="neon_pink">#FFFF00FF</color>
     <color name="neon_yellow">#FFFFFF00</color>
     <color name="neon_background">#FF000020</color>
+
+    <color name="neon_cyan_dark">#FF00B3B3</color>
+    <color name="neon_pink_dark">#FFB300B3</color>
 </resources>

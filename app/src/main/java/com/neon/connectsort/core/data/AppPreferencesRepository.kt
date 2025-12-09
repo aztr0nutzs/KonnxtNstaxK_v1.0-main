@@ -34,7 +34,7 @@ data class UserPrefs(
     val highScoreConnectFour: Int = 0
 )
 
-class AppPreferencesRepository(private val context: Context) {
+class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     private object Keys {
         val SOUND = booleanPreferencesKey("sound")
@@ -53,7 +53,7 @@ class AppPreferencesRepository(private val context: Context) {
         val HIGH_SCORE_CONNECT_FOUR = intPreferencesKey("high_score_connect_four")
     }
 
-    val prefsFlow: Flow<UserPrefs> = context.userPreferencesDataStore.data.map { prefs ->
+    val prefsFlow: Flow<UserPrefs> = dataStore.data.map { prefs ->
         UserPrefs(
             soundEnabled = prefs[Keys.SOUND] ?: true,
             musicEnabled = prefs[Keys.MUSIC] ?: true,
@@ -72,7 +72,7 @@ class AppPreferencesRepository(private val context: Context) {
         )
     }
 
-    val difficultyFlow: Flow<Int> = context.userPreferencesDataStore.data.map {
+    val difficultyFlow: Flow<Int> = dataStore.data.map {
         it[Keys.DIFFICULTY] ?: 2
     }
 
@@ -119,6 +119,6 @@ class AppPreferencesRepository(private val context: Context) {
     }
 
     private suspend fun write(block: (MutablePreferences) -> Unit) {
-        context.userPreferencesDataStore.edit { prefs -> block(prefs) }
+        dataStore.edit { prefs -> block(prefs) }
     }
 }

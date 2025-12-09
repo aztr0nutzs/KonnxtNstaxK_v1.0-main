@@ -71,8 +71,8 @@ fun ConnectFourScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ScorePill("PLAYER", gameState.playerScore, NeonColors.playerOne)
-            ScorePill("AI", gameState.aiScore, NeonColors.playerTwo)
+            ScorePill("PLAYER", gameState.playerScore, NeonColors.neonCyan)
+            ScorePill("AI", gameState.aiScore, NeonColors.neonMagenta)
         }
 
         // Board
@@ -110,7 +110,7 @@ fun ConnectFourScreen(
                         value?.let { player ->
                             val cx = c * cellW + cellW / 2
                             val cy = r * cellH + cellH / 2
-                            val color = if (player == 1) NeonColors.playerOne else NeonColors.playerTwo
+                            val color = if (player == 1) NeonColors.neonCyan else NeonColors.neonMagenta
                             drawCircle(
                                 color = color,
                                 radius = cellW.coerceAtMost(cellH) * 0.35f,

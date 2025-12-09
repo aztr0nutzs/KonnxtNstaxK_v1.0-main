@@ -39,10 +39,10 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NeonButton(
+            HolographicButton(
                 text = "← BACK",
                 onClick = { navController.popBackStack() },
-                neonColor = NeonColors.hologramBlue,
+                glowColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(100.dp)
             )
             
@@ -104,6 +104,12 @@ fun SettingsScreen(
 
             item { SettingsCategory("Game") }
             item {
+                 DifficultySelector(
+                    difficulty = settings.gameDifficulty,
+                    onDifficultyChange = { viewModel.setDifficulty(it) }
+                )
+            }
+            item {
                 SettingToggle(
                     label = "Vibration Feedback",
                     isChecked = settings.vibrationEnabled,
@@ -120,18 +126,18 @@ fun SettingsScreen(
 
             item { SettingsCategory("Data") }
             item {
-                NeonButton(
+                HolographicButton(
                     text = "RESET PROGRESS",
                     onClick = { viewModel.resetProgress() },
-                    neonColor = NeonColors.hologramRed,
+                    glowColor = NeonColors.hologramRed,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
             item {
-                NeonButton(
+                HolographicButton(
                     text = "CLEAR CACHE",
                     onClick = { viewModel.clearCache() },
-                    neonColor = NeonColors.hologramYellow,
+                    glowColor = NeonColors.hologramYellow,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -156,9 +162,9 @@ fun SettingToggle(
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    NeonCard(
+    HolographicCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = if (isChecked) NeonColors.hologramGreen else NeonColors.hologramBlue
+        title = label
     ) {
         Row(
             modifier = Modifier
@@ -198,9 +204,9 @@ fun SettingSlider(
     value: Float,
     onValueChange: (Float) -> Unit
 ) {
-    NeonCard(
+    HolographicCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = NeonColors.hologramCyan
+        title = label
     ) {
         Column(
             modifier = Modifier
@@ -236,6 +242,39 @@ fun SettingSlider(
                     inactiveTrackColor = NeonColors.hologramCyan.copy(alpha = 0.3f)
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun DifficultySelector(
+    difficulty: Int,
+    onDifficultyChange: (Int) -> Unit
+) {
+    val difficulties = listOf("Easy", "Medium", "Hard")
+    HolographicCard(
+        modifier = Modifier.fillMaxWidth(),
+        title = "Difficulty"
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            difficulties.forEachIndexed { index, level ->
+                val levelValue = index + 1
+                HolographicButton(
+                    text = level.uppercase(),
+                    onClick = { onDifficultyChange(levelValue) },
+                    glowColor = if (difficulty == levelValue) NeonColors.hologramGreen else NeonColors.hologramBlue,
+                    modifier = Modifier.weight(1f)
+                )
+                if (index < difficulties.size - 1) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
         }
     }
 }

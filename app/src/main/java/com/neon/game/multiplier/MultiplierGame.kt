@@ -33,7 +33,7 @@ class MultiplierGame(
         private set
     override var isGameOver: Boolean = false
         private set
-    var lastEvent: Event = Event.None
+    internal var lastEvent: Event = Event.None
         private set
 
     // BaseGameState Overrides
@@ -62,7 +62,7 @@ class MultiplierGame(
         object CashOut : Action()
     }
 
-    private var _difficulty: GameDifficulty = GameDifficulty.MEDIUM
+    internal var _difficulty: GameDifficulty = GameDifficulty.MEDIUM
 
     fun start(newDifficulty: GameDifficulty) {
         _difficulty = newDifficulty

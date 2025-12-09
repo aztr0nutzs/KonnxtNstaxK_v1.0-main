@@ -15,25 +15,25 @@ object HolographicGradients {
         NeonColors.hologramPurple,
         NeonColors.hologramPink
     )
-    
+
     val fullSpectrum = listOf(
-        NeonColors.hologramRed,
-        NeonColors.hologramOrange,
-        NeonColors.hologramYellow,
-        NeonColors.hologramGreen,
+        NeonColors.neonRed,
+        NeonColors.neonRed,
+        NeonColors.neonYellow,
+        NeonColors.neonGreen,
         NeonColors.hologramCyan,
         NeonColors.hologramBlue,
         NeonColors.hologramPurple,
         NeonColors.hologramPink
     )
-    
+
     val depthGradient = listOf(
-        NeonColors.depthBlack,
+        NeonColors.depthVoid,
         NeonColors.depthVoid,
         NeonColors.depthMidnight,
         NeonColors.depthOcean
     )
-    
+
     val neonGlow = listOf(
         Color.Transparent,
         NeonColors.hologramCyan.copy(alpha = 0.3f),
@@ -41,25 +41,25 @@ object HolographicGradients {
         NeonColors.hologramCyan.copy(alpha = 0.3f),
         Color.Transparent
     )
-    
+
     val buttonGlow = listOf(
-        NeonColors.buttonPrimary,
-        NeonColors.buttonSecondary,
-        NeonColors.buttonPrimary
+        NeonColors.hologramCyan,
+        NeonColors.hologramPink,
+        NeonColors.hologramCyan
     )
-    
+
     val chipGlow = listOf(
         Color.White.copy(alpha = 0.8f),
         NeonColors.hologramCyan.copy(alpha = 0.6f),
         NeonColors.hologramPurple.copy(alpha = 0.6f),
         Color.White.copy(alpha = 0.8f)
     )
-    
+
     val winGradient = listOf(
-        NeonColors.winGlow,
+        NeonColors.neonYellow,
         NeonColors.hologramYellow,
-        NeonColors.hologramOrange,
-        NeonColors.winGlow
+        NeonColors.neonYellow,
+        NeonColors.neonYellow
     )
 }
 
@@ -71,7 +71,7 @@ object GridPatterns {
         Pair(0.5f to 0.0f, 1.0f to 0.5f),
         Pair(0.0f to 0.5f, 0.5f to 1.0f)
     )
-    
+
     val circuitGrid = listOf(
         Pair(0.0f to 0.333f, 1.0f to 0.333f),
         Pair(0.0f to 0.666f, 1.0f to 0.666f),
@@ -81,7 +81,7 @@ object GridPatterns {
         Pair(0.666f to 0.0f, 0.666f to 1.0f),
         Pair(0.833f to 0.0f, 0.833f to 1.0f)
     )
-    
+
     val hexGrid = listOf(
         Pair(0.166f to 0.0f, 0.166f to 1.0f),
         Pair(0.5f to 0.0f, 0.5f to 1.0f),
@@ -93,34 +93,34 @@ object GridPatterns {
 }
 
 object ParticleColors {
-    val hologramParticles = listOf(
+    val hologramParticles = listOf<Color>(
         NeonColors.hologramCyan,
         NeonColors.hologramBlue,
         NeonColors.hologramPurple,
         NeonColors.hologramGreen,
         NeonColors.hologramPink
     )
-    
-    val sparkleParticles = listOf(
+
+    val sparkleParticles = listOf<Color>(
         Color.White,
         NeonColors.hologramCyan,
         NeonColors.hologramYellow,
         Color(0x80FFFFFF),
         NeonColors.hologramPink
     )
-    
-    val energyParticles = listOf(
+
+    val energyParticles = listOf<Color>(
         NeonColors.hologramCyan,
         NeonColors.hologramBlue,
         Color(0x80FFFFFF),
         NeonColors.hologramPurple
     )
-    
-    val winParticles = listOf(
-        NeonColors.winGlow,
+
+    val winParticles = listOf<Color>(
+        NeonColors.neonYellow,
         NeonColors.hologramYellow,
         Color.White,
-        NeonColors.hologramOrange
+        NeonColors.neonRed
     )
 }
 
@@ -150,7 +150,7 @@ fun shimmerBrush(): Brush {
     return Brush.linearGradient(
         colors = listOf(
             Color.Transparent,
-            NeonColors.uiGlowPrimary,
+            NeonColors.hologramCyan,
             Color.Transparent
         ),
         start = Offset(-100f, -100f),

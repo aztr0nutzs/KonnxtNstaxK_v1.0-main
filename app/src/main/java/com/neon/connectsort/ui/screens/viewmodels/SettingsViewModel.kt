@@ -16,7 +16,8 @@ data class SettingsState(
     val animationsEnabled: Boolean = true,
     val glowEffectsEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
-    val showTutorials: Boolean = true
+    val showTutorials: Boolean = true,
+    val gameDifficulty: Int = 2
 )
 
 class SettingsViewModel(
@@ -42,6 +43,7 @@ class SettingsViewModel(
     fun toggleTutorials() = persist { repository?.setTutorials(!settings.value.showTutorials) }
 
     fun setVolume(value: Float) = persist { repository?.setVolume(value.coerceIn(0f, 1f)) }
+    fun setDifficulty(value: Int) = persist { repository?.setDifficulty(value) }
 
     fun resetProgress() {
         viewModelScope.launch {
@@ -52,6 +54,7 @@ class SettingsViewModel(
             repository?.setVibration(true)
             repository?.setTutorials(true)
             repository?.setVolume(0.8f)
+            repository?.setDifficulty(2)
         }
     }
 
@@ -66,7 +69,8 @@ class SettingsViewModel(
         animationsEnabled = animationsEnabled,
         glowEffectsEnabled = glowEffectsEnabled,
         vibrationEnabled = vibrationEnabled,
-        showTutorials = showTutorials
+        showTutorials = showTutorials,
+        gameDifficulty = gameDifficulty
     )
 
     private fun persist(block: suspend () -> Unit) {

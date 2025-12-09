@@ -1,56 +1,46 @@
 package com.neon.connectsort.core.data
 
-// TODO: This test is broken and needs to be rewritten as a proper unit test.
-// It was temporarily disabled to unblock the build.
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
-//import android.content.Context
-//import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-//import androidx.test.core.app.ApplicationProvider
-//import androidx.test.ext.junit.runners.AndroidJUnit4
-//import kotlinx.coroutines.ExperimentalCoroutinesApi
-//import kotlinx.coroutines.Job
-//import kotlinx.coroutines.flow.first
-//import kotlinx.coroutines.test.TestScope
-//import kotlinx.coroutines.test.UnconfinedTestDispatcher
-//import kotlinx.coroutines.test.runTest
-//import org.junit.Assert.*
-//import org.junit.Before
-//import org.junit.Rule
-//import org.junit.Test
-//import org.junit.rules.TemporaryFolder
-//import org.junit.runner.RunWith
-//
-//@RunWith(AndroidJUnit4::class)
-//@ExperimentalCoroutinesApi
-//class AppPreferencesRepositoryTest {
-//
-//    private lateinit var repository: AppPreferencesRepository
-//    private val testDispatcher = UnconfinedTestDispatcher()
-//    private val testScope = TestScope(testDispatcher + Job())
-//
-//    @get:Rule
-//    val temporaryFolder: TemporaryFolder = TemporaryFolder()
-//
-//    @Before
-//    fun setup() {
-//        val context: Context = ApplicationProvider.getApplicationContext()
-//        val dataStore = PreferenceDataStoreFactory.create(
-//            scope = testScope,
-//            produceFile = { temporaryFolder.newFile("test_prefs.preferences_pb") }
-//        )
-//        repository = AppPreferencesRepository(context)
-//    }
-//
-//    @Test
-//    fun `test default preferences`() = testScope.runTest {
-//        val prefs = repository.prefsFlow.first()
-//        assertEquals(UserPrefs(), prefs)
-//    }
-//
-//    @Test
-//    fun `test set difficulty`() = testScope.runTest {
-//        repository.setDifficulty(3)
-//        val prefs = repository.prefsFlow.first()
-//        assertEquals(3, prefs.gameDifficulty)
-//    }
-//}
+@ExperimentalCoroutinesApi
+class AppPreferencesRepositoryTest {
+
+    @get:Rule
+    val temporaryFolder: TemporaryFolder = TemporaryFolder()
+
+    @Test
+    fun `test default preferences`() = runTest {
+        val testScope = TestScope(UnconfinedTestDispatcher())
+        val dataStore = PreferenceDataStoreFactory.create(
+            scope = testScope.backgroundScope,
+            produceFile = { temporaryFolder.newFile("test_prefs_defaults.preferences_pb") }
+        )
+        val repository = AppPreferencesRepository(dataStore)
+
+        val prefs = repository.prefsFlow.first()
+        assertEquals(UserPrefs(), prefs)
+    }
+
+    @Test
+    fun `test set difficulty`() = runTest {
+        val testScope = TestScope(UnconfinedTestDispatcher())
+        val dataStore = PreferenceDataStoreFactory.create(
+            scope = testScope.backgroundScope,
+            produceFile = { temporaryFolder.newFile("test_prefs_difficulty.preferences_pb") }
+        )
+        val repository = AppPreferencesRepository(dataStore)
+
+        repository.setDifficulty(3)
+        val prefs = repository.prefsFlow.first()
+        assertEquals(3, prefs.gameDifficulty)
+    }
+}

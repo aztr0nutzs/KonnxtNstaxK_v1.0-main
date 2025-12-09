@@ -38,10 +38,10 @@ fun ShopScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NeonButton(
+            HolographicButton(
                 text = "← BACK",
                 onClick = { navController.popBackStack() },
-                neonColor = NeonColors.hologramBlue,
+                glowColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(100.dp)
             )
             
@@ -86,9 +86,9 @@ fun ShopItemCard(
     item: ShopItem,
     onPurchase: () -> Unit
 ) {
-    NeonCard(
+    HolographicCard(
         modifier = Modifier.fillMaxWidth(),
-        neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramBlue
+        title = item.name
     ) {
         Row(
             modifier = Modifier
@@ -101,13 +101,6 @@ fun ShopItemCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                NeonText(
-                    text = item.name,
-                    fontSize = 18,
-                    fontWeight = FontWeight.Bold,
-                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramCyan
-                )
-                
                 Text(
                     text = item.description,
                     color = NeonColors.textSecondary,
@@ -127,10 +120,10 @@ fun ShopItemCard(
             }
             
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                NeonButton(
+                HolographicButton(
                     text = if (item.isPurchased) "OWNED" else "${item.price} COINS",
                     onClick = onPurchase,
-                    neonColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramYellow,
+                    glowColor = if (item.isPurchased) NeonColors.hologramGreen else NeonColors.hologramYellow,
                     enabled = !item.isPurchased
                 )
             }

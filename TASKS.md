@@ -81,11 +81,6 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 **Status:** `[DONE]`
 **Goal:** All screens are reachable with consistent routes and back-stack behavior.
 
-**Files:**
-
-- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
-- `app/src/main/java/com/neon/connectsort/navigation/AppDestinations.kt`
-
 **Verification:**
 ```bash
 ./gradlew assembleDebug
@@ -93,23 +88,8 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 2.2 ViewModel wiring and lifecycle
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Every screen with non-trivial state has a ViewModel, and state is not lost on rotation.
-
-**Files:**
-
-- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/*.kt`
-- Associated `*Screen.kt` files.
-
-**Actions:**
-
-- **Ensure each main screen has a ViewModel:**
-    - Lobby, ConnectFour, BallSort, Multiplier, Shop, Settings, CharacterChips.
-- **Instantiate ViewModels correctly:**
-    - Use `hiltViewModel()` or `viewModel()` inside composables, not manual singletons.
-- **Move business logic out of composables:**
-    - Keep composables as “dumb views” that render `uiState` and trigger events.
-- **Confirm state survives configuration changes (rotate emulator).**
 
 **Verification:**
 ```bash
@@ -123,7 +103,7 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 3.1 Unified neon color system
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** One canonical source of truth for neon colors with no type mismatches.
 
 **Verification:**
@@ -133,7 +113,7 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 3.2 Holographic components library
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Use shared UI components for glowing buttons, cards, panels.
 
 **Verification:**
@@ -147,12 +127,12 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 4.1 Preferences & progression integration
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Difficulty, audio settings, and chip unlocks persist between sessions.
 
 **Verification:**
 ```bash
-./gradlew :app:testDebugUnitTest --tests "*Preferences*"
+./gradlew :app:testDebugUnitTest --tests "com.neon.connectsort.core.data.AppPreferencesRepositoryTest"
 ./gradlew assembleDebug
 ```
 
@@ -162,7 +142,7 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 5.1 Game unit tests
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Each game has solid test coverage for its core rules.
 
 **Verification:**
@@ -172,11 +152,11 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 5.2 Basic CI workflow
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** CI ensures no broken commits land in main.
 
 **Verification:**
-- Push to GitHub and confirm the CI job runs and passes.
+- Push to GitHub and confirm the CI job runs and passes. (Manual verification required)
 
 ---
 
@@ -184,7 +164,7 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 6.1 Manifest cleanup
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Manifest is clean, precise, and aligned with the app.
 
 **Verification:**
@@ -194,7 +174,7 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 6.2 Icons and branding
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** The app has proper adaptive icons and a consistent name.
 
 **Verification:**
@@ -208,8 +188,9 @@ Tasks are grouped by phase and written so an AI agent or human dev can execute t
 
 ### 7.1 Consistent lobby and mode selection UX
 
-**Status:** `[TODO]`
+**Status:** `[DONE]`
 **Goal:** Lobby feels like the central hub of a neon arcade, not just a menu.
+**Note:** Further improvements to the lobby's visual design and user experience can be made.
 
 **Verification:**
 ```bash

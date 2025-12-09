@@ -29,7 +29,7 @@ import com.neon.game.common.GameResult
  */
 class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
 
-    private var _tubes: List<MutableList<Int>> = emptyList()
+    internal var _tubes: List<MutableList<Int>> = emptyList()
     val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Expose immutable view
 
     var level: Int = 1

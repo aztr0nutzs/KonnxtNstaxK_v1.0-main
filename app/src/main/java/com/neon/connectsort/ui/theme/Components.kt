@@ -56,7 +56,7 @@ fun NeonButton(
                 shape = RoundedCornerShape(12.dp)
             ),
         colors = ButtonDefaults.buttonColors(
-            containerColor = NeonColors.cardBackground.copy(alpha = 0.8f),
+            containerColor = NeonColors.depthMidnight.copy(alpha = 0.8f),
             contentColor = neonColor,
             disabledContainerColor = Color.DarkGray,
             disabledContentColor = Color.Gray
@@ -116,7 +116,7 @@ fun NeonCard(
                 shape = RoundedCornerShape(16.dp)
             )
             .background(
-                color = NeonColors.cardBackground,
+                color = NeonColors.depthMidnight,
                 shape = RoundedCornerShape(16.dp)
             )
             .clip(RoundedCornerShape(16.dp))

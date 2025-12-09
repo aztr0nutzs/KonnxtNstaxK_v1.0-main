@@ -15,29 +15,20 @@ class BallSortViewModel(
 ) : ViewModel() {
     private val game = BallSortGame()
 
-    private val palette: List<Color> = listOf(
-        NeonColors.neonCyan,
-        NeonColors.neonMagenta,
-        NeonColors.neonGreen,
-        NeonColors.neonYellow,
-        NeonColors.neonRed,
-        NeonColors.neonBlue
-    )
-
     private val _gameState = MutableStateFlow(mapToGameState())
     val gameState: StateFlow<BallSortGameState> = _gameState.asStateFlow()
-    
+
     private val _selectedTube = MutableStateFlow<Int?>(null)
     val selectedTube: StateFlow<Int?> = _selectedTube.asStateFlow()
-    
+
     private val _animationState = MutableStateFlow<BallAnimationState?>(null)
     val animationState: StateFlow<BallAnimationState?> = _animationState.asStateFlow()
-    
+
     fun loadLevel(level: Int) {
         game.startLevel(level)
         updateState()
     }
-    
+
     fun selectTube(index: Int) {
         when (val selected = _selectedTube.value) {
             null -> {
@@ -57,35 +48,43 @@ class BallSortViewModel(
             }
         }
     }
-    
+
     private fun moveBall(fromTube: Int, toTube: Int) {
         viewModelScope.launch {
             _animationState.value = BallAnimationState(fromTube, toTube, 0f)
-            
+
             // Animation loop
             for (progress in 0..100 step 10) {
                 _animationState.value = _animationState.value?.copy(progress = progress / 100f)
                 delay(16)
             }
-            
+
             game.move(fromTube, toTube)
             updateState()
-            
+
             _selectedTube.value = null
             _animationState.value = null
         }
     }
-    
+
     fun resetLevel() {
         game.reset()
         updateState()
     }
-    
+
     private fun updateState() {
         _gameState.value = mapToGameState()
     }
 
     private fun mapToGameState(): BallSortGameState {
+        val palette = listOf(
+            NeonColors.neonCyan,
+            NeonColors.neonMagenta,
+            NeonColors.neonGreen,
+            NeonColors.neonYellow,
+            NeonColors.neonRed,
+            NeonColors.neonBlue
+        )
         return BallSortGameState(
             tubes = game.tubes.map { tube -> tube.map { palette[it % palette.size] } },
             level = game.level,
@@ -94,7 +93,7 @@ class BallSortViewModel(
             isLevelComplete = game.isSolved()
         )
     }
-    
+
     private fun getBestMoves(level: Int): Int? {
         // TODO: Load from repository when best scores are implemented
         return null

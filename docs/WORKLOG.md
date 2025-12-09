@@ -90,3 +90,51 @@
 **Summary:**
 - **Standardized Navigation:** Refactored the `NavHost` in `NeonGameApp.kt` to use the `AppDestination.BallSort.buildRoute` helper function. This ensures a consistent and reliable navigation graph.
 - **Verified Build:** Confirmed that the project builds successfully after the change.
+
+---
+
+## 2024-07-17 - Phase 2: Navigation & ViewModels
+
+**Task:** 2.2 ViewModel wiring and lifecycle
+
+**Summary:**
+- **Audited ViewModels:** Reviewed all ViewModel classes and confirmed that they correctly use `StateFlow` to expose their state and `viewModelScope` for coroutines.
+- **Audited Screens:** Reviewed all Screen composables and confirmed that they correctly instantiate their ViewModels using the `viewModel()` composable function.
+- **Verified Build:** Confirmed that the project builds successfully and all unit tests pass.
+
+---
+
+## 2024-07-17 - Phase 3: Theming & Holographic UI
+
+**Task:** 3.1 Unified neon color system
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/theme/NeonColors.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/NeonGameTheme.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/Colors.kt` (deleted)
+- `app/src/main/java/com/neon/connectsort/MainActivity.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/ConnectFourScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/Components.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/Effects.kt`
+- `app/src/main/java/com/neon/connectsort/ui/theme/HolographicComponents.kt`
+
+**Summary:**
+- **Consolidated Colors:** Created a single, canonical `NeonColors.kt` file to serve as the single source of truth for all neon colors in the app.
+- **Refactored Code:** Refactored all UI components, themes, and screens to use the new `NeonColors` object.
+- **Deleted Redundant File:** Deleted the old `Colors.kt` file to eliminate the conflicting `NeonColors` object.
+- **Verified Build:** Confirmed that the project builds successfully after the change.
+
+---
+
+## 2024-07-17 - Phase 3: Theming & Holographic UI
+
+**Task:** 3.2 Holographic components library
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/screens/LobbyScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/ShopScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/SettingsScreen.kt`
+
+**Summary:**
+- **Refactored Screens:** Refactored the `LobbyScreen`, `ShopScreen`, and `SettingsScreen` to use the shared `HolographicCard` and `HolographicButton` components.
+- **Verified Build:** Confirmed that the project builds successfully after the changes.

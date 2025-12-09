@@ -372,7 +372,7 @@ private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
     for (x in 0..(size.width / gridSpacing).toInt()) {
         val xPos = x * gridSpacing + (phase * gridSpacing) % gridSpacing
         drawLine(
-            color = NeonColors.gridPrimary.copy(alpha = 0.3f),
+            color = NeonColors.hologramCyan.copy(alpha = 0.3f),
             start = Offset(xPos, 0f),
             end = Offset(xPos, size.height),
             strokeWidth = lineWidth,
@@ -384,7 +384,7 @@ private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
     for (y in 0..(size.height / gridSpacing).toInt()) {
         val yPos = y * gridSpacing + (phase * gridSpacing) % gridSpacing
         drawLine(
-            color = NeonColors.gridSecondary.copy(alpha = 0.2f),
+            color = NeonColors.hologramPurple.copy(alpha = 0.2f),
             start = Offset(0f, yPos),
             end = Offset(size.width, yPos),
             strokeWidth = lineWidth,
@@ -471,7 +471,7 @@ private fun DrawScope.drawCornerAccents(size: Size) {
 @Composable
 fun HolographicChip(
     value: Int = 500,
-    color: Color = NeonColors.playerOne,
+    color: Color = NeonColors.neonCyan,
     isActive: Boolean = true,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
