@@ -1,5 +1,6 @@
 package com.neon.connectsort.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,19 +12,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.neon.connectsort.R
 
 @Composable
 fun ConnectFourArcadeBackground() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF010113), Color(0xFF040617))
-                )
-            )
     ) {
+        Image(
+            painter = painterResource(R.drawable.connect4_board),
+            contentDescription = "Connect Four cabinet backdrop",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Image(
+            painter = painterResource(R.drawable.connect4_slime),
+            contentDescription = "Slime overlay",
+            modifier = Modifier
+                .matchParentSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.75f
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF0B0B1C).copy(alpha = 0.85f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -62,12 +87,26 @@ fun BallSortArcadeBackground() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF040208), Color(0xFF0E1122))
-                )
-            )
     ) {
+        Image(
+            painter = painterResource(R.drawable.ballsort_board),
+            contentDescription = "Ball Sort cabinet display",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.85f),
+                            Color.Black.copy(alpha = 0.35f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
