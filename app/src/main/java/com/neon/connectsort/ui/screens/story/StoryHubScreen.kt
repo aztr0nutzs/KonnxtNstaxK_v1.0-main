@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.neon.connectsort.navigation.AppDestination
 import com.neon.connectsort.navigation.STORY_RESULT_KEY
@@ -20,6 +22,7 @@ import com.neon.connectsort.navigation.toBallSort
 import com.neon.connectsort.navigation.toConnectFour
 import com.neon.connectsort.navigation.toMultiplier
 import com.neon.connectsort.ui.components.HolographicButton
+import com.neon.connectsort.ui.components.NeonParticleField
 import com.neon.connectsort.ui.theme.NeonCard
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonText
@@ -45,33 +48,92 @@ fun StoryHubScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        NeonColors.depthVoid,
+                        NeonColors.depthMidnight,
+                        NeonColors.depthOcean
+                    )
+                )
+            )
     ) {
-        Text(
-            text = "STORY MODE",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = NeonColors.hologramCyan
-        )
-        Text(
-            text = "Follow the neon campaign through Connect-4, Ball Sort, and Multiplier challenges.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = NeonColors.textHologram
-        )
-        LazyColumn(
+        NeonParticleField(modifier = Modifier.matchParentSize(), intensity = 0.65f)
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(16.dp)
         ) {
-            items(chapters) { chapter ->
-                StoryChapterCard(
-                    chapter = chapter,
-                    onStart = { startChapter(navController, viewModel, chapter) }
+            StoryHubHero()
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(chapters) { chapter ->
+                    StoryChapterCard(
+                        chapter = chapter,
+                        onStart = { startChapter(navController, viewModel, chapter) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoryHubHero() {
+    NeonCard(
+        modifier = Modifier.fillMaxWidth(),
+        neonColor = NeonColors.hologramBlue.copy(alpha = 0.25f)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = stringResource(id = com.neon.connectsort.R.string.story_mode_title),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = NeonColors.hologramCyan
+            )
+            Text(
+                text = stringResource(id = com.neon.connectsort.R.string.story_mode_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = NeonColors.textPrimary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            StoryHubTimeline()
+        }
+    }
+}
+
+@Composable
+private fun StoryHubTimeline() {
+    val nodes = listOf(
+        stringResource(id = com.neon.connectsort.R.string.story_timeline_node_basecamp),
+        stringResource(id = com.neon.connectsort.R.string.story_timeline_node_network),
+        stringResource(id = com.neon.connectsort.R.string.story_timeline_node_ascent)
+    )
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        nodes.forEachIndexed { index, label ->
+            NeonCard(
+                modifier = Modifier.weight(1f),
+                neonColor = if (index == 0) NeonColors.hologramPink else NeonColors.hologramPurple.copy(alpha = 0.35f)
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = NeonColors.textPrimary,
+                    modifier = Modifier.padding(8.dp)
                 )
             }
         }
@@ -106,7 +168,7 @@ private fun StoryChapterCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NeonText(
-                    text = chapter.title,
+                    text = stringResource(id = chapter.titleRes),
                     fontSize = 20,
                     fontWeight = FontWeight.Bold,
                     neonColor = NeonColors.hologramCyan
@@ -119,7 +181,7 @@ private fun StoryChapterCard(
             }
 
             Text(
-                text = chapter.description,
+                text = stringResource(id = chapter.descriptionRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = NeonColors.textHologram
             )
@@ -137,9 +199,19 @@ private fun StoryChapterCard(
             )
 
             Text(
-                text = "Mode: ${chapter.requiredMode.name.replace('_', ' ')} · Wins needed: ${chapter.requiredWins}",
+                text = stringResource(
+                    id = com.neon.connectsort.R.string.story_chapter_requirement,
+                    chapter.requiredMode.name.replace('_', ' '),
+                    chapter.requiredWins
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = NeonColors.textHologram.copy(alpha = 0.7f)
+            )
+            Text(
+                text = stringResource(id = chapter.goalRes),
+                style = MaterialTheme.typography.bodySmall,
+                color = NeonColors.textPrimary,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.*
 import kotlinx.coroutines.delay
 import kotlin.math.*
 import kotlin.random.Random
-import com.neon.connectsort.ui.theme.HolographicGradients
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonGameTheme
 import com.neon.connectsort.ui.theme.ParticleColors
@@ -45,8 +45,8 @@ fun HolographicButton(
     var isPressed by remember { mutableStateOf(false) }
     var isHovered by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
-    
-    // Multiple animation states
+    val ripple = rememberRipple(color = glowColor.copy(alpha = 0.8f))
+
     val pressScale by animateFloatAsState(
         targetValue = if (isPressed) 0.95f else 1f,
         animationSpec = spring(
@@ -55,29 +55,27 @@ fun HolographicButton(
         ),
         label = "buttonScale"
     )
-    
+
     val glowIntensity by animateFloatAsState(
-        targetValue = if (isHovered) 1.2f else 1f,
+        targetValue = if (isHovered) 1.1f else 1f,
         animationSpec = tween(durationMillis = 300),
         label = "glowIntensity"
     )
-    
+
     val pulsePhase = remember { Animatable(0f) }
-    
-    // Pulsing animation
+
     LaunchedEffect(Unit) {
         while (true) {
             pulsePhase.animateTo(
                 targetValue = 1f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(2000, easing = LinearEasing),
+                    animation = tween(2400, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
         }
     }
-    
-    // Button style based on type
+
     val buttonColors = when (buttonType) {
         ButtonType.PRIMARY -> Pair(glowColor, secondaryColor)
         ButtonType.SECONDARY -> Pair(NeonColors.hologramPurple, NeonColors.hologramPink)
@@ -85,17 +83,18 @@ fun HolographicButton(
         ButtonType.WARNING -> Pair(NeonColors.hologramYellow, NeonColors.hologramRed)
         ButtonType.DANGER -> Pair(NeonColors.hologramRed, NeonColors.hologramYellow)
     }
-    
-    Canvas(
+
+    Box(
         modifier = modifier
-            .height(60.dp)
+            .height(52.dp)
             .fillMaxWidth()
             .scale(pressScale)
+            .clip(RoundedCornerShape(18.dp))
             .clickable(
                 enabled = enabled && !isLoading,
                 onClick = onClick,
                 interactionSource = interactionSource,
-                indication = null
+                indication = ripple
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -103,53 +102,55 @@ fun HolographicButton(
                         isPressed = true
                         tryAwaitRelease()
                         isPressed = false
-                    },
-                    onTap = { /* Handled by clickable */ }
+                    }
                 )
             }
             .onFocusChanged { isHovered = it.isFocused }
     ) {
-        // 3D Button base with depth
-        draw3DButton(
-            width = size.width,
-            height = size.height,
-            isPressed = isPressed,
-            glowIntensity = glowIntensity,
-            primaryColor = buttonColors.first,
-            secondaryColor = buttonColors.second,
-            pulsePhase = pulsePhase.value
-        )
-        
-        // Draw text
-        drawIntoCanvas { canvas ->
-            val paint = android.graphics.Paint().apply {
-                this.color = Color.White.toArgb()
-                textSize = 18f
-                isAntiAlias = true
-            }
-            canvas.nativeCanvas.drawText(if (isLoading) "..." else text, size.width / 2 - if (isLoading) 20f else size.width * 0.4f, size.height / 2 - 15f, paint)
-        }
-        
-        // Draw icon if present
-        icon?.let {
-            drawIntoCanvas { canvas ->
-                val paint = android.graphics.Paint().apply {
-                    this.color = Color.White.toArgb()
-                    textSize = 18f
-                    isAntiAlias = true
-                }
-                canvas.nativeCanvas.drawText(it, size.width * 0.1f, size.height / 2 - 15f, paint)
-            }
-        }
-        
-        // Loading animation
-        if (isLoading) {
-            drawCircle(
-                color = buttonColors.first,
-                center = Offset(size.width * 0.8f, size.height / 2),
-                radius = 8f,
-                alpha = (sin(pulsePhase.value * 2 * PI) * 0.5f + 0.5f).toFloat()
+        Canvas(modifier = Modifier.matchParentSize()) {
+            draw3DButton(
+                width = size.width,
+                height = size.height,
+                isPressed = isPressed,
+                glowIntensity = glowIntensity,
+                primaryColor = buttonColors.first,
+                secondaryColor = buttonColors.second,
+                pulsePhase = pulsePhase.value
             )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icon?.let {
+                Text(
+                    text = it,
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            Text(
+                text = if (isLoading) "..." else text,
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.2.sp
+            )
+
+            if (isLoading) {
+                Spacer(modifier = Modifier.width(6.dp))
+                CircularProgressIndicator(
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -163,16 +164,17 @@ private fun DrawScope.draw3DButton(
     secondaryColor: Color,
     pulsePhase: Float
 ) {
-    val cornerRadius = 16f
-    val buttonDepth = if (isPressed) 4f else 8f
-    
-    // Outer glow effect
-    val glowRadius = 20f * glowIntensity
+    val cornerRadius = 20f
+    val buttonDepth = if (isPressed) 6f else 10f
+    val buttonTop = if (isPressed) buttonDepth * 0.4f else 0f
+    val buttonHeight = height - buttonDepth
+
+    val glowRadius = 30f * glowIntensity
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(
-                primaryColor.copy(alpha = 0.3f),
-                primaryColor.copy(alpha = 0.1f),
+                primaryColor.copy(alpha = 0.25f),
+                primaryColor.copy(alpha = 0.08f),
                 Color.Transparent
             ),
             center = Offset(width / 2, height / 2),
@@ -181,64 +183,44 @@ private fun DrawScope.draw3DButton(
         center = Offset(width / 2, height / 2),
         radius = glowRadius
     )
-    
-    // Button base (3D depth effect)
-    val buttonTop = if (isPressed) buttonDepth else 0f
-    val buttonHeight = height - buttonDepth
-    
-    // Top surface with gradient
+
     drawRoundRect(
         brush = Brush.linearGradient(
             colors = listOf(
-                primaryColor,
-                secondaryColor,
-                primaryColor
+                primaryColor.copy(alpha = 0.95f),
+                secondaryColor.copy(alpha = 0.9f)
             ),
-            start = Offset(0f, 0f),
-            end = Offset(width, height)
+            start = Offset(0f, buttonTop),
+            end = Offset(width, buttonHeight)
         ),
         topLeft = Offset(0f, buttonTop),
         size = Size(width, buttonHeight),
         cornerRadius = CornerRadius(cornerRadius, cornerRadius)
     )
-    
-    // Inner glow border
+
+    val highlightAlpha = (0.12f + sin((pulsePhase * 2 * PI).toDouble()).toFloat() * 0.05f).coerceIn(0.05f, 0.24f)
+    drawRoundRect(
+        color = Color.White.copy(alpha = highlightAlpha * glowIntensity),
+        topLeft = Offset(4f, buttonTop + 4f),
+        size = Size(width - 8f, max(12f, buttonHeight / 4)),
+        cornerRadius = CornerRadius(cornerRadius - 6, cornerRadius - 6)
+    )
+
     drawRoundRect(
         brush = Brush.linearGradient(
             colors = listOf(
-                primaryColor.copy(alpha = 0.8f),
-                secondaryColor.copy(alpha = 0.8f)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(width, height)
+                Color.White.copy(alpha = 0.3f),
+                Color.Transparent
+            )
         ),
-        topLeft = Offset(2f, buttonTop + 2f),
-        size = Size(width - 4f, buttonHeight - 4f),
-        cornerRadius = CornerRadius(cornerRadius - 2, cornerRadius - 2),
+        topLeft = Offset(4f, buttonTop + 4f),
+        size = Size(width - 8f, buttonHeight - 8f),
+        cornerRadius = CornerRadius(cornerRadius - 6, cornerRadius - 6),
         style = Stroke(width = 2f)
     )
-    
-    // Pulsing scan line
-    val scanY = buttonHeight * pulsePhase
-    drawLine(
-        color = Color.White.copy(alpha = 0.5f),
-        start = Offset(4f, scanY),
-        end = Offset(width - 4f, scanY),
-        strokeWidth = 1f,
-        cap = StrokeCap.Round
-    )
-    
-    // 3D edge highlights
+
     drawRoundRect(
-        color = Color.White.copy(alpha = 0.2f),
-        topLeft = Offset(4f, buttonTop + 4f),
-        size = Size(width - 8f, 2f),
-        cornerRadius = CornerRadius(2f, 2f)
-    )
-    
-    // Bottom shadow for depth
-    drawRoundRect(
-        color = Color.Black.copy(alpha = 0.3f),
+        color = Color.Black.copy(alpha = 0.35f),
         topLeft = Offset(0f, height - buttonDepth),
         size = Size(width, buttonDepth),
         cornerRadius = CornerRadius(cornerRadius, cornerRadius)
@@ -252,6 +234,7 @@ fun HolographicCard(
     title: String? = null,
     subtitle: String? = null,
     elevation: Dp = 16.dp,
+    neonColor: Color = NeonColors.hologramCyan,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var hoverOffset by remember { mutableStateOf(0f) }
@@ -284,7 +267,7 @@ fun HolographicCard(
             }
             .onFocusChanged { hoverOffset = if (it.isFocused) -4f else 0f }
             .drawBehind {
-                drawHolographicCardBackground(size, floatPhase)
+                drawHolographicCardBackground(size, floatPhase, neonColor)
             }
     ) {
         Column(
@@ -321,94 +304,49 @@ fun HolographicCard(
     }
 }
 
-private fun DrawScope.drawHolographicCardBackground(size: Size, floatPhase: Float) {
-    // Base with gradient
+private fun DrawScope.drawHolographicCardBackground(size: Size, floatPhase: Float, neonColor: Color) {
+    val cornerRadius = 20.dp.toPx()
     drawRoundRect(
         brush = Brush.linearGradient(
-            colors = HolographicGradients.depthGradient,
+            colors = listOf(
+                neonColor.copy(alpha = 0.25f),
+                neonColor.copy(alpha = 0.55f),
+                NeonColors.depthVoid.copy(alpha = 0.65f)
+            ),
             start = Offset(0f, 0f),
             end = Offset(size.width, size.height)
         ),
         size = size,
-        cornerRadius = CornerRadius(20.dp.toPx(), 20.dp.toPx())
+        cornerRadius = CornerRadius(cornerRadius, cornerRadius)
     )
-    
-    // Grid pattern
-    drawGridPattern(size, floatPhase)
-    
-    // Inner glow border
+
+    drawRoundRect(
+        color = NeonColors.depthVoid.copy(alpha = 0.4f),
+        topLeft = Offset(6f, 6f),
+        size = Size(size.width - 12f, size.height - 12f),
+        cornerRadius = CornerRadius(cornerRadius - 6, cornerRadius - 6)
+    )
+
+    val sheenAlpha = (0.08f + sin((floatPhase * 2 * PI).toDouble()).toFloat() * 0.04f).coerceIn(0.05f, 0.14f)
+    drawRoundRect(
+        color = Color.White.copy(alpha = sheenAlpha),
+        topLeft = Offset(12f, 12f),
+        size = Size(size.width - 24f, 12f),
+        cornerRadius = CornerRadius(cornerRadius - 8, cornerRadius - 8)
+    )
+
     drawRoundRect(
         brush = Brush.linearGradient(
             colors = listOf(
-                NeonColors.hologramCyan.copy(alpha = 0.3f),
-                NeonColors.hologramPurple.copy(alpha = 0.3f)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(size.width, size.height)
+                neonColor.copy(alpha = 0.55f),
+                neonColor.copy(alpha = 0.2f)
+            )
         ),
-        topLeft = Offset(2f, 2f),
-        size = Size(size.width - 4f, size.height - 4f),
-        cornerRadius = CornerRadius(18.dp.toPx(), 18.dp.toPx()),
-        style = Stroke(width = 2f)
+        topLeft = Offset(4f, 4f),
+        size = Size(size.width - 8f, size.height - 8f),
+        cornerRadius = CornerRadius(cornerRadius - 4, cornerRadius - 4),
+        style = Stroke(width = 1.5f)
     )
-    
-    // Scanning light effect
-    val scanY = size.height * floatPhase
-    drawRect(
-        brush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Transparent,
-                NeonColors.hologramCyan.copy(alpha = 0.1f),
-                Color.Transparent
-            ),
-            startY = scanY - 50f,
-            endY = scanY + 50f
-        ),
-        topLeft = Offset(0f, scanY - 50f),
-        size = Size(size.width, 100f)
-    )
-}
-
-private fun DrawScope.drawGridPattern(size: Size, phase: Float) {
-    val gridSpacing = 40f
-    val lineWidth = 1f
-    
-    // Vertical lines
-    for (x in 0..(size.width / gridSpacing).toInt()) {
-        val xPos = x * gridSpacing + (phase * gridSpacing) % gridSpacing
-        drawLine(
-            color = NeonColors.hologramCyan.copy(alpha = 0.3f),
-            start = Offset(xPos, 0f),
-            end = Offset(xPos, size.height),
-            strokeWidth = lineWidth,
-            cap = StrokeCap.Round
-        )
-    }
-    
-    // Horizontal lines
-    for (y in 0..(size.height / gridSpacing).toInt()) {
-        val yPos = y * gridSpacing + (phase * gridSpacing) % gridSpacing
-        drawLine(
-            color = NeonColors.hologramPurple.copy(alpha = 0.2f),
-            start = Offset(0f, yPos),
-            end = Offset(size.width, yPos),
-            strokeWidth = lineWidth,
-            cap = StrokeCap.Round
-        )
-    }
-    
-    // Diagonal lines
-    val diagonalCount = 10
-    for (i in -diagonalCount..diagonalCount) {
-        val offset = size.height * (i.toFloat() / diagonalCount) + phase * 100f
-        drawLine(
-            color = NeonColors.hologramPurple.copy(alpha = 0.1f),
-            start = Offset(0f, offset),
-            end = Offset(size.width, offset + size.width * 0.5f),
-            strokeWidth = lineWidth,
-            cap = StrokeCap.Round
-        )
-    }
 }
 
 private fun DrawScope.drawCornerAccents(size: Size) {

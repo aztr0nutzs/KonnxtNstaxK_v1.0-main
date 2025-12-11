@@ -22,10 +22,9 @@ class ConnectFourGame : BaseGameState() {
 
     fun getWinningLine(): List<Pair<Int, Int>> = winningLine
 
-    fun dropChip(column: Int): Boolean {
-        if (column !in 0 until COLS || isGameOver) return false
-
-        val row = findNextAvailableRow(column) ?: return false
+    fun dropChip(column: Int): Int? {
+        if (column !in 0 until COLS || isGameOver) return null
+        val row = findNextAvailableRow(column) ?: return null
 
         board[row][column] = currentPlayer
         moves++
@@ -40,7 +39,7 @@ class ConnectFourGame : BaseGameState() {
             markInProgress()
         }
 
-        return true
+        return row
     }
 
     private fun findNextAvailableRow(column: Int): Int? {

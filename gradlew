@@ -173,13 +173,7 @@ if $cygwin ; then
 fi
 
 # Escape application args
-save () {
-    for i do printf %s\\n "$i" | sed "s/'/'\\''/g;1s/^/'/;
-$ s/$/' \\>/"
-    done
-    printf " '"
-}
-APP_ARGS=`save "$@"`
+APP_ARGS="$@"
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
 eval set -- $APP_ARGS

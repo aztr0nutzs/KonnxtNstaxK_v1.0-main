@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameResult
 import com.neon.game.multiplier.MultiplierGame
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -82,6 +83,7 @@ class MultiplierViewModel(
             lives = game.lives,
             lastEvent = game.lastEvent,
             isGameOver = game.isGameOver,
+            gameResult = game.gameResult,
             difficulty = game.getDifficulty(),
             bestScore = storedHighScore
         )
@@ -97,6 +99,7 @@ data class MultiplierGameState(
     val lives: Int = 3,
     val lastEvent: MultiplierGame.Event = MultiplierGame.Event.None,
     val isGameOver: Boolean = false,
+    val gameResult: GameResult = GameResult.IN_PROGRESS,
     val difficulty: GameDifficulty = GameDifficulty.MEDIUM,
     val bestScore: Int = 0
 )

@@ -3,4 +3,11 @@
   <style name="Theme.NeonConnectSort" parent="Theme.Material3.DayNight.NoActionBar">
     <!-- Customize your theme here. -->
   </style>
+
+  <!-- Splash Screen Theme -->
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/neon_background</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <item name="postSplashScreenTheme">@style/Theme.NeonConnectSort</item>
+  </style>
 </resources>

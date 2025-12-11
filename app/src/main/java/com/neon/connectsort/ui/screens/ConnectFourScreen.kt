@@ -1,35 +1,51 @@
 package com.neon.connectsort.ui.screens
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.compose.material3.MaterialTheme
-import com.neon.connectsort.ui.screens.viewmodels.ConnectFourViewModel
-import com.neon.connectsort.ui.theme.NeonColors
-import com.neon.connectsort.ui.theme.NeonGameTheme
+import com.neon.connectsort.R
 import com.neon.connectsort.navigation.activeStoryChapterId
 import com.neon.connectsort.navigation.publishStoryResult
+import com.neon.connectsort.ui.components.NeonParticleField
+import com.neon.connectsort.ui.components.NeonPulseRing
+import com.neon.connectsort.ui.components.SlimeDripOverlay
+import com.neon.connectsort.ui.screens.viewmodels.ConnectFourViewModel
+import com.neon.connectsort.ui.screens.viewmodels.ConnectFourGameState
 import com.neon.connectsort.ui.theme.NeonButton
 import com.neon.connectsort.ui.theme.NeonCard
+import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonText
+import com.neon.game.common.GameDifficulty
 
 @Composable
 fun ConnectFourScreen(
@@ -39,6 +55,7 @@ fun ConnectFourScreen(
     val gameState by viewModel.gameState.collectAsState()
     val storyChapterId = navController.activeStoryChapterId()
     var storyResultSent by remember { mutableStateOf(false) }
+    val dropAnimation = remember { Animatable(1f) }
 
     LaunchedEffect(gameState.isGameOver, storyChapterId, storyResultSent) {
         if (storyChapterId != null && gameState.isGameOver && !storyResultSent) {
@@ -51,155 +68,323 @@ fun ConnectFourScreen(
         }
     }
 
-    Column(
+    LaunchedEffect(gameState.lastDrop) {
+        if (gameState.lastDrop != null) {
+            dropAnimation.snapTo(0f)
+            dropAnimation.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 420, easing = LinearOutSlowInEasing)
+            )
+        }
+    }
+
+    val auraColor = when {
+        gameState.winner != 0 -> NeonColors.neonYellow
+        gameState.currentPlayer == 1 -> NeonColors.neonCyan
+        else -> NeonColors.hologramMagenta
+    }
+
+    val slimeIntensity = when {
+        gameState.winner != 0 -> 1.7f
+        gameState.isGameOver -> 1.3f
+        else -> 1f
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B0B1C))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NeonButton(
-                text = "← LOBBY",
-                onClick = { navController.popBackStack() },
-                neonColor = NeonColors.hologramBlue,
-                modifier = Modifier.width(110.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(NeonColors.depthDark, NeonColors.depthVoid)
+                )
             )
+    ) {
+        NeonParticleField(modifier = Modifier.matchParentSize(), intensity = 0.5f)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            ConnectFourHeader(
+                difficulty = gameState.difficulty,
+                onBack = { navController.popBackStack() },
+                onReset = { viewModel.resetGame() }
+            )
+
+            NeonCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(7f / 6f),
+                neonColor = auraColor
+            ) {
+                ConnectFourArena(
+                    gameState = gameState,
+                    dropProgress = dropAnimation.value,
+                    slimeIntensity = slimeIntensity,
+                    onColumnTap = { if (gameState.winner == 0) viewModel.dropChip(it) }
+                )
+            }
+
+            ConnectFourStatusBar(state = gameState)
+        }
+    }
+}
+
+@Composable
+private fun ConnectFourHeader(
+    difficulty: GameDifficulty,
+    onBack: () -> Unit,
+    onReset: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        NeonButton(
+            text = "← LOBBY",
+            onClick = onBack,
+            neonColor = NeonColors.hologramBlue,
+            modifier = Modifier.width(110.dp)
+        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             NeonText(
-                text = "CONNECT 4",
-                fontSize = 24,
+                text = "NEON CONNECT 4",
+                fontSize = 26,
                 fontWeight = FontWeight.Bold,
                 neonColor = NeonColors.hologramCyan
             )
-            NeonButton(
-                text = "RESET",
-                onClick = { viewModel.resetGame() },
-                neonColor = NeonColors.hologramRed,
-                modifier = Modifier.width(110.dp)
+            Text(
+                text = "Difficulty · ${difficulty.displayName}",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
             )
+        }
+        NeonButton(
+            text = "RESET",
+            onClick = onReset,
+            neonColor = NeonColors.hologramRed,
+            modifier = Modifier.width(110.dp)
+        )
+    }
+}
+
+@Composable
+private fun ConnectFourArena(
+    gameState: ConnectFourGameState,
+    dropProgress: Float,
+    slimeIntensity: Float,
+    onColumnTap: (Int) -> Unit
+) {
+    val rows = gameState.board.size
+    val cols = gameState.board.first().size
+    val slimeMotion = rememberInfiniteTransition()
+    val slimeWave by slimeMotion.animateFloat(
+        initialValue = -12f,
+        targetValue = 12f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3400, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val slimeAlpha = (0.45f + (slimeIntensity - 1f) * 0.25f).coerceIn(0.35f, 0.95f)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.connect4_board),
+            contentDescription = "Connect Four arcade cabinet",
+            modifier = Modifier.matchParentSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Image(
+            painter = painterResource(R.drawable.connect4_slime),
+            contentDescription = "Dripping slime cover",
+            modifier = Modifier
+                .matchParentSize()
+                .graphicsLayer {
+                    translationY = slimeWave
+                    alpha = slimeAlpha
+                },
+            contentScale = ContentScale.Crop
+        )
+
+        SlimeDripOverlay(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .height(32.dp),
+            intensity = slimeIntensity
+        )
+
+        NeonParticleField(
+            modifier = Modifier
+                .matchParentSize()
+                .padding(16.dp),
+            intensity = if (gameState.winner != 0) 1.2f else 0.6f
+        )
+
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp, vertical = 30.dp)
+        ) {
+            val cellWidth = size.width / cols
+            val cellHeight = size.height / rows
+
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(NeonColors.depthMidnight, NeonColors.depthDark),
+                    startY = 0f,
+                    endY = size.height
+                ),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(32f, 32f),
+//                style = Stroke(width = 4f, color = NeonColors.hologramPurple.copy(alpha = 0.5f))
+            )
+
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    val cx = col * cellWidth + cellWidth / 2
+                    val cy = row * cellHeight + cellHeight / 2
+                    drawCircle(
+                        color = NeonColors.depthVoid.copy(alpha = 0.6f),
+                        radius = cellWidth.coerceAtMost(cellHeight) * 0.42f,
+                        center = Offset(cx, cy)
+                    )
+                    drawCircle(
+                        color = NeonColors.hologramBlue.copy(alpha = 0.25f),
+                        radius = cellWidth.coerceAtMost(cellHeight) * 0.35f,
+                        center = Offset(cx, cy),
+                        style = Stroke(width = 2f)
+                    )
+                }
+            }
+
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    val chip = gameState.board[row][col]
+                    chip?.let { player ->
+                        val cx = col * cellWidth + cellWidth / 2
+                        val cy = row * cellHeight + cellHeight / 2
+                        val color = if (player == 1) NeonColors.neonCyan else NeonColors.neonMagenta
+                        drawCircle(
+                            color = color,
+                            radius = cellWidth.coerceAtMost(cellHeight) * 0.36f,
+                            center = Offset(cx, cy)
+                        )
+                    }
+                }
+            }
+
+            gameState.winningLine.forEach { (row, col) ->
+                val cx = col * cellWidth + cellWidth / 2
+                val cy = row * cellHeight + cellHeight / 2
+                drawCircle(
+                    color = NeonColors.hologramYellow.copy(alpha = 0.6f),
+                    radius = cellWidth.coerceAtMost(cellHeight) * 0.4f,
+                    center = Offset(cx, cy),
+                    style = Stroke(width = 6f)
+                )
+            }
+
+            gameState.lastDrop?.let { drop ->
+                if (dropProgress < 1f) {
+                    val targetY = drop.row * cellHeight + cellHeight / 2
+                    val startY = -cellHeight
+                    val cy = startY + (targetY - startY) * dropProgress
+                    val cx = drop.column * cellWidth + cellWidth / 2
+                    val color = if (drop.player == 1) NeonColors.neonCyan else NeonColors.neonMagenta
+                    drawCircle(
+                        color = color,
+                        radius = cellWidth.coerceAtMost(cellHeight) * 0.35f,
+                        center = Offset(cx, cy),
+                        style = Fill
+                    )
+                }
+            }
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            NeonText(
-                text = "Difficulty: ${gameState.difficulty.displayName}",
-                fontSize = 14,
-                fontWeight = FontWeight.SemiBold,
-                neonColor = NeonColors.hologramPink
-            )
-            NeonText(
-                text = "Best wins: ${gameState.bestScore}",
-                fontSize = 14,
-                fontWeight = FontWeight.SemiBold,
-                neonColor = NeonColors.hologramYellow
-            )
+            repeat(cols) { index ->
+                ColumnDropIndicator(
+                    index = index,
+                    onTap = { onColumnTap(index) },
+                    enabled = gameState.board[0][index] == null,
+                    color = if (gameState.currentPlayer == 1) NeonColors.hologramCyan else NeonColors.hologramMagenta
+                )
+            }
         }
 
-        // Scores
+        NeonPulseRing(
+            modifier = Modifier
+                .size(250.dp)
+                .align(Alignment.Center),
+            color = if (gameState.isGameOver) NeonColors.neonYellow else NeonColors.hologramCyan
+        )
+    }
+}
+
+@Composable
+private fun RowScope.ColumnDropIndicator(
+    index: Int,
+    onTap: () -> Unit,
+    enabled: Boolean,
+    color: Color
+) {
+    val alpha by animateFloatAsState(targetValue = if (enabled) 1f else 0.35f)
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 2.dp)
+            .weight(1f)
+            .height(44.dp)
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.1f * alpha))
+            .border(
+                width = 1.dp,
+                color = color.copy(alpha = 0.8f * alpha),
+                shape = CircleShape
+            )
+            .clickable(enabled = enabled, onClick = onTap),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "${index + 1}",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+private fun ConnectFourStatusBar(state: ConnectFourGameState) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = when {
+                state.winner == 1 -> "PLAYER VICTORY!"
+                state.winner == 2 -> "AI OUTSMARTED YOU"
+                state.isDraw -> "DRAWN BATTLE"
+                else -> "Current turn · ${if (state.currentPlayer == 1) "YOU" else "AI"}"
+            },
+            color = NeonColors.textPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ScorePill("PLAYER", gameState.playerScore, NeonColors.neonCyan)
-            ScorePill("AI", gameState.aiScore, NeonColors.neonMagenta)
-        }
-
-        // Board
-        NeonCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(7f / 6f)
-        ) {
-            val rows = gameState.board.size
-            val cols = gameState.board.first().size
-            Canvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp)
-            ) {
-                val cellW = size.width / cols
-                val cellH = size.height / rows
-                // grid holes
-                for (r in 0 until rows) {
-                    for (c in 0 until cols) {
-                        val cx = c * cellW + cellW / 2
-                        val cy = r * cellH + cellH / 2
-                        drawCircle(
-                            color = NeonColors.hologramBlue.copy(alpha = 0.25f),
-                            radius = cellW.coerceAtMost(cellH) * 0.4f,
-                            center = Offset(cx, cy),
-                            style = Stroke(width = 3f)
-                        )
-                    }
-                }
-                // chips
-                for (r in 0 until rows) {
-                    for (c in 0 until cols) {
-                        val value = gameState.board[r][c]
-                        value?.let { player ->
-                            val cx = c * cellW + cellW / 2
-                            val cy = r * cellH + cellH / 2
-                            val color = if (player == 1) NeonColors.neonCyan else NeonColors.neonMagenta
-                            drawCircle(
-                                color = color,
-                                radius = cellW.coerceAtMost(cellH) * 0.35f,
-                                center = Offset(cx, cy)
-                            )
-                        }
-                    }
-                }
-                // winning line highlight
-                gameState.winningLine.forEach { (row, col) ->
-                    val cx = col * cellW + cellW / 2
-                    val cy = row * cellH + cellH / 2
-                    drawCircle(
-                        color = NeonColors.hologramYellow.copy(alpha = 0.5f),
-                        radius = cellW.coerceAtMost(cellH) * 0.42f,
-                        center = Offset(cx, cy),
-                        style = Stroke(width = 6f)
-                    )
-                }
-            }
-            // touch overlay columns
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                repeat(gameState.board.first().size) { col ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable(enabled = gameState.winner == 0) {
-                                viewModel.dropChip(col)
-                            }
-                    )
-                }
-            }
-        }
-
-        // Status + actions
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = when {
-                    gameState.winner == 1 -> "You win! Tap reset to play again."
-                    gameState.winner == 2 -> "AI wins! Tap reset to retry."
-                    else -> "Current player: ${if (gameState.currentPlayer == 1) "You" else "AI"}"
-                },
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 16.sp
-            )
+            ScorePill("PLAYER", state.playerScore, NeonColors.neonCyan)
+            ScorePill("AI", state.aiScore, NeonColors.neonMagenta)
+            ScorePill("BEST", state.bestScore, NeonColors.hologramYellow)
         }
     }
 }
@@ -207,11 +392,16 @@ fun ConnectFourScreen(
 @Composable
 private fun ScorePill(label: String, value: Int, color: Color) {
     NeonCard(
-        modifier = Modifier.widthIn(min = 140.dp),
+        modifier = Modifier
+            .widthIn(min = 100.dp)
+            .height(80.dp),
         neonColor = color
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(

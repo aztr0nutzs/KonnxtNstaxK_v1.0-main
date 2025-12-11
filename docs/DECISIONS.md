@@ -79,3 +79,27 @@
 ## 2025-12-09 - Adaptive icon placement
 
 **Decision:** `<adaptive-icon>` assets must only live in API-26+ qualified resource directories to satisfy the aapt2 validator. I removed the redundant `mipmap-anydpi/ic_launcher_round.xml` (the adaptive icon is still defined under `mipmap-anydpi-v26`) so the base folder only contains legacy icons, which allows resource linking to succeed on the project’s current `minSdk` without extra tools tags.
+
+---
+
+## 2025-12-10 - Story result propagation
+
+**Decision:**
+- Ball Sort and Multiplier now publish chapter completion via `activeStoryChapterId`/`publishStoryResult` immediately when they detect their win conditions so the Story Hub can unlock the next chapter without waiting for manual state tracking.
+- `MultiplierGameState` exposes `GameResult` so the screen can guard the publish call with the canonical `GameResult.WIN` flag and avoid firing repeatedly while the player is still viewing the completed run.
+
+---
+
+## 2025-12-10 - Story narrative polish
+
+**Decision:**
+- The Story Hub now draws every chapter title/description/goal from `strings.xml`, keeping campaign copy centralized for localization and future tweaks while still allowing the ViewModel to expose resource IDs as part of the chapter model.
+- A neon hero banner with timeline chips plus the particle gradient background give Story Mode its own visual identity, making it feel like a hub rather than another lobby panel.
+
+---
+
+## 2025-12-10 - Character chips domain model
+
+**Decision:**
+- Character chips are now fully described inside `core.domain.CharacterChip`, including rarity (`ChipRarity`), narrative metadata, and a sealed `ChipAbility` tree that encodes bonus points, shields, and extra moves plus their energy/cooldown/effect payloads. This keeps domain logic separate from the ViewModel/UI layers while supplying the data needed to render ability cards.
+- The static roster lives in `core.data.ChipRepository`, giving every consumer the same canonical list of chips; the ViewModel maps unlock flags/high scores back onto those chips so the UI sees only the derived state it cares about. This avoids duplicated lists and makes it easy to extend the roster with new abilities or balance tweaks later.

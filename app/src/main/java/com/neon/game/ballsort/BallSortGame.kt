@@ -83,7 +83,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     fun move(from: Int, to: Int) {
         require(isValidMove(from, to)) { "Invalid move from tube $from to tube $to" }
 
-        val ball = _tubes[from].removeLast()
+        val ball = _tubes[from].removeAt(_tubes[from].lastIndex)
         _tubes[to].add(ball)
         moves++
         turnCount++
@@ -93,6 +93,17 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         } else {
             markInProgress()
         }
+    }
+
+    fun findHint(): Pair<Int, Int>? {
+        for (from in _tubes.indices) {
+            for (to in _tubes.indices) {
+                if (isValidMove(from, to)) {
+                    return from to to
+                }
+            }
+        }
+        return null
     }
 
     /**

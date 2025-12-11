@@ -1,31 +1,42 @@
 package com.neon.connectsort.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.compose.material3.Text
-import com.neon.connectsort.ui.theme.*
-import com.neon.connectsort.navigation.toLobby
+import com.neon.connectsort.ui.components.BallSortArcadeBackground
+import com.neon.connectsort.ui.components.HolographicButton
+import com.neon.connectsort.ui.components.NeonParticleField
+import com.neon.connectsort.ui.components.NeonPulseRing
+import com.neon.connectsort.ui.components.SlimeDripOverlay
 import com.neon.connectsort.ui.screens.viewmodels.BallAnimationState
 import com.neon.connectsort.ui.screens.viewmodels.BallSortGameState
+import com.neon.connectsort.ui.screens.viewmodels.BallSortHint
 import com.neon.connectsort.ui.screens.viewmodels.BallSortViewModel
-import kotlinx.coroutines.delay
+import com.neon.connectsort.navigation.activeStoryChapterId
+import com.neon.connectsort.navigation.publishStoryResult
+import com.neon.connectsort.ui.theme.NeonButton
+import com.neon.connectsort.ui.theme.NeonCard
+import com.neon.connectsort.ui.theme.NeonColors
+import com.neon.connectsort.ui.theme.NeonText
 
 @Composable
 fun BallSortScreen(
@@ -36,103 +47,184 @@ fun BallSortScreen(
     val gameState by viewModel.gameState.collectAsState()
     val selectedTube by viewModel.selectedTube.collectAsState()
     val animationState by viewModel.animationState.collectAsState()
-    
+    val hintMove by viewModel.hintMove.collectAsState()
+    val isPaused by viewModel.isPaused.collectAsState()
+
     LaunchedEffect(initialLevel) {
         viewModel.loadLevel(initialLevel)
     }
-    
+
+    val storyChapterId = navController.activeStoryChapterId()
+    var storyResultSent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(gameState.isLevelComplete, storyChapterId, storyResultSent) {
+        if (storyChapterId != null && gameState.isLevelComplete && !storyResultSent) {
+            navController.publishStoryResult(true)
+            storyResultSent = true
+        }
+        if (!gameState.isLevelComplete && storyResultSent) {
+            storyResultSent = false
+        }
+    }
+
+    val actionHint = when {
+        isPaused -> "Game paused. Tap resume to keep sorting."
+        hintMove != null -> "Hint: move from ${hintMove!!.fromTube + 1} to ${hintMove!!.toTube + 1}."
+        selectedTube != null -> "Selected tube ${selectedTube!! + 1}. Tap a tube to move into."
+        else -> "Tap a tube to grab the top neon ball."
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B0B1C))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(NeonColors.depthDark, NeonColors.depthVoid)
+                )
+            )
     ) {
+        NeonParticleField(modifier = Modifier.matchParentSize(), intensity = 0.5f)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header
-            BallSortHeader(navController, viewModel, gameState)
-            
-            // Game tubes
-            TubeGrid(
-                tubes = gameState.tubes,
-                selectedTube = selectedTube,
-                animationState = animationState,
-                onTubeClick = { index -> viewModel.selectTube(index) }
+            BallSortHeader(
+                navController = navController,
+                gameState = gameState
             )
-            
-            // Game info
-            BallSortInfo(gameState)
-            
-            // Controls
-            BallSortControls(viewModel, navController)
+
+            NeonCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(360.dp),
+                neonColor = if (gameState.isLevelComplete) NeonColors.neonYellow else NeonColors.hologramGreen
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    BallSortArcadeBackground()
+
+                    SlimeDripOverlay(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter)
+                            .height(28.dp),
+                        intensity = if (gameState.isLevelComplete) 1.4f else 0.9f,
+                        color = NeonColors.hologramMagenta.copy(alpha = 0.4f)
+                    )
+
+                    NeonParticleField(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .padding(16.dp),
+                        intensity = if (gameState.level % 2 == 0) 0.7f else 0.4f
+                    )
+
+                    HolographicPulseFrame(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .align(Alignment.TopCenter),
+                        intensity = if (gameState.isLevelComplete) 1.35f else 0.85f
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = actionHint,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+
+                        TubeGrid(
+                            tubes = gameState.tubes,
+                            selectedTube = selectedTube,
+                            hintMove = hintMove,
+                            animationState = animationState,
+                            isPaused = isPaused,
+                            onTubeClick = { viewModel.selectTube(it) }
+                        )
+                    }
+
+                    if (gameState.isLevelComplete) {
+                        NeonPulseRing(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.Center),
+                            color = NeonColors.neonYellow
+                        )
+                    }
+                }
+            }
+
+            Row {
+                BallSortInfoRow(gameState = gameState, hint = hintMove)
+            }
+
+            BallSortControlRow(
+                isPaused = isPaused,
+                onPauseToggle = { viewModel.togglePause() },
+                onHint = { viewModel.requestHint() },
+                onReset = { viewModel.resetLevel() },
+                onNext = { viewModel.loadLevel(gameState.level + 1) },
+                canAdvance = gameState.isLevelComplete
+            )
         }
-        
-        // Level complete overlay
-        if (gameState.isLevelComplete) {
-            LevelCompleteOverlay(
-                level = gameState.level,
-                moves = gameState.moves,
-                onNextLevel = { viewModel.loadLevel(gameState.level + 1) },
-                onBackToLobby = { navController.toLobby() }
-            )
+
+        if (isPaused) {
+            PauseOverlay()
         }
     }
 }
 
 @Composable
-fun BallSortHeader(
+private fun BallSortHeader(
     navController: NavController,
-    viewModel: BallSortViewModel,
     gameState: BallSortGameState
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         NeonButton(
             text = "← BACK",
             onClick = { navController.popBackStack() },
-            neonColor = NeonColors.neonBlue,
-            modifier = Modifier.width(100.dp)
+            neonColor = NeonColors.hologramBlue,
+            modifier = Modifier.width(110.dp)
         )
-        
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             NeonText(
                 text = "BALL SORT",
                 fontSize = 24,
                 fontWeight = FontWeight.Bold,
-                neonColor = NeonColors.neonGreen
+                neonColor = NeonColors.hologramGreen
             )
-            
             NeonText(
                 text = "LEVEL ${gameState.level}",
                 fontSize = 16,
                 fontWeight = FontWeight.SemiBold,
-                neonColor = NeonColors.neonYellow
+                neonColor = NeonColors.hologramYellow
             )
         }
-        
-        NeonButton(
-            text = "RESET",
-            onClick = { viewModel.resetLevel() },
-            neonColor = NeonColors.neonRed,
-            modifier = Modifier.width(100.dp)
-        )
+
+        Spacer(modifier = Modifier.width(110.dp))
     }
 }
 
 @Composable
-fun TubeGrid(
+private fun TubeGrid(
     tubes: List<List<Color>>,
     selectedTube: Int?,
+    hintMove: BallSortHint?,
     animationState: BallAnimationState?,
+    isPaused: Boolean,
     onTubeClick: (Int) -> Unit
 ) {
     val columns = when (tubes.size) {
@@ -140,19 +232,18 @@ fun TubeGrid(
         in 5..8 -> 3
         else -> 4
     }
-    
     val rows = (tubes.size + columns - 1) / columns
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .height(240.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         for (row in 0 until rows) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 for (col in 0 until columns) {
                     val index = row * columns + col
@@ -160,8 +251,11 @@ fun TubeGrid(
                         TubeView(
                             balls = tubes[index],
                             isSelected = selectedTube == index,
-                            isAnimating = animationState?.fromTube == index || 
-                                        animationState?.toTube == index,
+                            isAnimating = animationState?.fromTube == index || animationState?.toTube == index,
+                            isHintSource = hintMove?.fromTube == index,
+                            isHintTarget = hintMove?.toTube == index,
+                            animationProgress = animationState?.progress ?: 0f,
+                            isPaused = isPaused,
                             onClick = { onTubeClick(index) },
                             modifier = Modifier.weight(1f)
                         )
@@ -175,30 +269,43 @@ fun TubeGrid(
 }
 
 @Composable
-fun TubeView(
+private fun TubeView(
     balls: List<Color>,
     isSelected: Boolean,
     isAnimating: Boolean,
+    isHintSource: Boolean,
+    isHintTarget: Boolean,
+    animationProgress: Float,
+    isPaused: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tubeColor = if (isSelected) NeonColors.neonCyan else NeonColors.neonBlue
+    val borderColor = when {
+        isHintTarget -> NeonColors.neonYellow
+        isHintSource -> NeonColors.hologramPink
+        isSelected -> NeonColors.hologramCyan
+        else -> NeonColors.neonBlue.copy(alpha = 0.5f)
+    }
     val scale by animateFloatAsState(
-        targetValue = if (isAnimating) 1.05f else 1f,
-        label = "tubeScale"
+        targetValue = if (isAnimating) 1.08f else 1f,
+        animationSpec = tween(durationMillis = 200)
     )
-    
+
     Box(
         modifier = modifier
+            .graphicsLayer(scaleX = scale, scaleY = scale)
             .aspectRatio(0.6f)
-            .clip(RoundedCornerShape(12.dp))
-            .border(
-                width = if (isSelected) 3.dp else 1.dp,
-                color = tubeColor.copy(alpha = if (isSelected) 0.8f else 0.3f),
-                shape = RoundedCornerShape(12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        NeonColors.depthMidnight,
+                        NeonColors.depthVoid
+                    )
+                )
             )
-            .clickable(onClick = onClick)
-            .graphicsLayer { scaleX = scale; scaleY = scale },
+            .clickable(enabled = !isPaused, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -208,194 +315,191 @@ fun TubeView(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Tube neck
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(tubeColor.copy(alpha = 0.5f))
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            // Balls
-            Column(
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                balls.forEach { ballColor ->
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(ballColor)
-                            .border(
-                                width = 1.dp,
-                                color = ballColor.copy(alpha = 0.8f),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                    )
-                }
-                
-                // Empty slots
-                repeat(4 - balls.size) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.Transparent)
-                    )
-                }
+            balls.forEachIndexed { index, ballColor ->
+                val ballScale = if (isHintSource && index == balls.lastIndex) {
+                    1f + animationProgress * 0.6f
+                } else 1f
+                Box(
+                    modifier = Modifier
+                        .size(26.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(ballColor)
+                        .border(
+                            width = 1.dp,
+                            color = ballColor.copy(alpha = 0.9f),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .graphicsLayer(scaleX = ballScale, scaleY = ballScale)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
             }
+            repeat(4 - balls.size) {
+                Box(
+                    modifier = Modifier
+                        .size(26.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.Transparent)
+                        .border(
+                            width = 1.dp,
+                            color = NeonColors.depthVoid.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+
+        if (isHintTarget || isHintSource) {
+            NeonPulseRing(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(6.dp),
+                color = if (isHintTarget) NeonColors.neonYellow else NeonColors.hologramPink,
+                pulseDuration = 900
+            )
         }
     }
 }
 
 @Composable
-fun BallSortInfo(gameState: BallSortGameState) {
+private fun RowScope.BallSortInfoRow(gameState: BallSortGameState, hint: BallSortHint?) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        InfoItem(
-            label = "MOVES",
-            value = gameState.moves.toString(),
-            color = NeonColors.neonCyan
-        )
-        
-        InfoItem(
-            label = "BEST",
-            value = gameState.bestMoves?.toString() ?: "--",
-            color = NeonColors.neonGreen
-        )
-        
-        InfoItem(
-            label = "TUBES",
-            value = gameState.tubes.size.toString(),
-            color = NeonColors.neonYellow
+        InfoBadge("MOVES", gameState.moves.toString(), NeonColors.neonCyan)
+        InfoBadge("BEST", gameState.bestMoves?.toString() ?: "--", NeonColors.hologramGreen)
+        InfoBadge("TUBES", gameState.tubes.size.toString(), NeonColors.neonYellow)
+        InfoBadge(
+            "HINT",
+            text = hint?.let { "${hint.fromTube + 1}->${hint.toTube + 1}" } ?: "AVAILABLE",
+            color = if (hint != null) NeonColors.neonYellow else NeonColors.hologramPink
         )
     }
 }
 
 @Composable
-fun InfoItem(
-    label: String,
-    value: String,
-    color: Color
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 12.sp
-        )
-        
-        NeonText(
-            text = value,
-            fontSize = 20,
-            fontWeight = FontWeight.Bold,
-            neonColor = color
-        )
+private fun RowScope.InfoBadge(label: String, text: String, color: Color) {
+    NeonCard(
+        modifier = Modifier
+            .weight(1f)
+            .height(80.dp),
+        neonColor = color
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+            NeonText(
+                text = text,
+                fontSize = 20,
+                fontWeight = FontWeight.Bold,
+                neonColor = color
+            )
+        }
     }
 }
 
 @Composable
-fun BallSortControls(
-    viewModel: BallSortViewModel,
-    navController: NavController
+private fun BallSortControlRow(
+    isPaused: Boolean,
+    onPauseToggle: () -> Unit,
+    onHint: () -> Unit,
+    onReset: () -> Unit,
+    onNext: () -> Unit,
+    canAdvance: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        NeonButton(
-            text = "RESET LEVEL",
-            onClick = { viewModel.resetLevel() },
-            neonColor = NeonColors.neonRed,
+        HolographicButton(
+            text = if (isPaused) "RESUME" else "PAUSE",
+            onClick = onPauseToggle,
+            glowColor = NeonColors.hologramBlue,
             modifier = Modifier.weight(1f)
         )
-        
-        NeonButton(
-            text = "NEXT LEVEL",
-            onClick = { viewModel.loadLevel(viewModel.gameState.value.level + 1) },
-            neonColor = NeonColors.neonGreen,
+        HolographicButton(
+            text = "HINT",
+            onClick = onHint,
+            glowColor = NeonColors.hologramYellow,
+            modifier = Modifier.weight(1f)
+        )
+        HolographicButton(
+            text = "RESET",
+            onClick = onReset,
+            glowColor = NeonColors.hologramRed,
+            modifier = Modifier.weight(1f)
+        )
+        HolographicButton(
+            text = "NEXT",
+            onClick = onNext,
+            glowColor = NeonColors.hologramGreen,
             modifier = Modifier.weight(1f),
-            enabled = viewModel.gameState.value.level < 10 // Example max level
+            enabled = canAdvance
         )
     }
 }
 
 @Composable
-fun LevelCompleteOverlay(
-    level: Int,
-    moves: Int,
-    onNextLevel: () -> Unit,
-    onBackToLobby: () -> Unit
-) {
+private fun PauseOverlay() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.7f)),
+            .background(Color.Black.copy(alpha = 0.45f)),
         contentAlignment = Alignment.Center
     ) {
-        NeonCard(
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .padding(24.dp),
-            neonColor = NeonColors.neonGreen
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                NeonText(
-                    text = "LEVEL COMPLETE!",
-                    fontSize = 32,
-                    fontWeight = FontWeight.Bold,
-                    neonColor = NeonColors.neonGreen
-                )
-                
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Level $level",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 18.sp
-                    )
-                    
-                    NeonText(
-                        text = "$moves moves",
-                        fontSize = 24,
-                        fontWeight = FontWeight.Bold,
-                        neonColor = NeonColors.neonYellow
-                    )
-                }
-                
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    NeonButton(
-                        text = "NEXT LEVEL",
-                        onClick = onNextLevel,
-                        neonColor = NeonColors.neonGreen,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    NeonButton(
-                        text = "BACK TO LOBBY",
-                        onClick = onBackToLobby,
-                        neonColor = NeonColors.neonBlue,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
+        NeonCard(neonColor = NeonColors.hologramPink) {
+            Text(
+                text = "PAUSE ONLINE",
+                color = Color.White,
+                fontSize = 22.sp,
+                modifier = Modifier.padding(24.dp)
+            )
         }
+    }
+}
+
+@Composable
+private fun HolographicPulseFrame(
+    modifier: Modifier,
+    intensity: Float
+) {
+    val transition = rememberInfiniteTransition()
+    val glowProgress by transition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2200, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2, size.height / 2)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    NeonColors.hologramMagenta.copy(alpha = 0.35f * glowProgress * intensity),
+                    NeonColors.depthVoid.copy(alpha = 0f)
+                ),
+                center = center,
+                radius = size.maxDimension / 2
+            )
+        )
+        drawLine(
+            color = NeonColors.hologramCyan.copy(alpha = 0.45f * glowProgress * intensity),
+            start = Offset(0f, center.y),
+            end = Offset(size.width, center.y),
+            strokeWidth = 2f
+        )
     }
 }

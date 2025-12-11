@@ -11,7 +11,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class BallSortViewModel(
@@ -19,7 +20,10 @@ class BallSortViewModel(
 ) : ViewModel() {
     private val game = BallSortGame()
 
-    private val _gameState = MutableStateFlow(mapToGameState())
+    private val _bestMoves = MutableStateFlow<Int?>(null)
+    private var hasRecordedLevelComplete = false
+
+    private val _gameState = MutableStateFlow(BallSortGameState())
     val gameState: StateFlow<BallSortGameState> = _gameState.asStateFlow()
 
     private val _selectedTube = MutableStateFlow<Int?>(null)
@@ -28,34 +32,39 @@ class BallSortViewModel(
     private val _animationState = MutableStateFlow<BallAnimationState?>(null)
     val animationState: StateFlow<BallAnimationState?> = _animationState.asStateFlow()
 
-    private val _bestMoves = MutableStateFlow<Int?>(null)
-    private var hasRecordedLevelComplete = false
+    private val _isPaused = MutableStateFlow(false)
+    val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+
+    private val _hintMove = MutableStateFlow<BallSortHint?>(null)
+    val hintMove: StateFlow<BallSortHint?> = _hintMove.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            repository.prefsFlow.collect { prefs ->
-                _bestMoves.value = prefs.highScoreBallSort.takeIf { it > 0 }
+        repository.prefsFlow.onEach { prefs ->
+            _bestMoves.value = prefs.highScoreBallSort.takeIf { it > 0 }
+            updateState()
+        }.launchIn(viewModelScope)
+
+        repository.getDifficultyFlow().onEach { difficulty ->
+            if (game.getDifficulty() != difficulty) {
+                game.reset(difficulty)
+                game.startLevel(game.level)
                 updateState()
             }
-        }
+        }.launchIn(viewModelScope)
 
-        viewModelScope.launch {
-            repository.getDifficultyFlow().collect { difficulty ->
-                if (game.getDifficulty() != difficulty) {
-                    game.reset(difficulty)
-                    game.startLevel(game.level)
-                    updateState()
-                }
-            }
-        }
+        updateState()
     }
 
     fun loadLevel(level: Int) {
         game.startLevel(level)
+        _hintMove.value = null
+        _selectedTube.value = null
+        _isPaused.value = false
         updateState()
     }
 
     fun selectTube(index: Int) {
+        if (_isPaused.value) return
         when (val selected = _selectedTube.value) {
             null -> {
                 if (game.tubes[index].isNotEmpty()) {
@@ -89,6 +98,7 @@ class BallSortViewModel(
 
             _selectedTube.value = null
             _animationState.value = null
+            _hintMove.value = null
         }
     }
 
@@ -96,6 +106,18 @@ class BallSortViewModel(
         game.reset(game.getDifficulty())
         game.startLevel(game.level)
         updateState()
+        _hintMove.value = null
+        _selectedTube.value = null
+        _isPaused.value = false
+    }
+
+    fun togglePause() {
+        _isPaused.value = !_isPaused.value
+    }
+
+    fun requestHint() {
+        if (_isPaused.value) return
+        _hintMove.value = game.findHint()?.let { BallSortHint(it.first, it.second) }
     }
 
     private fun updateState() {
@@ -148,4 +170,9 @@ data class BallAnimationState(
     val fromTube: Int,
     val toTube: Int,
     val progress: Float
+)
+
+data class BallSortHint(
+    val fromTube: Int,
+    val toTube: Int
 )

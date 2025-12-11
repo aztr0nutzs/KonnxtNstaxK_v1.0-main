@@ -73,7 +73,7 @@ Notes:
 
 8.2 Chapter → game mode mapping
 
-Status: [TODO]
+Status: [DONE]
 Goal: Each story chapter maps to one or more game modes with specific rules/difficulty (e.g. “Win Ball Sort on Medium”, “Win Connect-4 twice”).
 
 Files:
@@ -121,11 +121,13 @@ Done when:
 
 Notes:
 
+    Chapters now observe each game’s success path (Ball Sort, Multiplier, ConnectFour) via `publishStoryResult` so returning from the mode unlocks the next entry.
+
     Actual persistence of chapter completion comes in Phase 10/Progression; this step wires the flow.
 
 8.3 Basic narrative & chapter text
 
-Status: [TODO]
+Status: [DONE]
 Goal: Replace placeholder text with a basic but coherent neon-arcade narrative.
 
 Files:
@@ -158,14 +160,14 @@ Done when:
 
 Notes:
 
-    Treat this as baseline; richer story beats can be added later.
+    Chapter copy now lives in `strings.xml`, the Hub has a dedicated hero banner/timeline, and goals are surfaced per entry so the map feels like a narrative campaign.
 
 Phase 9 – Character Chips System & Abilities
 
 Goal: Turn “character chips” into a real, gameplay-impacting system (abilities, unlocks, rarity).
 9.1 Character chips domain model
 
-Status: [TODO]
+Status: [DONE]
 Goal: Establish a robust data model for chips: id, name, rarity, abilities, cost/unlock conditions.
 
 Files:
@@ -213,7 +215,7 @@ Done when:
 
 Notes:
 
-    Document chip ability semantics in docs/DECISIONS.md.
+    Centralized the roster in `ChipRepository`, added a `CharacterChip`/`ChipAbility` domain model, and documented the ability semantics in `docs/DECISIONS.md`.
 
 9.2 Chip selection & loadout UI
 

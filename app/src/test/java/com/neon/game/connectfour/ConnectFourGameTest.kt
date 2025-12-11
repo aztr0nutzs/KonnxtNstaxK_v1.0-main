@@ -58,13 +58,13 @@ class ConnectFourGameTest {
             game.dropChip(0) // Alternate players
         }
         val result = game.dropChip(0) // Attempt to drop in full column
-        assertFalse(result)
+        assertNull(result)
     }
 
     @Test
     fun `dropChip rejects invalid column`() {
-        assertFalse(game.dropChip(-1))
-        assertFalse(game.dropChip(ConnectFourGame.COLS))
+        assertNull(game.dropChip(-1))
+        assertNull(game.dropChip(ConnectFourGame.COLS))
     }
 
     @Test
@@ -177,6 +177,6 @@ class ConnectFourGameTest {
         game.dropChip(0) // P1 wins
 
         assertTrue(game.isGameOver)
-        assertFalse(game.dropChip(2)) // Attempt another move
+        assertNull(game.dropChip(2)) // Attempt another move
     }
 }

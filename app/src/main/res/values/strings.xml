@@ -1,3 +1,29 @@
 <resources>
     <string name="app_name">Neon Connect &amp; Sort</string>
+    <string name="story_mode_title">STORY MODE</string>
+    <string name="story_mode_subtitle">Trace the neon campaign through Connect-4, Ball Sort, and Multiplier showdowns.</string>
+    <string name="story_timeline_node_basecamp">BASE CAMP</string>
+    <string name="story_timeline_node_network">DATA NETWORK</string>
+    <string name="story_timeline_node_ascent">ASCENSION</string>
+    <string name="story_chapter_requirement">Mode: %1$s · Wins needed: %2$d</string>
+
+    <string name="chapter_neon_origins_title">Neon Origins</string>
+    <string name="chapter_neon_origins_description">Secure the lobby by outplaying the Syndicate guard team in Connect-4 on Easy.</string>
+    <string name="chapter_neon_origins_goal">Goal: Sweep Connect-4 on Easy without letting them counter.</string>
+
+    <string name="chapter_liquid_archive_title">Liquid Archive</string>
+    <string name="chapter_liquid_archive_description">Sink into the Ball Sort vault and align the shimmering toxins on Medium.</string>
+    <string name="chapter_liquid_archive_goal">Goal: Perfect the tubes before the vault stabilizes.</string>
+
+    <string name="chapter_streak_divergence_title">Streak Divergence</string>
+    <string name="chapter_streak_divergence_description">Thread a 3× streak in Multiplier while braving incoming hazards.</string>
+    <string name="chapter_streak_divergence_goal">Goal: Land a 3x streak and cash out before losing a life.</string>
+
+    <string name="chapter_syndicate_flank_title">Syndicate Flank</string>
+    <string name="chapter_syndicate_flank_description">Break through the Syndicate defense with back-to-back Connect-4 wins on Hard.</string>
+    <string name="chapter_syndicate_flank_goal">Goal: Win two Hard Connect-4 matches without a draw.</string>
+
+    <string name="chapter_prismatic_break_title">Prismatic Break</string>
+    <string name="chapter_prismatic_break_description">Disrupt the prism lattice by solving Ball Sort on Hard before the beams realign.</string>
+    <string name="chapter_prismatic_break_goal">Goal: Finish a Hard Ball Sort level with flawless timing.</string>
 </resources>

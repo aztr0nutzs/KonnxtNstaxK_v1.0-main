@@ -291,3 +291,58 @@
 - Added stat badges for difficulty, best scores, and coins plus a hero description so the lobby reflects the player’s progression at a glance.
 - Introduced a horizontal chip rack that highlights unlocked characters versus locked ones while calling out the currently selected avatar.
 - Made the holographic helper composable-aware so the new badges can be composed safely.
+
+---
+
+## 2025-12-10 - Phase 8: Story Mode integration
+
+**Task:** 8.2 Chapter → game mode mapping
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/screens/BallSortScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/MultiplierScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/MultiplierViewModel.kt`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+
+**Summary:**
+- Ball Sort and Multiplier screens now publish their chapter result via `activeStoryChapterId`/`publishStoryResult`, so the Story Hub immediately unlocks the next entry when the player wins a required challenge.
+- Added `gameResult` to `MultiplierGameState` so the screen can detect a win without spying on the underlying game internals, which also keeps the publish logic idempotent.
+- Verified by running `JAVA_HOME=/home/aztr0nutzs/StudioProjects/KonnxtNstaxK_v1.0-main/jdk-17.0.8+7 ./gradlew assembleDebug`.
+
+---
+
+## 2025-12-10 - Phase 8: Story Mode refinement
+
+**Task:** 8.3 Basic narrative & chapter text
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/screens/story/StoryHubScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/StoryHubViewModel.kt`
+- `app/src/main/res/values/strings.xml`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+
+**Summary:**
+- Replaced inline chapter text with localized string resources and added dedicated goal copy so the hub reads like a campaign log.
+- Dressed the Story Hub with a gradient hero banner, timeline chips, and a neon particle backdrop to visually distinguish it from other modes.
+- Verified the feature via `JAVA_HOME=/home/aztr0nutzs/StudioProjects/KonnxtNstaxK_v1.0-main/jdk-17.0.8+7 ./gradlew assembleDebug`.
+
+---
+
+## 2025-12-10 - Phase 9: Character chips domain model
+
+**Task:** 9.1 Character chips domain model
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/core/data/ChipRepository.kt`
+- `app/src/main/java/com/neon/connectsort/core/domain/CharacterChip.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/CharacterChipsScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/CharacterChipsViewModel.kt`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+
+**Summary:**
+- Added a dedicated domain model for character chips that carries rarity, ability metadata, and gameplay effects plus a sealed `ChipAbility` hierarchy to describe extra points, shields, and extra moves.
+- Centralized the roster inside `ChipRepository` so screens/ViewModels share a single list; the ViewModel now maps unlocks/high scores back onto those chips so UI consumables never drift from the source of truth.
+- Verified with `JAVA_HOME=/home/aztr0nutzs/StudioProjects/KonnxtNstaxK_v1.0-main/jdk-17.0.8+7 ./gradlew assembleDebug`.

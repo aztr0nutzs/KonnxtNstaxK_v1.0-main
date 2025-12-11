@@ -5,13 +5,13 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="@color/neon_cyan"
+        android:fillColor="#00FFFF"
         android:pathData="M54,24L30,48L54,72L78,48L54,24Z"
         android:strokeWidth="2"
-        android:strokeColor="@color/neon_cyan_dark" />
+        android:strokeColor="#00B8B8" />
     <path
-        android:fillColor="@color/neon_pink"
+        android:fillColor="#FF00FF"
         android:pathData="M54,36L42,48L54,60L66,48L54,36Z"
         android:strokeWidth="2"
-        android:strokeColor="@color/neon_pink_dark" />
+        android:strokeColor="#B800B8" />
 </vector>

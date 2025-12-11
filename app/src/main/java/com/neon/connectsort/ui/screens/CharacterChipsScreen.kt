@@ -30,10 +30,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.neon.connectsort.ui.screens.viewmodels.CharacterAbility
-import com.neon.connectsort.ui.screens.viewmodels.CharacterChip
+import com.neon.connectsort.core.domain.CharacterChip
+import com.neon.connectsort.core.domain.ChipAbility
+import com.neon.connectsort.core.domain.ChipRarity
 import com.neon.connectsort.ui.screens.viewmodels.CharacterChipsViewModel
-import com.neon.connectsort.ui.screens.viewmodels.Rarity
 import com.neon.connectsort.ui.theme.*
 import com.neon.connectsort.ui.components.*
 import kotlinx.coroutines.delay
@@ -220,10 +220,10 @@ fun SelectedCharacterShowcase(
                         text = "RARITY: ${char.rarity}",
                         style = MaterialTheme.typography.labelMedium,
                         color = when (char.rarity) {
-                            Rarity.COMMON -> NeonColors.hologramBlue
-                            Rarity.RARE -> NeonColors.hologramPurple
-                            Rarity.EPIC -> NeonColors.hologramPink
-                            Rarity.LEGENDARY -> NeonColors.hologramYellow
+                            ChipRarity.COMMON -> NeonColors.hologramBlue
+                            ChipRarity.RARE -> NeonColors.hologramPurple
+                            ChipRarity.EPIC -> NeonColors.hologramPink
+                            ChipRarity.LEGENDARY -> NeonColors.hologramYellow
                         }
                     )
 
@@ -551,7 +551,7 @@ fun CharacterAbilitiesPanel(character: CharacterChip) {
 }
 
 @Composable
-fun AbilityCard(ability: CharacterAbility) {
+fun AbilityCard(ability: ChipAbility) {
     HolographicCard(
         modifier = Modifier.fillMaxWidth(),
         title = null
@@ -784,12 +784,12 @@ private fun DrawScope.drawCharacterCardBackground(
     }
 }
 
-private fun DrawScope.drawRarityIndicator(size: Size, rarity: Rarity) {
+private fun DrawScope.drawRarityIndicator(size: Size, rarity: ChipRarity) {
     val color = when (rarity) {
-        Rarity.COMMON -> NeonColors.hologramBlue
-        Rarity.RARE -> NeonColors.hologramPurple
-        Rarity.EPIC -> NeonColors.hologramPink
-        Rarity.LEGENDARY -> NeonColors.hologramYellow
+        ChipRarity.COMMON -> NeonColors.hologramBlue
+        ChipRarity.RARE -> NeonColors.hologramPurple
+        ChipRarity.EPIC -> NeonColors.hologramPink
+        ChipRarity.LEGENDARY -> NeonColors.hologramYellow
     }
 
     drawCircle(
@@ -798,7 +798,7 @@ private fun DrawScope.drawRarityIndicator(size: Size, rarity: Rarity) {
         radius = size.minDimension / 2
     )
 
-    if (rarity == Rarity.LEGENDARY) {
+    if (rarity == ChipRarity.LEGENDARY) {
         drawCircle(
             color = Color.White.copy(alpha = 0.5f),
             center = Offset(size.width / 2, size.height / 2),

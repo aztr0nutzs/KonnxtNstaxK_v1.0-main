@@ -20,7 +20,10 @@ import androidx.navigation.NavController
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import com.neon.connectsort.ui.theme.*
+import com.neon.connectsort.navigation.activeStoryChapterId
+import com.neon.connectsort.navigation.publishStoryResult
 import com.neon.connectsort.navigation.toLobby
+import com.neon.game.common.GameResult
 import com.neon.game.multiplier.MultiplierGame
 import com.neon.connectsort.ui.screens.viewmodels.MultiplierGameState
 import com.neon.connectsort.ui.screens.viewmodels.MultiplierViewModel
@@ -31,6 +34,18 @@ fun MultiplierScreen(
     viewModel: MultiplierViewModel
 ) {
     val gameState by viewModel.gameState.collectAsState()
+    val storyChapterId = navController.activeStoryChapterId()
+    var storyResultSent by remember { mutableStateOf(false) }
+
+    LaunchedEffect(storyChapterId, gameState.gameResult, storyResultSent) {
+        if (storyChapterId != null && gameState.gameResult == GameResult.WIN && !storyResultSent) {
+            navController.publishStoryResult(true)
+            storyResultSent = true
+        }
+        if (storyResultSent && gameState.gameResult != GameResult.WIN) {
+            storyResultSent = false
+        }
+    }
     
     Box(
         modifier = Modifier

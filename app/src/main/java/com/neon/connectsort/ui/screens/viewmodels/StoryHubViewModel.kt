@@ -3,6 +3,8 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import androidx.annotation.StringRes
+import com.neon.connectsort.R
 import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +20,9 @@ enum class StoryGameMode {
 
 data class StoryChapter(
     val id: String,
-    val title: String,
-    val description: String,
+    @StringRes val titleRes: Int,
+    @StringRes val descriptionRes: Int,
+    @StringRes val goalRes: Int,
     val requiredMode: StoryGameMode,
     val requiredDifficulty: GameDifficulty,
     val requiredWins: Int = 1,
@@ -63,16 +66,18 @@ class StoryHubViewModel(
         return listOf(
             StoryChapter(
                 id = "intro_calc",
-                title = "Neon Origins",
-                description = "Secure the lobby by beating Connect-4 on Easy.",
+                titleRes = R.string.chapter_neon_origins_title,
+                descriptionRes = R.string.chapter_neon_origins_description,
+                goalRes = R.string.chapter_neon_origins_goal,
                 requiredMode = StoryGameMode.CONNECT_FOUR,
                 requiredDifficulty = GameDifficulty.EASY,
                 unlocksWithChapterId = "ballsort_incursion"
             ),
             StoryChapter(
                 id = "ballsort_incursion",
-                title = "Liquid Archive",
-                description = "Sort the shimmers in Ball Sort on Medium.",
+                titleRes = R.string.chapter_liquid_archive_title,
+                descriptionRes = R.string.chapter_liquid_archive_description,
+                goalRes = R.string.chapter_liquid_archive_goal,
                 requiredMode = StoryGameMode.BALL_SORT,
                 requiredDifficulty = GameDifficulty.MEDIUM,
                 isLocked = true,
@@ -80,8 +85,9 @@ class StoryHubViewModel(
             ),
             StoryChapter(
                 id = "multiplier_ramp",
-                title = "Streak Divergence",
-                description = "Hit a 3x multiplier streak without losing.",
+                titleRes = R.string.chapter_streak_divergence_title,
+                descriptionRes = R.string.chapter_streak_divergence_description,
+                goalRes = R.string.chapter_streak_divergence_goal,
                 requiredMode = StoryGameMode.MULTIPLIER,
                 requiredDifficulty = GameDifficulty.MEDIUM,
                 isLocked = true,
@@ -89,8 +95,9 @@ class StoryHubViewModel(
             ),
             StoryChapter(
                 id = "connect_four_strike",
-                title = "Syndicate Flank",
-                description = "Win Connect-4 twice in a row on Hard.",
+                titleRes = R.string.chapter_syndicate_flank_title,
+                descriptionRes = R.string.chapter_syndicate_flank_description,
+                goalRes = R.string.chapter_syndicate_flank_goal,
                 requiredMode = StoryGameMode.CONNECT_FOUR,
                 requiredDifficulty = GameDifficulty.HARD,
                 requiredWins = 2,
@@ -99,8 +106,9 @@ class StoryHubViewModel(
             ),
             StoryChapter(
                 id = "ballsort_refraction",
-                title = "Prismatic Break",
-                description = "Solve Ball Sort on Hard before the prisms stabilize.",
+                titleRes = R.string.chapter_prismatic_break_title,
+                descriptionRes = R.string.chapter_prismatic_break_description,
+                goalRes = R.string.chapter_prismatic_break_goal,
                 requiredMode = StoryGameMode.BALL_SORT,
                 requiredDifficulty = GameDifficulty.HARD,
                 requiredWins = 2,

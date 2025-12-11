@@ -24,6 +24,7 @@ object NeonColors {
     val hologramGreen = Color(0xFF70FF70)
     val hologramYellow = Color(0xFFFFFF70)
     val hologramRed = Color(0xFFFF7070)
+    val hologramMagenta = Color(0xFFFF4DFF)
 
     // Backgrounds & Surfaces
     val neonBackground = Color(0xFF000020) // Deep, dark blue

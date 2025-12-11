@@ -15,8 +15,9 @@ fun NavController.setActiveStoryChapter(chapterId: String) {
 }
 
 fun NavController.publishStoryResult(success: Boolean) {
-    previousBackStackEntry?.savedStateHandle?.get<String>(ACTIVE_CHAPTER_KEY)?.let { chapterId ->
-        previousBackStackEntry.savedStateHandle[STORY_RESULT_KEY] = StoryResult(chapterId, success)
+    val previousEntry = previousBackStackEntry ?: return
+    previousEntry.savedStateHandle.get<String>(ACTIVE_CHAPTER_KEY)?.let { chapterId ->
+        previousEntry.savedStateHandle[STORY_RESULT_KEY] = StoryResult(chapterId, success)
     }
 }
 
