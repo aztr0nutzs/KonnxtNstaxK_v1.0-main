@@ -1,5 +1,21 @@
 # WORKLOG.md
 
+## 2026-01-21 - UI bridge hardening
+
+**Task:** Replace placeholder HTML behaviors with live game wiring
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/WebUiHost.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/ConnectFourViewModel.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/BallSortViewModel.kt`
+- `app/src/main/java/com/neon/game/ballsort/BallSortGame.kt`
+- `docs/UI_WEBVIEW_INTEGRATION.md`
+
+**Summary:**
+- Bound every interactive element in the shipped HTML to Kotlin game logic: lobby buttons now navigate, Connect-4 controls emit drop/reset/hint/difficulty events, and Ball Sort start/reset/undo/hint/difficulty/actions drive the ViewModel.
+- Added bidirectional state rendering so board cells, scores, best-move counters, hint highlights, and lobby wallet stats update from real game state instead of placeholder values.
+- Introduced a DEBUG hitbox overlay toggle injected into each page plus new guard rails (undo stack, pause handling, AI hinting, difficulty persistence, audio/animation settings) to harden the runtime contract.
+
 ## 2024-07-16 - Phase 0: Baseline Sanity Check
 
 **Task:** 0.1 Project opens and builds cleanly
@@ -346,3 +362,21 @@
 - Added a dedicated domain model for character chips that carries rarity, ability metadata, and gameplay effects plus a sealed `ChipAbility` hierarchy to describe extra points, shields, and extra moves.
 - Centralized the roster inside `ChipRepository` so screens/ViewModels share a single list; the ViewModel now maps unlocks/high scores back onto those chips so UI consumables never drift from the source of truth.
 - Verified with `JAVA_HOME=/home/aztr0nutzs/StudioProjects/KonnxtNstaxK_v1.0-main/jdk-17.0.8+7 ./gradlew assembleDebug`.
+
+---
+
+## 2026-01-20 - UI refactor via WebView bridge
+
+**Task:** Replace Compose navigation with HTML-driven WebView UI
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/java/com/neon/connectsort/ui/WebUiHost.kt`
+- `app/src/main/assets/ui/*.html`
+- `docs/UI_WEBVIEW_INTEGRATION.md`
+- `docs/DECISIONS.md`
+
+**Summary:**
+- Routed the app through a single `WebView` that loads the provided lobby, Connect-4, and Ball Sort HTML while keeping Kotlin game logic untouched.
+- Added a JavaScript bridge so button taps, grid clicks, and tube selections invoke ViewModel actions and game-state flows redraw the HTML boards.
+- Documented the new contract and navigation approach for future HTML screens.

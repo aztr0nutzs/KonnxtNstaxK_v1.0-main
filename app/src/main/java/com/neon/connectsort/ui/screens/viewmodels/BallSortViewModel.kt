@@ -11,9 +11,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineStart
 
 class BallSortViewModel(
     private val repository: AppPreferencesRepository
@@ -37,6 +40,34 @@ class BallSortViewModel(
 
     private val _hintMove = MutableStateFlow<BallSortHint?>(null)
     val hintMove: StateFlow<BallSortHint?> = _hintMove.asStateFlow()
+
+    data class UiState(
+        val game: BallSortGameState = BallSortGameState(),
+        val selectedTube: Int? = null,
+        val animation: BallAnimationState? = null,
+        val isPaused: Boolean = false,
+        val hint: BallSortHint? = null
+    )
+
+    val uiState: StateFlow<UiState> = combine(
+        gameState,
+        selectedTube,
+        animationState,
+        isPaused,
+        hintMove
+    ) { game, selected, animation, paused, hint ->
+        UiState(
+            game = game,
+            selectedTube = selected,
+            animation = animation,
+            isPaused = paused,
+            hint = hint
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+        initialValue = UiState()
+    )
 
     init {
         repository.prefsFlow.onEach { prefs ->
@@ -65,6 +96,7 @@ class BallSortViewModel(
 
     fun selectTube(index: Int) {
         if (_isPaused.value) return
+        if (index !in game.tubes.indices) return
         when (val selected = _selectedTube.value) {
             null -> {
                 if (game.tubes[index].isNotEmpty()) {
@@ -87,18 +119,21 @@ class BallSortViewModel(
     private fun moveBall(fromTube: Int, toTube: Int) {
         viewModelScope.launch {
             _animationState.value = BallAnimationState(fromTube, toTube, 0f)
+            try {
+                for (progress in 0..100 step 10) {
+                    _animationState.value = _animationState.value?.copy(progress = progress / 100f)
+                    delay(16)
+                }
 
-            for (progress in 0..100 step 10) {
-                _animationState.value = _animationState.value?.copy(progress = progress / 100f)
-                delay(16)
+                if (game.isValidMove(fromTube, toTube)) {
+                    game.move(fromTube, toTube)
+                    updateState()
+                }
+            } finally {
+                _selectedTube.value = null
+                _animationState.value = null
+                _hintMove.value = null
             }
-
-            game.move(fromTube, toTube)
-            updateState()
-
-            _selectedTube.value = null
-            _animationState.value = null
-            _hintMove.value = null
         }
     }
 
@@ -115,9 +150,30 @@ class BallSortViewModel(
         _isPaused.value = !_isPaused.value
     }
 
+    fun setPaused(paused: Boolean) {
+        _isPaused.value = paused
+    }
+
     fun requestHint() {
         if (_isPaused.value) return
         _hintMove.value = game.findHint()?.let { BallSortHint(it.first, it.second) }
+    }
+
+    fun undoLastMove() {
+        if (_isPaused.value) return
+        viewModelScope.launch {
+            if (game.undo()) {
+                updateState()
+            }
+            _selectedTube.value = null
+            _hintMove.value = null
+        }
+    }
+
+    fun setDifficulty(difficulty: GameDifficulty) {
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            repository.setDifficulty(difficulty.level)
+        }
     }
 
     private fun updateState() {
