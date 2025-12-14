@@ -103,3 +103,19 @@
 **Decision:**
 - Character chips are now fully described inside `core.domain.CharacterChip`, including rarity (`ChipRarity`), narrative metadata, and a sealed `ChipAbility` tree that encodes bonus points, shields, and extra moves plus their energy/cooldown/effect payloads. This keeps domain logic separate from the ViewModel/UI layers while supplying the data needed to render ability cards.
 - The static roster lives in `core.data.ChipRepository`, giving every consumer the same canonical list of chips; the ViewModel maps unlock flags/high scores back onto those chips so the UI sees only the derived state it cares about. This avoids duplicated lists and makes it easy to extend the roster with new abilities or balance tweaks later.
+
+---
+
+## 2026-01-20 - HTML-first UI delivery
+
+**Decision:**
+- Replaced the Compose navigation tree with a WebView-hosted UI so the shipped HTML (lobby, Connect-4, Ball Sort) is rendered verbatim while Kotlin keeps driving game rules.
+- A JavaScript bridge (`AndroidBridge.emit`) became the canonical contract for UI actions; ViewModel state is serialized to JSON and rendered through `renderConnectFour`/`renderBallSort` helpers injected into each page.
+- Navigation is now asset-based: swapping `UiScreen` entries changes the loaded HTML without resetting the underlying game state.
+
+## 2026-01-21 - Hardened web bridge & controls
+
+**Decision:**
+- Every interactive control in the shipped HTML is now explicitly bound to Kotlin events (drops, resets, hints, undo, pause, difficulty changes, audio/animation toggles) through centralized bindings injected per screen, eliminating placeholder timers and navigation stubs.
+- Render payloads were expanded (hints, winning lines, best moves, lobby wallet stats) so the DOM reflects live game state instead of seeded demo data.
+- A reusable debug overlay (hitbox outlines + floating toggle) ships with every page to validate tap targets against the Kotlin contract without altering the visual design.

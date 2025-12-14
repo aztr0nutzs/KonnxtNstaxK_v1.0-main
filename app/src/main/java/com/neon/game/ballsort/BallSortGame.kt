@@ -2,6 +2,7 @@ package com.neon.game.ballsort
 
 import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
+import kotlin.collections.ArrayDeque
 
 /**
  * Manages the state and logic for the Ball Sort puzzle game.
@@ -15,6 +16,7 @@ import com.neon.game.common.GameDifficulty
 class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
 
     internal var _tubes: List<MutableList<Int>> = emptyList()
+    private val moveHistory = ArrayDeque<Triple<Int, Int, Int>>()
     val tubes: List<List<Int>> get() = _tubes.map { it.toList() } // Immutable view
 
     var level: Int = 1
@@ -34,6 +36,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         moves = 0
         turnCount = 0
         score = 0
+        moveHistory.clear()
         markInProgress()
     }
 
@@ -85,6 +88,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
 
         val ball = _tubes[from].removeAt(_tubes[from].lastIndex)
         _tubes[to].add(ball)
+        moveHistory.addLast(Triple(from, to, ball))
         moves++
         turnCount++
 
@@ -93,6 +97,30 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         } else {
             markInProgress()
         }
+    }
+
+    fun undo(): Boolean {
+        val last = moveHistory.removeLastOrNull() ?: return false
+        val (from, to, ball) = last
+
+        if (to !in _tubes.indices || from !in _tubes.indices) {
+            moveHistory.clear()
+            return false
+        }
+
+        val destinationTube = _tubes[to]
+        if (destinationTube.isEmpty() || destinationTube.last() != ball) {
+            // History mismatch; fail safe by clearing history to avoid further corruption
+            moveHistory.clear()
+            return false
+        }
+
+        destinationTube.removeAt(destinationTube.lastIndex)
+        _tubes[from].add(ball)
+        moves = (moves - 1).coerceAtLeast(0)
+        turnCount = (turnCount - 1).coerceAtLeast(0)
+        markInProgress()
+        return true
     }
 
     fun findHint(): Pair<Int, Int>? {
@@ -118,6 +146,7 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
     override fun reset(newDifficulty: GameDifficulty): BallSortGame {
         super.reset(newDifficulty)
         startLevel(level)
+        moveHistory.clear()
         return this
     }
 }

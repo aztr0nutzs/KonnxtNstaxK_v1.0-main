@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 class ConnectFourViewModel(
     private val repository: AppPreferencesRepository
@@ -19,6 +20,8 @@ class ConnectFourViewModel(
     private val game = ConnectFourGame()
     private val ai = ConnectFourAi()
     private var pendingDrop: ConnectFourMove? = null
+    private var aiMoveJob: Job? = null
+    private var activeHint: Int? = null
 
     private val _gameState = MutableStateFlow(ConnectFourGameState())
     val gameState: StateFlow<ConnectFourGameState> = _gameState.asStateFlow()
@@ -32,6 +35,7 @@ class ConnectFourViewModel(
     init {
         viewModelScope.launch {
             repository.getDifficultyFlow().collect { difficulty ->
+                aiMoveJob?.cancel()
                 game.reset(difficulty)
                 hasRecordedHighScore = false
                 updateGameState()
@@ -50,6 +54,9 @@ class ConnectFourViewModel(
 
     fun dropChip(column: Int) {
         if (game.isGameOver || game.getCurrentPlayer() != 1) return
+        if (column !in 0 until ConnectFourGame.COLS) return
+
+        activeHint = null
 
         val currentPlayer = game.getCurrentPlayer()
         val droppedRow = game.dropChip(column)
@@ -58,10 +65,11 @@ class ConnectFourViewModel(
             updateGameState()
 
             if (!game.isGameOver) {
-                viewModelScope.launch {
-                    delay(500)
+                aiMoveJob?.cancel()
+                aiMoveJob = viewModelScope.launch {
+                    delay(350)
                     val aiColumn = ai.getBestMove(game.getBoard(), 2)
-                    if (aiColumn != -1) {
+                    if (aiColumn != -1 && !game.isGameOver) {
                         val aiRow = game.dropChip(aiColumn)
                         if (aiRow != null) {
                             pendingDrop = ConnectFourMove(aiRow, aiColumn, 2)
@@ -74,10 +82,25 @@ class ConnectFourViewModel(
     }
 
     fun resetGame() {
+        aiMoveJob?.cancel()
         game.reset(game.getDifficulty())
         hasRecordedHighScore = false
         lastWinner = null
+        activeHint = null
         updateGameState()
+    }
+
+    fun requestHint() {
+        if (game.isGameOver) return
+        val suggested = ai.getBestMove(game.getBoard(), game.getCurrentPlayer())
+        activeHint = suggested.takeIf { it in 0 until ConnectFourGame.COLS }
+        _gameState.value = _gameState.value.copy(hintColumn = activeHint)
+    }
+
+    fun setDifficulty(difficulty: GameDifficulty) {
+        viewModelScope.launch {
+            repository.setDifficulty(difficulty.level)
+        }
     }
 
     private fun updateGameState() {
@@ -99,6 +122,10 @@ class ConnectFourViewModel(
             else -> lastWinner = null
         }
 
+        if (game.isGameOver) {
+            activeHint = null
+        }
+
         val newState = ConnectFourGameState(
             board = board,
             currentPlayer = currentPlayer,
@@ -110,7 +137,8 @@ class ConnectFourViewModel(
             isGameOver = game.isGameOver,
             difficulty = game.getDifficulty(),
             bestScore = storedHighScore,
-            lastDrop = pendingDrop
+            lastDrop = pendingDrop,
+            hintColumn = activeHint
         )
 
         _gameState.value = newState
@@ -151,7 +179,8 @@ data class ConnectFourGameState(
     val difficulty: GameDifficulty = GameDifficulty.MEDIUM,
     val bestScore: Int = 0,
     // last chip drop used for animated feedback
-    val lastDrop: ConnectFourMove? = null
+    val lastDrop: ConnectFourMove? = null,
+    val hintColumn: Int? = null
 )
 
 data class ConnectFourMove(
