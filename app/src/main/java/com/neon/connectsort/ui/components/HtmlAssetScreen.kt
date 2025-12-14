@@ -15,6 +15,7 @@ private const val TAG = "HtmlAssetScreen"
 fun HtmlAssetScreen(
     assetPath: String,
     modifier: Modifier = Modifier,
+    enableJavaScript: Boolean = false,
 ) {
     val context = LocalContext.current
     val assetUrl = "file:///android_asset/$assetPath"
@@ -23,7 +24,8 @@ fun HtmlAssetScreen(
         modifier = modifier,
         factory = {
             WebView(context).apply {
-                settings.javaScriptEnabled = false
+                settings.javaScriptEnabled = enableJavaScript
+                settings.domStorageEnabled = enableJavaScript
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)

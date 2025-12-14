@@ -365,4 +365,5 @@
 - Introduced a reusable `HtmlAssetScreen` that wraps `AndroidView`/`WebView`, keeps JavaScript disabled, and logs `HTML_LOADED:ui/...` when each page finishes loading.
 - Pointed the navigation graph's lobby, Connect 4, and Ball Sort routes at the new WebView screens and kept the Ball Sort level argument declared for compatibility even though the HTML is static.
 - Copied the provided HTML files into `app/src/main/assets/ui/`, added the required visible sentinel tags, and bumped the app version so installs remain unique.
+- Enabled JavaScript/dom storage for the WebView so the shipped HTML animations, loading overlay removal, and dynamic UI states can actually run.
 - Verified via `adb logcat -s HtmlAssetScreen` that `HTML_LOADED:ui/lobby.html`, `HTML_LOADED:ui/connect4.html`, and `HTML_LOADED:ui/ball_sort.html` appear while the `<div class="sentinel-tag">LOBBY_HTML_V2</div>` / `<div class="sentinel-tag">CONNECT4_HTML_V2</div>` / `<div class="sentinel-tag">BALLSORT_HTML_V2</div>` markers render on-screen.

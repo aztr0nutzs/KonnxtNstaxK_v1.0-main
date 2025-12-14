@@ -46,7 +46,8 @@ fun NeonGameApp() {
         composable(AppDestination.Lobby.route) {
             HtmlAssetScreen(
                 assetPath = "ui/lobby.html",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                enableJavaScript = true
             )
         }
         composable(
@@ -62,7 +63,8 @@ fun NeonGameApp() {
         ) {
             HtmlAssetScreen(
                 assetPath = "ui/connect4.html",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                enableJavaScript = true
             )
         }
         composable(
@@ -76,7 +78,8 @@ fun NeonGameApp() {
         ) { _ ->
             HtmlAssetScreen(
                 assetPath = "ui/ball_sort.html",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                enableJavaScript = true
             )
         }
         composable(

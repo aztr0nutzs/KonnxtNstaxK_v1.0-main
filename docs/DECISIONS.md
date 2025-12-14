@@ -106,7 +106,7 @@
 ## 2025-12-11 - HTML WebView Integration Strategy
 
 **Decision:**
-- Reuse the shipped HTML boards and lobby as the visual layer by routing Compose navigation to a lightweight `HtmlAssetScreen` that loads `file:///android_asset/ui/...` and keeps JavaScript disabled. This keeps the existing ViewModels and logic in Compose while letting the WebView render the neon art assets, matching the requirement to treat HTML as the skin without rewriting game logic in JS.
+- Reuse the shipped HTML boards and lobby as the visual layer by routing Compose navigation to a lightweight `HtmlAssetScreen` that loads `file:///android_asset/ui/...` and enables JavaScript/dom storage for those assets so their loading overlay, animations, and dynamic effects run inside the WebView while the surrounding Compose logic stays intact (Option A).
 - Each HTML surface now declares a `.sentinel-tag` that renders `LOBBY_HTML_V2`, `CONNECT4_HTML_V2`, or `BALLSORT_HTML_V2` so QA can visually confirm the right asset and `HTML_LOADED:ui/...` log entries prove the WebView actually instantiated that asset.
 - Logging `HTML_LOADED:ui/...` per asset provides runtime proof that the HTML is actually rendered and shipped inside the APK, so the integration is auditable and can be monitored in logcat.
 - Tradeoff: input handling remains managed by Compose (option A), so interactive elements inside the HTML cannot talk directly to Kotlin yet, but the layered approach keeps the integration stable and avoids the security/complexity of `addJavascriptInterface`.
