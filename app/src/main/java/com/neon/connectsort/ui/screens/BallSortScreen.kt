@@ -37,6 +37,8 @@ import com.neon.connectsort.ui.theme.NeonButton
 import com.neon.connectsort.ui.theme.NeonCard
 import com.neon.connectsort.ui.theme.NeonColors
 import com.neon.connectsort.ui.theme.NeonText
+import com.neon.game.common.GameMode
+import com.neon.game.common.PowerUp
 
 @Composable
 fun BallSortScreen(
@@ -165,6 +167,12 @@ fun BallSortScreen(
                 BallSortInfoRow(gameState = gameState, hint = hintMove)
             }
 
+            if (gameState.gameMode == GameMode.COMPETITIVE) {
+                PlayerStats(gameState)
+            }
+
+            PowerUps(gameState.enabledPowerUps) { viewModel.usePowerUp(it) }
+
             BallSortControlRow(
                 isPaused = isPaused,
                 onPauseToggle = { viewModel.togglePause() },
@@ -178,8 +186,13 @@ fun BallSortScreen(
         if (isPaused) {
             PauseOverlay()
         }
+
+        if (gameState.isLevelComplete) {
+            VictoryScreen(gameState = gameState, onNextLevel = { viewModel.loadLevel(gameState.level + 1) })
+        }
     }
 }
+
 
 @Composable
 private fun BallSortHeader(
@@ -214,7 +227,12 @@ private fun BallSortHeader(
             )
         }
 
-        Spacer(modifier = Modifier.width(110.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            GameModeDisplay(gameState.gameMode)
+            if (gameState.gameMode == GameMode.TIMED || gameState.gameMode == GameMode.COMPETITIVE) {
+                Text(text = "Time: ${gameState.timer}", color = Color.White)
+            }
+        }
     }
 }
 
@@ -372,7 +390,7 @@ private fun RowScope.BallSortInfoRow(gameState: BallSortGameState, hint: BallSor
         InfoBadge("TUBES", gameState.tubes.size.toString(), NeonColors.neonYellow)
         InfoBadge(
             "HINT",
-            text = hint?.let { "${hint.fromTube + 1}->${hint.toTube + 1}" } ?: "AVAILABLE",
+            text = hint?.let { "${it.fromTube + 1}->${it.toTube + 1}" } ?: "AVAILABLE",
             color = if (hint != null) NeonColors.neonYellow else NeonColors.hologramPink
         )
     }
@@ -446,6 +464,89 @@ private fun BallSortControlRow(
             modifier = Modifier.weight(1f),
             enabled = canAdvance
         )
+    }
+}
+
+
+@Composable
+private fun GameModeDisplay(gameMode: GameMode) {
+    val color = when (gameMode) {
+        GameMode.CLASSIC -> NeonColors.hologramGreen
+        GameMode.TIMED -> NeonColors.hologramYellow
+        GameMode.COMPETITIVE -> NeonColors.hologramPink
+        GameMode.PUZZLE -> NeonColors.hologramCyan
+        else -> NeonColors.hologramBlue
+    }
+    NeonText(text = gameMode.name, fontSize = 16, fontWeight = FontWeight.Bold, neonColor = color)
+}
+
+@Composable
+private fun PlayerStats(gameState: BallSortGameState) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        PlayerStat(label = "Player 1", score = gameState.scores[0], isActive = gameState.currentPlayer == 0)
+        PlayerStat(label = "Player 2", score = gameState.scores[1], isActive = gameState.currentPlayer == 1)
+    }
+}
+
+@Composable
+private fun PlayerStat(label: String, score: Int, isActive: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = label, color = if (isActive) NeonColors.neonYellow else Color.White)
+        Text(text = "Score: $score", color = if (isActive) NeonColors.neonYellow else Color.White)
+    }
+}
+
+@Composable
+private fun PowerUps(enabledPowerUps: Set<PowerUp>, onPowerUpClick: (PowerUp) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        for (powerUp in enabledPowerUps) {
+            HolographicButton(
+                text = powerUp.name,
+                onClick = { onPowerUpClick(powerUp) },
+                glowColor = NeonColors.hologramPurple
+            )
+        }
+    }
+}
+
+@Composable
+private fun VictoryScreen(gameState: BallSortGameState, onNextLevel: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.8f))
+            .clickable { /* consume clicks */ },
+        contentAlignment = Alignment.Center
+    ) {
+        NeonCard(
+            neonColor = NeonColors.neonYellow,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                NeonText(text = "VICTORY", fontSize = 32, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Level ${gameState.level} Complete!", color = Color.White)
+                Text(text = "Moves: ${gameState.moves}", color = Color.White)
+                if (gameState.gameMode == GameMode.TIMED || gameState.gameMode == GameMode.COMPETITIVE) {
+                    Text(text = "Time: ${gameState.timer}", color = Color.White)
+                }
+                if (gameState.gameMode == GameMode.COMPETITIVE) {
+                    Text(text = "Player 1: ${gameState.scores[0]}", color = Color.White)
+                    Text(text = "Player 2: ${gameState.scores[1]}", color = Color.White)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                HolographicButton(text = "NEXT LEVEL", onClick = onNextLevel)
+            }
+        }
     }
 }
 

@@ -2,6 +2,7 @@ package com.neon.game.ballsort
 
 import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameMode
 
 /**
  * Manages the state and logic for the Ball Sort puzzle game.
@@ -46,7 +47,13 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
             GameDifficulty.MEDIUM -> 1
             GameDifficulty.HARD -> 2
         }
-        val colorCount = (baseColorCount + difficultyBonus).coerceIn(2, 8)
+        val gameModeBonus = when (getMode()) {
+            GameMode.PUZZLE -> 2
+            GameMode.COMPETITIVE -> 1
+            else -> 0
+        }
+
+        val colorCount = (baseColorCount + difficultyBonus + gameModeBonus).coerceIn(2, 8)
         val colors = (0 until colorCount).flatMap { List(capacity) { it } }.toMutableList()
         val tubeCount = colorCount + 2 // add empty tubes for maneuvering
 
@@ -115,8 +122,8 @@ class BallSortGame(private val capacity: Int = 4) : BaseGameState() {
         }
     }
 
-    override fun reset(newDifficulty: GameDifficulty): BallSortGame {
-        super.reset(newDifficulty)
+    override fun reset(newDifficulty: GameDifficulty, newMode: GameMode): BallSortGame {
+        super.reset(newDifficulty, newMode)
         startLevel(level)
         return this
     }

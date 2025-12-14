@@ -43,6 +43,8 @@ import com.neon.connectsort.navigation.toMultiplier
 import com.neon.connectsort.navigation.toSettings
 import com.neon.connectsort.navigation.toShop
 import com.neon.connectsort.navigation.toStoryHub
+import com.neon.connectsort.navigation.requestBallSortCompetitiveMatch
+import com.neon.connectsort.navigation.requestConnectFourLocalMatch
 import com.neon.connectsort.ui.components.HolographicButton
 import com.neon.connectsort.ui.components.NeonParticleField
 import com.neon.connectsort.ui.components.SlimeDripOverlay
@@ -82,8 +84,14 @@ fun LobbyScreen(
             Spacer(modifier = Modifier.height(16.dp))
             MultiplayerPanel(
                 matches = multiplayerMatches,
-                onQuickMatch = {},
-                onCreateRoom = {}
+                onQuickMatch = {
+                    navController.requestConnectFourLocalMatch()
+                    navController.toConnectFour()
+                },
+                onCreateRoom = {
+                    navController.requestBallSortCompetitiveMatch()
+                    navController.toBallSort()
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
             FooterActions(
@@ -507,6 +515,7 @@ private fun gameModes(): List<LobbyMode> = listOf(
     LobbyMode("Connect 4", "Neon drop duel", NeonColors.hologramCyan) { it.toConnectFour() },
     LobbyMode("Ball Sort", "Vial shuffle puzzle", NeonColors.hologramGreen) { it.toBallSort() },
     LobbyMode("Multiplier", "Risk streaks", NeonColors.hologramYellow) { it.toMultiplier() },
+    LobbyMode("Story Mode", "Campaign timeline", NeonColors.hologramPurple) { it.toStoryHub() },
     LobbyMode("Shop", "Neon mods", NeonColors.hologramPink) { it.toShop() }
 )
 

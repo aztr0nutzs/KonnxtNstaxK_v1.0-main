@@ -15,8 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.neon.connectsort.navigation.AppDestination
-import com.neon.connectsort.navigation.STORY_RESULT_KEY
-import com.neon.connectsort.navigation.StoryResult
+import com.neon.connectsort.navigation.StoryNavigation
 import com.neon.connectsort.navigation.setActiveStoryChapter
 import com.neon.connectsort.navigation.toBallSort
 import com.neon.connectsort.navigation.toConnectFour
@@ -36,15 +35,17 @@ fun StoryHubScreen(
     viewModel: StoryHubViewModel
 ) {
     val chapters by viewModel.chapters.collectAsState()
-    val storyEntry = remember { navController.getBackStackEntry(AppDestination.StoryHub.route) }
+    val storyEntry = remember(navController.currentBackStackEntry) {
+        navController.getBackStackEntry(AppDestination.StoryHub.route)
+    }
     val storyResult by storyEntry.savedStateHandle
-        .getStateFlow<StoryResult?>(STORY_RESULT_KEY, null)
+        .getStateFlow<StoryNavigation.StoryResult?>(StoryNavigation.STORY_RESULT_KEY, null)
         .collectAsState()
 
     LaunchedEffect(storyResult) {
         storyResult?.let { result ->
             viewModel.markChapterCompleted(result.chapterId, result.success)
-            storyEntry.savedStateHandle[STORY_RESULT_KEY] = null
+            storyEntry.savedStateHandle[StoryNavigation.STORY_RESULT_KEY] = null
         }
     }
 

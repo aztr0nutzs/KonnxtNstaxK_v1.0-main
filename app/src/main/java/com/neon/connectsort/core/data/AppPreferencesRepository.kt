@@ -12,6 +12,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameMode
+import com.neon.game.common.PowerUp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -34,7 +36,9 @@ data class UserPrefs(
     val gameDifficulty: Int = 2, // 1=Easy, 2=Medium, 3=Hard
     val highScoreBallSort: Int = 0,
     val highScoreMultiplier: Int = 0,
-    val highScoreConnectFour: Int = 0
+    val highScoreConnectFour: Int = 0,
+    val gameMode: String = GameMode.CLASSIC.name,
+    val powerUps: Set<String> = setOf(PowerUp.BOMB.name, PowerUp.SHIELD.name, PowerUp.SWAP.name)
 )
 
 data class AudioSettings(
@@ -60,6 +64,8 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val HIGH_SCORE_BALL_SORT = intPreferencesKey("high_score_ball_sort")
         val HIGH_SCORE_MULTIPLIER = intPreferencesKey("high_score_multiplier")
         val HIGH_SCORE_CONNECT_FOUR = intPreferencesKey("high_score_connect_four")
+        val GAME_MODE = stringPreferencesKey("game_mode")
+        val POWER_UPS = stringSetPreferencesKey("power_ups")
     }
 
     val prefsFlow: Flow<UserPrefs> = dataStore.data.map { prefs ->
@@ -77,8 +83,18 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             gameDifficulty = prefs[Keys.DIFFICULTY] ?: 2,
             highScoreBallSort = prefs[Keys.HIGH_SCORE_BALL_SORT] ?: 0,
             highScoreMultiplier = prefs[Keys.HIGH_SCORE_MULTIPLIER] ?: 0,
-            highScoreConnectFour = prefs[Keys.HIGH_SCORE_CONNECT_FOUR] ?: 0
+            highScoreConnectFour = prefs[Keys.HIGH_SCORE_CONNECT_FOUR] ?: 0,
+            gameMode = prefs[Keys.GAME_MODE] ?: GameMode.CLASSIC.name,
+            powerUps = prefs[Keys.POWER_UPS] ?: setOf(PowerUp.BOMB.name, PowerUp.SHIELD.name, PowerUp.SWAP.name)
         )
+    }
+
+    fun getGameModeFlow(): Flow<GameMode> = dataStore.data.map {
+        GameMode.valueOf(it[Keys.GAME_MODE] ?: GameMode.CLASSIC.name)
+    }
+
+    fun getPowerUpsFlow(): Flow<Set<PowerUp>> = dataStore.data.map { prefs ->
+        (prefs[Keys.POWER_UPS] ?: setOf(PowerUp.BOMB.name, PowerUp.SHIELD.name, PowerUp.SWAP.name)).map { PowerUp.valueOf(it) }.toSet()
     }
 
     fun getDifficultyFlow(): Flow<GameDifficulty> = dataStore.data.map {
@@ -119,25 +135,33 @@ class AppPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         prefs[Keys.MUSIC] = settings.musicEnabled
         prefs[Keys.VOLUME] = settings.volume.coerceIn(0f, 1f)
     }
-    
+
     suspend fun setDifficulty(difficulty: Int) = write { prefs ->
         prefs[Keys.DIFFICULTY] = difficulty.coerceIn(1, 3)
     }
-    
+
+    suspend fun setGameMode(gameMode: GameMode) = write { prefs ->
+        prefs[Keys.GAME_MODE] = gameMode.name
+    }
+
+    suspend fun setPowerUps(powerUps: Set<PowerUp>) = write { prefs ->
+        prefs[Keys.POWER_UPS] = powerUps.map { it.name }.toSet()
+    }
+
     suspend fun setHighScoreBallSort(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_BALL_SORT] ?: 0
         if (current == 0 || score < current) {
             prefs[Keys.HIGH_SCORE_BALL_SORT] = score
         }
     }
-    
+
     suspend fun setHighScoreMultiplier(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_MULTIPLIER] ?: 0
         if (score > current) {
             prefs[Keys.HIGH_SCORE_MULTIPLIER] = score
         }
     }
-    
+
     suspend fun setHighScoreConnectFour(score: Int) = write { prefs ->
         val current = prefs[Keys.HIGH_SCORE_CONNECT_FOUR] ?: 0
         if (score > current) {

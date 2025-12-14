@@ -19,6 +19,7 @@ class ConnectFourViewModel(
     private val game = ConnectFourGame()
     private val ai = ConnectFourAi()
     private var pendingDrop: ConnectFourMove? = null
+    private var isLocalMultiplayer = false
 
     private val _gameState = MutableStateFlow(ConnectFourGameState())
     val gameState: StateFlow<ConnectFourGameState> = _gameState.asStateFlow()
@@ -49,15 +50,16 @@ class ConnectFourViewModel(
     }
 
     fun dropChip(column: Int) {
-        if (game.isGameOver || game.getCurrentPlayer() != 1) return
+        if (game.isGameOver) return
 
         val currentPlayer = game.getCurrentPlayer()
+        if (!isLocalMultiplayer && currentPlayer != 1) return
         val droppedRow = game.dropChip(column)
         if (droppedRow != null) {
             pendingDrop = ConnectFourMove(droppedRow, column, currentPlayer)
             updateGameState()
 
-            if (!game.isGameOver) {
+            if (!isLocalMultiplayer && !game.isGameOver) {
                 viewModelScope.launch {
                     delay(500)
                     val aiColumn = ai.getBestMove(game.getBoard(), 2)
@@ -77,6 +79,17 @@ class ConnectFourViewModel(
         game.reset(game.getDifficulty())
         hasRecordedHighScore = false
         lastWinner = null
+        updateGameState()
+    }
+
+    fun setLocalMultiplayer(enabled: Boolean) {
+        if (isLocalMultiplayer == enabled) return
+        isLocalMultiplayer = enabled
+        playerScore = 0
+        aiScore = 0
+        lastWinner = null
+        hasRecordedHighScore = false
+        game.reset(game.getDifficulty())
         updateGameState()
     }
 
@@ -110,6 +123,7 @@ class ConnectFourViewModel(
             isGameOver = game.isGameOver,
             difficulty = game.getDifficulty(),
             bestScore = storedHighScore,
+            isLocalMultiplayer = isLocalMultiplayer,
             lastDrop = pendingDrop
         )
 
@@ -117,7 +131,11 @@ class ConnectFourViewModel(
         pendingDrop = null
 
         if (game.isGameOver) {
-            maybeSaveHighScore(newState)
+            if (!isLocalMultiplayer) {
+                maybeSaveHighScore(newState)
+            } else {
+                hasRecordedHighScore = false
+            }
         } else {
             hasRecordedHighScore = false
         }
@@ -150,6 +168,7 @@ data class ConnectFourGameState(
     val isGameOver: Boolean = false,
     val difficulty: GameDifficulty = GameDifficulty.MEDIUM,
     val bestScore: Int = 0,
+    val isLocalMultiplayer: Boolean = false,
     // last chip drop used for animated feedback
     val lastDrop: ConnectFourMove? = null
 )

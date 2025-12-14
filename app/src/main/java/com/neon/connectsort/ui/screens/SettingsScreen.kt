@@ -17,8 +17,8 @@ import androidx.navigation.NavController
 import com.neon.connectsort.ui.theme.*
 import com.neon.connectsort.ui.components.*
 import com.neon.connectsort.ui.screens.viewmodels.SettingsViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.foundation.lazy.items
+import com.neon.game.common.GameMode
+import com.neon.game.common.PowerUp
 
 @Composable
 fun SettingsScreen(
@@ -26,7 +26,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel
 ) {
     val settings by viewModel.settings.collectAsState()
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,19 +46,19 @@ fun SettingsScreen(
                 glowColor = NeonColors.hologramBlue,
                 modifier = Modifier.width(100.dp)
             )
-            
+
             NeonText(
                 text = "SETTINGS",
                 fontSize = 24,
                 fontWeight = FontWeight.Bold,
                 neonColor = NeonColors.hologramCyan
             )
-            
+
             Spacer(modifier = Modifier.width(100.dp))
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         // Settings cards
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
@@ -105,9 +105,21 @@ fun SettingsScreen(
 
             item { SettingsCategory("Game") }
             item {
-                 DifficultySelector(
+                DifficultySelector(
                     difficulty = settings.gameDifficulty.level,
                     onDifficultyChange = { viewModel.setDifficulty(it) }
+                )
+            }
+            item {
+                GameModeSelector(
+                    gameMode = settings.gameMode,
+                    onGameModeChange = { viewModel.setGameMode(it) }
+                )
+            }
+            item {
+                PowerUpSelector(
+                    enabledPowerUps = settings.enabledPowerUps,
+                    onPowerUpToggle = { viewModel.togglePowerUp(it) }
                 )
             }
             item {
@@ -184,7 +196,7 @@ fun SettingToggle(
                 color = NeonColors.textPrimary,
                 fontSize = 16.sp
             )
-            
+
             Switch(
                 checked = isChecked,
                 onCheckedChange = null,
@@ -225,14 +237,14 @@ fun SettingSlider(
                     color = NeonColors.textPrimary,
                     fontSize = 16.sp
                 )
-                
+
                 Text(
                     text = "${(value * 100).toInt()}%",
                     color = NeonColors.hologramCyan,
                     fontSize = 16.sp
                 )
             }
-            
+
             Slider(
                 value = value,
                 onValueChange = onValueChange,
@@ -279,3 +291,71 @@ fun DifficultySelector(
         }
     }
 }
+
+@Composable
+fun GameModeSelector(
+    gameMode: GameMode,
+    onGameModeChange: (GameMode) -> Unit
+) {
+    val gameModes = GameMode.entries.take(4)
+
+    HolographicCard(
+        modifier = Modifier.fillMaxWidth(),
+        title = "Game Mode"
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            gameModes.chunked(2).forEach { rowModes ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rowModes.forEach { mode ->
+                        HolographicButton(
+                            text = mode.name.replace("_", " "),
+                            onClick = { onGameModeChange(mode) },
+                            glowColor = if (gameMode == mode) NeonColors.hologramGreen else NeonColors.hologramBlue,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun PowerUpSelector(
+    enabledPowerUps: Set<PowerUp>,
+    onPowerUpToggle: (PowerUp) -> Unit
+) {
+    val powerUps = PowerUp.entries
+
+    HolographicCard(
+        modifier = Modifier.fillMaxWidth(),
+        title = "Enabled Power-ups"
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            powerUps.chunked(2).forEach { rowPowerUps ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rowPowerUps.forEach { powerUp ->
+                        HolographicButton(
+                            text = powerUp.name,
+                            onClick = { onPowerUpToggle(powerUp) },
+                            glowColor = if (powerUp in enabledPowerUps) NeonColors.hologramGreen else NeonColors.hologramRed,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+

@@ -5,7 +5,8 @@ package com.neon.game.common
  * Provides common properties and reset functionality.
  */
 open class BaseGameState(
-    initialDifficulty: GameDifficulty = GameDifficulty.MEDIUM
+    initialDifficulty: GameDifficulty = GameDifficulty.MEDIUM,
+    initialMode: GameMode = GameMode.CLASSIC
 ) {
     var score: Int = 0
         protected set
@@ -14,6 +15,8 @@ open class BaseGameState(
     var turnCount: Int = 0
         protected set
     protected var difficultyLevel: GameDifficulty = initialDifficulty
+        protected set
+    protected var gameMode: GameMode = initialMode
         protected set
     var gameResult: GameResult = GameResult.IN_PROGRESS
         protected set
@@ -33,12 +36,16 @@ open class BaseGameState(
      * Reset the game to initial state.
      * Each concrete game implementation can extend or override this behavior.
      */
-    open fun reset(newDifficulty: GameDifficulty = difficultyLevel): BaseGameState {
+    open fun reset(
+        newDifficulty: GameDifficulty = difficultyLevel,
+        newMode: GameMode = gameMode
+    ): BaseGameState {
         score = 0
         moves = 0
         turnCount = 0
         winner = null
         difficultyLevel = newDifficulty
+        gameMode = newMode
         gameResult = GameResult.IN_PROGRESS
         return this
     }
@@ -47,6 +54,11 @@ open class BaseGameState(
      * Return the current difficulty.
      */
     open fun getDifficulty(): GameDifficulty = difficultyLevel
+
+    /**
+     * Return the current game mode.
+     */
+    open fun getMode(): GameMode = gameMode
 
     protected fun setResult(result: GameResult, winner: Int? = null) {
         gameResult = result

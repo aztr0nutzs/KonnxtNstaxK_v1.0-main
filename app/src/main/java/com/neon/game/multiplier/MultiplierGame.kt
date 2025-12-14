@@ -2,6 +2,7 @@ package com.neon.game.multiplier
 
 import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameMode
 
 /**
  * Manages the state and logic for the Multiplier risk-based game.
@@ -120,14 +121,14 @@ class MultiplierGame(
         }
     }
 
-    override fun reset(newDifficulty: GameDifficulty): MultiplierGame {
+    override fun reset(newDifficulty: GameDifficulty, newMode: GameMode): MultiplierGame {
         board = emptyBoard()
         streak = 0
         bestStreak = 0
         lives = maxLives
         lastEvent = Event.None
         multiplier = 1
-        super.reset(newDifficulty)
+        super.reset(newDifficulty, newMode)
         return this
     }
 

@@ -2,6 +2,7 @@ package com.neon.game.connectfour
 
 import com.neon.game.common.BaseGameState
 import com.neon.game.common.GameDifficulty
+import com.neon.game.common.GameMode
 
 class ConnectFourGame : BaseGameState() {
 
@@ -92,11 +93,11 @@ class ConnectFourGame : BaseGameState() {
         return false
     }
 
-    override fun reset(newDifficulty: GameDifficulty): ConnectFourGame {
+    override fun reset(newDifficulty: GameDifficulty, newMode: GameMode): ConnectFourGame {
         board = Array(ROWS) { arrayOfNulls(COLS) }
         currentPlayer = 1
         winningLine = emptyList()
-        super.reset(newDifficulty)
+        super.reset(newDifficulty, newMode)
         return this
     }
 }

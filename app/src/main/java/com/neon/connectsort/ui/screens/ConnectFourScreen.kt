@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.neon.connectsort.R
 import com.neon.connectsort.navigation.activeStoryChapterId
+import com.neon.connectsort.navigation.consumeConnectFourLocalMatchRequest
 import com.neon.connectsort.navigation.publishStoryResult
+import com.neon.connectsort.ui.components.HolographicButton
 import com.neon.connectsort.ui.components.NeonParticleField
 import com.neon.connectsort.ui.components.NeonPulseRing
 import com.neon.connectsort.ui.components.SlimeDripOverlay
@@ -56,6 +58,12 @@ fun ConnectFourScreen(
     val storyChapterId = navController.activeStoryChapterId()
     var storyResultSent by remember { mutableStateOf(false) }
     val dropAnimation = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        if (navController.consumeConnectFourLocalMatchRequest()) {
+            viewModel.setLocalMultiplayer(true)
+        }
+    }
 
     LaunchedEffect(gameState.isGameOver, storyChapterId, storyResultSent) {
         if (storyChapterId != null && gameState.isGameOver && !storyResultSent) {
@@ -111,6 +119,11 @@ fun ConnectFourScreen(
                 onBack = { navController.popBackStack() },
                 onReset = { viewModel.resetGame() }
             )
+            ConnectFourModeSelector(
+                isLocalMultiplayer = gameState.isLocalMultiplayer,
+                onSelectAi = { viewModel.setLocalMultiplayer(false) },
+                onSelectLocal = { viewModel.setLocalMultiplayer(true) }
+            )
 
             NeonCard(
                 modifier = Modifier
@@ -150,6 +163,7 @@ private fun ConnectFourHeader(
             neonColor = NeonColors.hologramBlue,
             modifier = Modifier.width(110.dp)
         )
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             NeonText(
                 text = "NEON CONNECT 4",
@@ -163,6 +177,7 @@ private fun ConnectFourHeader(
                 fontSize = 12.sp
             )
         }
+
         NeonButton(
             text = "RESET",
             onClick = onReset,
@@ -172,6 +187,45 @@ private fun ConnectFourHeader(
     }
 }
 
+@Composable
+private fun ConnectFourModeSelector(
+    isLocalMultiplayer: Boolean,
+    onSelectAi: () -> Unit,
+    onSelectLocal: () -> Unit
+) {
+    val aiColor = if (isLocalMultiplayer) NeonColors.hologramBlue else NeonColors.hologramCyan
+    val localColor = if (isLocalMultiplayer) NeonColors.hologramPink else NeonColors.hologramBlue
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = "MATCH TYPE",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            HolographicButton(
+                text = "VS AI",
+                onClick = onSelectAi,
+                glowColor = aiColor,
+                modifier = Modifier.weight(1f)
+            )
+            HolographicButton(
+                text = "LOCAL DUEL",
+                onClick = onSelectLocal,
+                glowColor = localColor,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
 @Composable
 private fun ConnectFourArena(
     gameState: ConnectFourGameState,
@@ -367,13 +421,15 @@ private fun RowScope.ColumnDropIndicator(
 @Composable
 private fun ConnectFourStatusBar(state: ConnectFourGameState) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        val opponentLabel = if (state.isLocalMultiplayer) "PLAYER 2" else "AI"
+        val statusText = when {
+            state.winner == 1 -> "PLAYER 1 VICTORY!"
+            state.winner == 2 -> if (state.isLocalMultiplayer) "PLAYER 2 VICTORY!" else "AI OUTSMARTED YOU"
+            state.isDraw -> "DRAWN BATTLE"
+            else -> "Current turn · ${if (state.currentPlayer == 1) "PLAYER 1" else opponentLabel}"
+        }
         Text(
-            text = when {
-                state.winner == 1 -> "PLAYER VICTORY!"
-                state.winner == 2 -> "AI OUTSMARTED YOU"
-                state.isDraw -> "DRAWN BATTLE"
-                else -> "Current turn · ${if (state.currentPlayer == 1) "YOU" else "AI"}"
-            },
+            text = statusText,
             color = NeonColors.textPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
@@ -382,8 +438,8 @@ private fun ConnectFourStatusBar(state: ConnectFourGameState) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ScorePill("PLAYER", state.playerScore, NeonColors.neonCyan)
-            ScorePill("AI", state.aiScore, NeonColors.neonMagenta)
+            ScorePill("PLAYER 1", state.playerScore, NeonColors.neonCyan)
+            ScorePill(opponentLabel, state.aiScore, NeonColors.hologramYellow)
             ScorePill("BEST", state.bestScore, NeonColors.hologramYellow)
         }
     }
