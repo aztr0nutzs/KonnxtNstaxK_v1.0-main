@@ -346,3 +346,23 @@
 - Added a dedicated domain model for character chips that carries rarity, ability metadata, and gameplay effects plus a sealed `ChipAbility` hierarchy to describe extra points, shields, and extra moves.
 - Centralized the roster inside `ChipRepository` so screens/ViewModels share a single list; the ViewModel now maps unlocks/high scores back onto those chips so UI consumables never drift from the source of truth.
 - Verified with `JAVA_HOME=/home/aztr0nutzs/StudioProjects/KonnxtNstaxK_v1.0-main/jdk-17.0.8+7 ./gradlew assembleDebug`.
+## 2025-12-11 - HTML Asset Integration
+
+**Task:** Replace the Compose lobby and game boards with the shipped HTML assets
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/components/HtmlAssetScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/assets/ui/lobby.html`
+- `app/src/main/assets/ui/connect4.html`
+- `app/src/main/assets/ui/ball_sort.html`
+- `app/build.gradle.kts`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+- `TASKS.md`
+
+**Summary:**
+- Introduced a reusable `HtmlAssetScreen` that wraps `AndroidView`/`WebView`, keeps JavaScript disabled, and logs `HTML_LOADED:ui/...` when each page finishes loading.
+- Pointed the navigation graph's lobby, Connect 4, and Ball Sort routes at the new WebView screens and kept the Ball Sort level argument declared for compatibility even though the HTML is static.
+- Copied the provided HTML files into `app/src/main/assets/ui/`, added the required visible sentinel tags, and bumped the app version so installs remain unique.
+- Verified via `adb logcat -s HtmlAssetScreen` that `HTML_LOADED:ui/lobby.html`, `HTML_LOADED:ui/connect4.html`, and `HTML_LOADED:ui/ball_sort.html` appear while the `<div class="sentinel-tag">LOBBY_HTML_V2</div>` / `<div class="sentinel-tag">CONNECT4_HTML_V2</div>` / `<div class="sentinel-tag">BALLSORT_HTML_V2</div>` markers render on-screen.

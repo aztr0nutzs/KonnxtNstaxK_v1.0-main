@@ -103,3 +103,10 @@
 **Decision:**
 - Character chips are now fully described inside `core.domain.CharacterChip`, including rarity (`ChipRarity`), narrative metadata, and a sealed `ChipAbility` tree that encodes bonus points, shields, and extra moves plus their energy/cooldown/effect payloads. This keeps domain logic separate from the ViewModel/UI layers while supplying the data needed to render ability cards.
 - The static roster lives in `core.data.ChipRepository`, giving every consumer the same canonical list of chips; the ViewModel maps unlock flags/high scores back onto those chips so the UI sees only the derived state it cares about. This avoids duplicated lists and makes it easy to extend the roster with new abilities or balance tweaks later.
+## 2025-12-11 - HTML WebView Integration Strategy
+
+**Decision:**
+- Reuse the shipped HTML boards and lobby as the visual layer by routing Compose navigation to a lightweight `HtmlAssetScreen` that loads `file:///android_asset/ui/...` and keeps JavaScript disabled. This keeps the existing ViewModels and logic in Compose while letting the WebView render the neon art assets, matching the requirement to treat HTML as the skin without rewriting game logic in JS.
+- Each HTML surface now declares a `.sentinel-tag` that renders `LOBBY_HTML_V2`, `CONNECT4_HTML_V2`, or `BALLSORT_HTML_V2` so QA can visually confirm the right asset and `HTML_LOADED:ui/...` log entries prove the WebView actually instantiated that asset.
+- Logging `HTML_LOADED:ui/...` per asset provides runtime proof that the HTML is actually rendered and shipped inside the APK, so the integration is auditable and can be monitored in logcat.
+- Tradeoff: input handling remains managed by Compose (option A), so interactive elements inside the HTML cannot talk directly to Kotlin yet, but the layered approach keeps the integration stable and avoids the security/complexity of `addJavascriptInterface`.

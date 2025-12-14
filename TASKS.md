@@ -29,6 +29,39 @@ This file defines the **next advancement wave**: story/campaign, character chips
 
 ---
 
+## HTML Integration – WebView Lobby & Boards
+
+**Status:** `[DONE]`  
+**Goal:** Route the Lobby, Connect-4, and Ball Sort entries through `HtmlAssetScreen`, prove the HTML assets load from `file:///android_asset/ui/...`, and expose the required logging/sentinel strings for runtime verification.
+
+**Files:**
+- `app/src/main/java/com/neon/connectsort/ui/components/HtmlAssetScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/assets/ui/lobby.html`
+- `app/src/main/assets/ui/connect4.html`
+- `app/src/main/assets/ui/ball_sort.html`
+- `app/build.gradle.kts`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+
+**Actions:**
+1. Copied the three HTML boards into `app/src/main/assets/ui/`, added `.sentinel-tag` styles, and injected `LOBBY_HTML_V2`, `CONNECT4_HTML_V2`, and `BALLSORT_HTML_V2` so the markers render visibly inside each page.
+2. Introduced `HtmlAssetScreen` (AndroidView + WebViewClient) with JavaScript disabled, wired the lobby/connect4/ballsort routes to it, and logged `HTML_LOADED:<assetPath>` when each page finished loading.
+3. Bumped `versionCode`/`versionName`, updated the worklog/decision docs, and verified the APK renders the HTML assets at runtime.
+
+**Verification:**
+
+```bash
+./gradlew assembleDebug
+adb logcat -s HtmlAssetScreen
+```
+
+Verify the log shows `HTML_LOADED:ui/lobby.html`, `HTML_LOADED:ui/connect4.html`, and `HTML_LOADED:ui/ball_sort.html` while the sentinel tags are visible on the screen.
+
+**Notes:**
+- HTML assets now ship inside the APK so the WebView can render them directly.
+- Sentinels provide a visual audit trail for each board.
+
 ## Phase 8 – Story Mode & Campaign Spine
 
 Goal: Introduce a **Story Mode / Campaign flow** that ties together Connect-4, Ball Sort, and Multiplier with a narrative and progression.
@@ -323,3 +356,22 @@ Goal: Introduce a virtual currency + rewards system and wire it into the existin
 
 Status: [TODO]
 Goal: Define a simple in-game currency and reward sources.
+---
+
+## HTML Integration & WebView shell
+
+**Status:** `[DONE]`
+**Goal:** Render the shipped HTML lobby and game boards through a runtime WebView so the neon panels are the primary UI surface.
+
+**Files:**
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/java/com/neon/connectsort/ui/components/HtmlAssetScreen.kt`
+- `app/src/main/assets/ui/lobby.html`
+- `app/src/main/assets/ui/connect4.html`
+- `app/src/main/assets/ui/ball_sort.html`
+- `app/build.gradle.kts`
+- `docs/WORKLOG.md`
+- `docs/DECISIONS.md`
+
+**Notes:**
+- Each HTML asset now carries a visible sentinel and is loaded via `HTML_LOADED:ui/...` in the WebView wrapper, proving the UI renders from the assets directory.

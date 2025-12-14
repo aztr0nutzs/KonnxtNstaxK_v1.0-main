@@ -15,7 +15,11 @@ import androidx.navigation.navArgument
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.connectsort.core.data.userPreferencesDataStore
 import com.neon.connectsort.navigation.AppDestination
-import com.neon.connectsort.ui.screens.*
+import com.neon.connectsort.ui.components.HtmlAssetScreen
+import com.neon.connectsort.ui.screens.CharacterChipsScreen
+import com.neon.connectsort.ui.screens.MultiplierScreen
+import com.neon.connectsort.ui.screens.SettingsScreen
+import com.neon.connectsort.ui.screens.ShopScreen
 import com.neon.connectsort.ui.screens.story.StoryHubScreen
 import com.neon.connectsort.ui.screens.viewmodels.*
 
@@ -28,9 +32,6 @@ fun NeonGameApp() {
     val navController = rememberNavController()
 
     // ViewModels
-    val lobbyViewModel: LobbyViewModel = viewModel(factory = viewModelFactory)
-    val connectFourViewModel: ConnectFourViewModel = viewModel(factory = viewModelFactory)
-    val ballSortViewModel: BallSortViewModel = viewModel(factory = viewModelFactory)
     val multiplierViewModel: MultiplierViewModel = viewModel(factory = viewModelFactory)
     val shopViewModel: ShopViewModel = viewModel(factory = viewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
@@ -43,9 +44,9 @@ fun NeonGameApp() {
         modifier = Modifier.fillMaxSize(),
     ) {
         composable(AppDestination.Lobby.route) {
-            LobbyScreen(
-                navController = navController,
-                viewModel = lobbyViewModel
+            HtmlAssetScreen(
+                assetPath = "ui/lobby.html",
+                modifier = Modifier.fillMaxSize()
             )
         }
         composable(
@@ -59,9 +60,9 @@ fun NeonGameApp() {
         composable(
             route = AppDestination.ConnectFour.route,
         ) {
-            ConnectFourScreen(
-                navController = navController,
-                viewModel = connectFourViewModel
+            HtmlAssetScreen(
+                assetPath = "ui/connect4.html",
+                modifier = Modifier.fillMaxSize()
             )
         }
         composable(
@@ -72,12 +73,10 @@ fun NeonGameApp() {
                     defaultValue = AppDestination.BallSort.defaultLevel
                 }
             ),
-        ) { backStackEntry ->
-            val level = backStackEntry.arguments?.getInt(AppDestination.BallSort.levelArg) ?: 1
-            BallSortScreen(
-                navController = navController,
-                viewModel = ballSortViewModel,
-                initialLevel = level
+        ) { _ ->
+            HtmlAssetScreen(
+                assetPath = "ui/ball_sort.html",
+                modifier = Modifier.fillMaxSize()
             )
         }
         composable(
