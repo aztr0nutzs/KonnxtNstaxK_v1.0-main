@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONNXT-4 // MAIN LOBBY HUB</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hologreen: #00ffaa;
+            --holocyan: #00ffff;
+            --holopink: #ff00aa;
+            --holopurple: #aa00ff;
+            --holoyellow: #ffff00;
+            --holoorange: #ffaa00;
+            --matrix-green: #00ff00;
+            --neon-blue: #0066ff;
+            --deep-space: #0a0a1a;
+            --cyber-dark: #001122;
+            --panel-bg: rgba(0, 20, 15, 0.85);
+            --panel-border: rgba(0, 255, 170, 0.3);
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #001122 50%, #000811 100%);
+            font-family: 'Orbitron', 'Courier New', monospace;
+            overflow-x: hidden;
+            color: white;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated Space Background */
+        .space-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 80, 120, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(120, 0, 80, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, rgba(0, 120, 80, 0.1) 0%, transparent 40%);
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(0, 255, 170, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 0, 170, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.03) 0%, transparent 50%);
+            filter: blur(40px);
+            animation: nebulaFloat 30s infinite alternate ease-in-out;
+        }
+
+        @keyframes nebulaFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-50px, -30px) scale(1.1); }
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(0, 15, 10, 0.9);
+            border-bottom: 3px solid var(--hologreen);
+            position: relative;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 255, 170, 0.2);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--hologreen),
+                var(--holocyan),
+                var(--hologreen),
+                transparent);
+            animation: scanHeader 4s infinite linear;
+            filter: blur(1px);
+        }
+
+        @keyframes scanHeader {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            background: linear-gradient(45deg, var(--hologreen), var(--holocyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--hologreen));
+            animation: pulseLogo 3s infinite;
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-5deg); }
+        }
+
+        .logo-text {
+            font-size: 42px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            background: linear-gradient(45deg, var(--hologreen), var(--holocyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 
+                0 0 30px rgba(0, 255, 170, 0.5),
+                0 0 60px rgba(0, 255, 170, 0.3);
+        }
+
+        .logo-subtitle {
+            font-size: 14px;
+            color: var(--holocyan);
+            letter-spacing: 3px;
+            margin-top: -10px;
+            text-align: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--holocyan);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-profile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px var(--holocyan);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--holocyan), var(--hologreen));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: black;
+            font-weight: bold;
+        }
+
+        .user-details h3 {
+            color: var(--holocyan);
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: #aaa;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .currency-display {
+            display: flex;
+            gap: 20px;
+        }
+
+        .currency-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid;
+            border-radius: 10px;
+            min-width: 120px;
+        }
+
+        .currency-item.credits {
+            border-color: var(--holoyellow);
+            color: var(--holoyellow);
+        }
+
+        .currency-item.tickets {
+            border-color: var(--holopink);
+            color: var(--holopink);
+        }
+
+        .currency-icon {
+            font-size: 24px;
+        }
+
+        .currency-amount {
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 20px;
+            padding: 30px;
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
+        /* Left Sidebar - Navigation */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 170, 0.1),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent,
+                var(--hologreen),
+                transparent);
+            animation: navScan 6s infinite linear;
+        }
+
+        @keyframes navScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .panel-title {
+            color: var(--hologreen);
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            font-size: 24px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 8px 0;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 255, 170, 0.1);
+            border-color: var(--hologreen);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 255, 170, 0.2);
+            border-color: var(--hologreen);
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--holopink);
+            color: black;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            color: var(--hologreen);
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Center Content - Game Modes */
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .mode-card {
+            background: linear-gradient(145deg, 
+                rgba(0, 30, 20, 0.9) 0%,
+                rgba(0, 20, 15, 0.95) 100%);
+            border: 3px solid;
+            border-radius: 20px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .mode-card.quick {
+            border-color: var(--hologreen);
+            box-shadow: 
+                0 0 40px rgba(0, 255, 170, 0.3),
+                inset 0 0 30px rgba(0, 255, 170, 0.1);
+        }
+
+        .mode-card.ranked {
+            border-color: var(--holopink);
+            box-shadow: 
+                0 0 40px rgba(255, 0, 170, 0.3),
+                inset 0 0 30px rgba(255, 0, 170, 0.1);
+        }
+
+        .mode-card.tournament {
+            border-color: var(--holoyellow);
+            box-shadow: 
+                0 0 40px rgba(255, 255, 0, 0.3),
+                inset 0 0 30px rgba(255, 255, 0, 0.1);
+        }
+
+        .mode-card.custom {
+            border-color: var(--holocyan);
+            box-shadow: 
+                0 0 40px rgba(0, 255, 255, 0.3),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .mode-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .mode-icon {
+            font-size: 40px;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .mode-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .mode-desc {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .mode-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .mode-button {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid currentColor;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .mode-button:hover {
+            background: currentColor;
+            color: black;
+            transform: scale(1.05);
+        }
+
+        /* Match Browser */
+        .match-browser {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .browser-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .browser-title {
+            color: var(--holocyan);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .browser-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--holocyan);
+            color: var(--holocyan);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .control-btn:hover {
+            background: var(--holocyan);
+            color: black;
+        }
+
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .match-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 170, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .match-item:hover {
+            background: rgba(0, 255, 170, 0.1);
+            border-color: var(--hologreen);
+            transform: translateX(5px);
+        }
+
+        .match-info h4 {
+            color: var(--holocyan);
+            margin-bottom: 5px;
+        }
+
+        .match-info p {
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .match-status {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .match-status.open {
+            background: rgba(0, 255, 170, 0.2);
+            color: var(--hologreen);
+        }
+
+        .match-status.full {
+            background: rgba(255, 0, 170, 0.2);
+            color: var(--holopink);
+        }
+
+        .match-status.playing {
+            background: rgba(255, 255, 0, 0.2);
+            color: var(--holoyellow);
+        }
+
+        /* Right Sidebar - Store & Chat */
+        .right-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .store-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--holoyellow);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .store-title {
+            color: var(--holoyellow);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .store-tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #aaa;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .store-tab.active {
+            color: var(--holoyellow);
+            border-bottom-color: var(--holoyellow);
+            background: rgba(255, 255, 0, 0.1);
+        }
+
+        .store-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .store-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .store-item:hover {
+            border-color: var(--holoyellow);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .item-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--holoyellow);
+        }
+
+        .item-name {
+            font-size: 14px;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            font-size: 18px;
+            color: var(--holoyellow);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .chat-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--holopink);
+            border-radius: 15px;
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chat-title {
+            color: var(--holopink);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chat-tab {
+            padding: 5px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .chat-tab.active {
+            background: rgba(255, 0, 170, 0.2);
+            border-color: var(--holopink);
+            color: white;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 15px;
+            max-height: 300px;
+        }
+
+        .message {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--holopink);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .message-user {
+            color: var(--holocyan);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .message-time {
+            color: #aaa;
+            font-size: 11px;
+        }
+
+        .message-content {
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--holopink);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .chat-input button {
+            background: var(--holopink);
+            color: black;
+            border: none;
+            border-radius: 10px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        /* Tournament Banner */
+        .tournament-banner {
+            background: linear-gradient(90deg, 
+                rgba(255, 100, 0, 0.2) 0%,
+                rgba(255, 200, 0, 0.2) 50%,
+                rgba(255, 100, 0, 0.2) 100%);
+            border: 3px solid var(--holoorange);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tournament-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg,
+                transparent 30%,
+                rgba(255, 200, 0, 0.1) 50%,
+                transparent 70%);
+            animation: bannerShine 3s infinite linear;
+        }
+
+        @keyframes bannerShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .tournament-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tournament-info h3 {
+            color: var(--holoorange);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .tournament-info p {
+            color: #ffcc00;
+            font-size: 16px;
+        }
+
+        .tournament-prize {
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--holoyellow);
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+        }
+
+        .prize-label {
+            color: #aaa;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .prize-amount {
+            color: var(--holoyellow);
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 20px var(--holoyellow);
+        }
+
+        /* Footer */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(0, 10, 5, 0.9);
+            border-top: 3px solid var(--hologreen);
+            margin-top: 40px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .footer-link {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--hologreen);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--hologreen);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--hologreen);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: var(--hologreen);
+            color: black;
+            transform: translateY(-3px);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: modalAppear 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalAppear {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, 
+                rgba(0, 30, 20, 0.95) 0%,
+                rgba(0, 20, 15, 0.98) 100%);
+            border: 3px solid var(--hologreen);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 
+                0 0 100px rgba(0, 255, 170, 0.3),
+                inset 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            color: var(--hologreen);
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--hologreen);
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            color: white;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-logo {
+            font-size: 80px;
+            color: var(--hologreen);
+            margin-bottom: 30px;
+            animation: loadingPulse 2s infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 10px;
+            background: rgba(0, 255, 170, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--hologreen), var(--holocyan));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .loading-text {
+            color: var(--holocyan);
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            
+            .sidebar, .right-sidebar {
+                display: none;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        .floating {
+            animation: floating 3s infinite ease-in-out;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .rotate {
+            animation: rotate 20s infinite linear;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--hologreen), var(--holocyan));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--holocyan), var(--hologreen));
+        }
+        .sentinel-tag {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        background: rgba(0, 0, 0, 0.65);
+        color: #00ffaa;
+        font-size: 0.75rem;
+        letter-spacing: 0.2rem;
+        padding: 6px 14px;
+        border: 1px solid rgba(0, 255, 170, 0.6);
+        border-radius: 999px;
+        z-index: 100;
+        font-family: 'Orbitron', 'Courier New', monospace;
+    }
+
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="sentinel-tag">LOBBY_HTML_V2</div>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">W</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <div class="loading-text" id="loadingText">INITIALIZING CONNXT-4 HUB...</div>
+    </div>
+
+    <!-- Space Background -->
+    <div class="space-bg"></div>
+    <div class="stars" id="stars"></div>
+    <div class="nebula"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">W</div>
+            <div>
+                <div class="logo-text">CONNXT-4 HUB</div>
+                <div class="logo-subtitle">v10.1.2 // SYNTHETIC CORE ONLINE</div>
+            </div>
+        </div>
+        
+        <div class="user-info">
+            <div class="currency-display">
+                <div class="currency-item credits">
+                    <div class="currency-icon">💰</div>
+                    <div class="currency-amount" id="creditsAmount">12,450</div>
+                </div>
+                <div class="currency-item tickets">
+                    <div class="currency-icon">🎟️</div>
+                    <div class="currency-amount" id="ticketsAmount">500</div>
+                </div>
+            </div>
+            
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar">CX</div>
+                <div class="user-details">
+                    <h3>CYBER_XENO</h3>
+                    <p><i class="fas fa-circle" style="color: #00ff00; font-size: 8px;"></i> LEVEL 42</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="nav-panel">
+                <div class="panel-title"><i class="fas fa-gamepad"></i> NAVIGATION</div>
+                <div class="nav-item active" data-section="hub">
+                    <i class="fas fa-home"></i>
+                    <span>Main Hub</span>
+                </div>
+                <div class="nav-item" data-section="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                    <span class="nav-badge">NEW</span>
+                </div>
+                <div class="nav-item" data-section="inventory">
+                    <i class="fas fa-box"></i>
+                    <span>Inventory</span>
+                </div>
+                <div class="nav-item" data-section="leaderboard">
+                    <i class="fas fa-trophy"></i>
+                    <span>Leaderboard</span>
+                </div>
+                <div class="nav-item" data-section="friends">
+                    <i class="fas fa-users"></i>
+                    <span>Friends</span>
+                    <span class="nav-badge">3</span>
+                </div>
+                <div class="nav-item" data-section="clan">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Clan</span>
+                </div>
+                <div class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+
+            <div class="nav-panel">
+                <div class="panel-title"><i class="fas fa-chart-line"></i> QUICK STATS</div>
+                <div class="quick-stats">
+                    <div class="stat-box">
+                        <div class="stat-value">247</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">89%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">42</div>
+                        <div class="stat-label">Streak</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">#12</div>
+                        <div class="stat-label">Rank</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-panel">
+                <div class="panel-title"><i class="fas fa-bolt"></i> DAILY MISSIONS</div>
+                <div class="nav-item">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>Win 5 Matches</span>
+                    <span class="nav-badge">+150</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-fire"></i>
+                    <span>3 Win Streak</span>
+                    <span class="nav-badge">+200</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-gem"></i>
+                    <span>Purchase Item</span>
+                    <span class="nav-badge">+100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Content -->
+        <div class="center-content">
+            <!-- Tournament Banner -->
+            <div class="tournament-banner">
+                <div class="tournament-content">
+                    <div class="tournament-info">
+                        <h3><i class="fas fa-crown"></i> WEEKLY TOURNAMENT</h3>
+                        <p>Grand Championship • Starts in 2:14:35</p>
+                    </div>
+                    <div class="tournament-prize">
+                        <div class="prize-label">Prize Pool</div>
+                        <div class="prize-amount">50,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Modes -->
+            <div class="game-modes">
+                <div class="mode-card quick">
+                    <div class="mode-header">
+                        <div class="mode-icon" style="color: var(--hologreen);">⚡</div>
+                        <div class="mode-title" style="color: var(--hologreen);">QUICK PLAY</div>
+                    </div>
+                    <div class="mode-desc">
+                        Jump into a fast-paced match against players of similar skill level. Casual matches with no ranking consequences.
+                    </div>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-users"></i> 1,247 playing</span>
+                        <span><i class="fas fa-clock"></i> ~1 min queue</span>
+                    </div>
+                    <div class="mode-button" style="color: var(--hologreen);" onclick="startQuickPlay()">
+                        <i class="fas fa-play"></i> FIND MATCH
+                    </div>
+                </div>
+
+                <div class="mode-card ranked">
+                    <div class="mode-header">
+                        <div class="mode-icon" style="color: var(--holopink);">🏆</div>
+                        <div class="mode-title" style="color: var(--holopink);">RANKED ARENA</div>
+                    </div>
+                    <div class="mode-desc">
+                        Competitive matches that affect your global ranking. Prove your skills and climb the leaderboards.
+                    </div>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-users"></i> 843 playing</span>
+                        <span><i class="fas fa-trophy"></i> Diamond III</span>
+                    </div>
+                    <div class="mode-button" style="color: var(--holopink);" onclick="startRanked()">
+                        <i class="fas fa-swords"></i> COMPETE
+                    </div>
+                </div>
+
+                <div class="mode-card tournament">
+                    <div class="mode-header">
+                        <div class="mode-icon" style="color: var(--holoyellow);">👑</div>
+                        <div class="mode-title" style="color: var(--holoyellow);">TOURNAMENTS</div>
+                    </div>
+                    <div class="mode-desc">
+                        Join scheduled tournaments with massive prize pools. Team and solo events available.
+                    </div>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-calendar"></i> 3 active</span>
+                        <span><i class="fas fa-gem"></i> 50K prize</span>
+                    </div>
+                    <div class="mode-button" style="color: var(--holoyellow);" onclick="showTournaments()">
+                        <i class="fas fa-crown"></i> VIEW EVENTS
+                    </div>
+                </div>
+
+                <div class="mode-card custom">
+                    <div class="mode-header">
+                        <div class="mode-icon" style="color: var(--holocyan);">🎮</div>
+                        <div class="mode-title" style="color: var(--holocyan);">CUSTOM MATCHES</div>
+                    </div>
+                    <div class="mode-desc">
+                        Create private matches with friends or browse public custom games with special rules and modifiers.
+                    </div>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-users"></i> 312 rooms</span>
+                        <span><i class="fas fa-code"></i> Custom rules</span>
+                    </div>
+                    <div class="mode-button" style="color: var(--holocyan);" onclick="showCustomMatches()">
+                        <i class="fas fa-plus"></i> CREATE ROOM
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Browser -->
+            <div class="match-browser">
+                <div class="browser-header">
+                    <div class="browser-title"><i class="fas fa-list"></i> PUBLIC MATCHES</div>
+                    <div class="browser-controls">
+                        <button class="control-btn" onclick="refreshMatches()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="control-btn" onclick="createMatch()"><i class="fas fa-plus"></i> Create</button>
+                    </div>
+                </div>
+                <div class="match-list" id="matchList">
+                    <!-- Matches will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="right-sidebar">
+            <!-- Store -->
+            <div class="store-panel">
+                <div class="store-header">
+                    <div class="store-title"><i class="fas fa-shopping-cart"></i> CYBER STORE</div>
+                    <div class="store-title" style="font-size: 16px; color: var(--holoyellow);">DAILY DEALS</div>
+                </div>
+                <div class="store-tabs">
+                    <button class="store-tab active" data-tab="skins">Skins</button>
+                    <button class="store-tab" data-tab="powerups">Power-ups</button>
+                    <button class="store-tab" data-tab="emotes">Emotes</button>
+                    <button class="store-tab" data-tab="boosters">Boosters</button>
+                </div>
+                <div class="store-items">
+                    <div class="store-item">
+                        <div class="item-icon">👾</div>
+                        <div class="item-name">Neon Glitch Skin</div>
+                        <div class="item-price">1,200 <span style="color: var(--holocyan);">💰</span></div>
+                    </div>
+                    <div class="store-item">
+                        <div class="item-icon">💣</div>
+                        <div class="item-name">Bomb Power-up</div>
+                        <div class="item-price">5 <span style="color: var(--holopink);">🎟️</span></div>
+                    </div>
+                    <div class="store-item">
+                        <div class="item-icon">🎭</div>
+                        <div class="item-name">Mystery Avatar</div>
+                        <div class="item-price">300 <span style="color: var(--holocyan);">💰</span></div>
+                    </div>
+                    <div class="store-item">
+                        <div class="item-icon">⚡</div>
+                        <div class="item-name">2X XP Booster</div>
+                        <div class="item-price">10 <span style="color: var(--holopink);">🎟️</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <div class="chat-title"><i class="fas fa-comments"></i> GLOBAL CHAT</div>
+                    <div class="chat-title" style="font-size: 14px; color: #aaa;">Online: 2,431</div>
+                </div>
+                <div class="chat-tabs">
+                    <button class="chat-tab active" data-chat="global">Global</button>
+                    <button class="chat-tab" data-chat="clan">Clan</button>
+                    <button class="chat-tab" data-chat="friends">Friends</button>
+                    <button class="chat-tab" data-chat="party">Party</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type your message...">
+                    <button id="sendChat"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+            <a href="#" class="footer-link">Patch Notes</a>
+            <a href="#" class="footer-link">Community</a>
+        </div>
+        <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitch"></i></a>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div class="modal" id="matchmakingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-search"></i> FINDING OPPONENT</div>
+                <button class="modal-close" onclick="closeModal('matchmakingModal')">×</button>
+            </div>
+            <div style="text-align: center; padding: 40px;">
+                <div class="loading-logo" style="font-size: 60px;">⚡</div>
+                <div class="loading-bar" style="width: 100%; margin: 30px 0;">
+                    <div class="loading-progress" id="matchmakingProgress" style="width: 45%;"></div>
+                </div>
+                <div class="loading-text" id="matchmakingText">Searching for opponent... 45%</div>
+                <div style="margin-top: 20px; color: #aaa; font-size: 14px;">
+                    Estimated wait time: <span id="estimatedTime">32s</span>
+                </div>
+                <button class="mode-button" style="margin-top: 30px; width: 200px;" onclick="cancelMatchmaking()">
+                    <i class="fas fa-times"></i> CANCEL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createMatchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-plus"></i> CREATE CUSTOM MATCH</div>
+                <button class="modal-close" onclick="closeModal('createMatchModal')">×</button>
+            </div>
+            <div style="padding: 20px 0;">
+                <div class="setting-item">
+                    <label>Room Name</label>
+                    <input type="text" id="roomName" placeholder="Enter room name..." style="width: 100%; padding: 12px; background: rgba(0,0,0,0.6); border: 2px solid var(--hologreen); border-radius: 8px; color: white; margin-top: 5px;">
+                </div>
+                <div class="setting-item">
+                    <label>Match Type</label>
+                    <select id="matchType" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.6); border: 2px solid var(--hologreen); border-radius: 8px; color: white; margin-top: 5px;">
+                        <option value="classic">Classic Connect4</option>
+                        <option value="power4">Power Four</option>
+                        <option value="gravity">Reverse Gravity</option>
+                        <option value="chaos">Chaos Mode</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Grid Size</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <input type="number" id="gridRows" placeholder="Rows" min="4" max="12" value="6" style="flex: 1; padding: 12px; background: rgba(0,0,0,0.6); border: 2px solid var(--hologreen); border-radius: 8px; color: white;">
+                        <span style="line-height: 44px;">×</span>
+                        <input type="number" id="gridCols" placeholder="Cols" min="4" max="12" value="7" style="flex: 1; padding: 12px; background: rgba(0,0,0,0.6); border: 2px solid var(--hologreen); border-radius: 8px; color: white;">
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Privacy</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <button class="control-btn" style="flex: 1;" data-privacy="public">Public</button>
+                        <button class="control-btn" style="flex: 1;" data-privacy="private">Private</button>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Password (optional)</label>
+                    <input type="password" id="roomPassword" placeholder="Enter password..." style="width: 100%; padding: 12px; background: rgba(0,0,0,0.6); border: 2px solid var(--hologreen); border-radius: 8px; color: white; margin-top: 5px;">
+                </div>
+                <button class="mode-button" style="width: 100%; margin-top: 30px; background: var(--hologreen); color: black;" onclick="createCustomMatch()">
+                    <i class="fas fa-gamepad"></i> CREATE MATCH
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize stars
+        function initStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.width = `${Math.random() * 3 + 1}px`;
+                star.style.height = star.style.width;
+                star.style.opacity = Math.random() * 0.5 + 0.5;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Simulate loading
+        function simulateLoading() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const progress = document.getElementById('loadingProgress');
+            const text = document.getElementById('loadingText');
+            
+            let percent = 0;
+            const steps = [
+                {text: "INITIALIZING CONNXT-4 HUB...", percent: 20},
+                {text: "LOADING PLAYER DATA...", percent: 40},
+                {text: "CONNECTING TO SERVER...", percent: 60},
+                {text: "SYNCHRONIZING INVENTORY...", percent: 80},
+                {text: "FINALIZING CONNECTION...", percent: 100}
+            ];
+            
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    percent = step.percent;
+                    progress.style.width = `${percent}%`;
+                    text.textContent = step.text;
+                    
+                    if (percent === 100) {
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                            }, 500);
+                        }, 500);
+                    }
+                }, index * 800);
+            });
+        }
+
+        // Initialize chat messages
+        function initChat() {
+            const messages = [
+                {user: "NEON_WARRIOR", time: "2:14", content: "Anyone for a quick match?"},
+                {user: "CYBER_XENO", time: "2:15", content: "Looking for tournament team!"},
+                {user: "SYNTHETIC", time: "2:16", content: "New skin in store looks sick!"},
+                {user: "VOID_HUNTER", time: "2:17", content: "3v3 tournament starting in 10 min"},
+                {user: "QUANTUM", time: "2:18", content: "Anyone wanna practice?"}
+            ];
+            
+            const container = document.getElementById('chatMessages');
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-user">${msg.user}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                `;
+                container.appendChild(messageDiv);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Initialize matches
+        function initMatches() {
+            const matches = [
+                {name: "Quick Fun Room", players: "3/4", mode: "Classic", status: "open"},
+                {name: "Ranked Practice", players: "2/2", mode: "Power Four", status: "full"},
+                {name: "Tournament Qualifier", players: "1/8", mode: "Tournament", status: "open"},
+                {name: "Chaos Mode Madness", players: "4/4", mode: "Chaos", status: "playing"},
+                {name: "Beginner Friendly", players: "1/2", mode: "Classic", status: "open"}
+            ];
+            
+            const container = document.getElementById('matchList');
+            matches.forEach(match => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match-item';
+                matchDiv.innerHTML = `
+                    <div class="match-info">
+                        <h4>${match.name}</h4>
+                        <p>
+                            <span><i class="fas fa-users"></i> ${match.players} players</span>
+                            <span><i class="fas fa-gamepad"></i> ${match.mode}</span>
+                        </p>
+                    </div>
+                    <div class="match-status ${match.status}">${match.status.toUpperCase()}</div>
+                `;
+                container.appendChild(matchDiv);
+            });
+        }
+
+        // Start quick play
+        function startQuickPlay() {
+            const modal = document.getElementById('matchmakingModal');
+            modal.classList.add('active');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) progress = 100;
+                
+                document.getElementById('matchmakingProgress').style.width = `${progress}%`;
+                document.getElementById('matchmakingText').textContent = `Searching for opponent... ${Math.round(progress)}%`;
+                
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        modal.classList.remove('active');
+                        // Redirect to game page
+                        window.location.href = 'knxt4.html';
+                    }, 1000);
+                }
+            }, 500);
+            
+            window.matchmakingInterval = interval;
+        }
+
+        // Start ranked
+        function startRanked() {
+            // Similar to quick play but with ranked settings
+            startQuickPlay();
+        }
+
+        // Show tournaments
+        function showTournaments() {
+            alert('Tournament browser coming soon!');
+        }
+
+        // Show custom matches
+        function showCustomMatches() {
+            const modal = document.getElementById('createMatchModal');
+            modal.classList.add('active');
+        }
+
+        // Create custom match
+        function createCustomMatch() {
+            const roomName = document.getElementById('roomName').value;
+            if (!roomName) {
+                alert('Please enter a room name');
+                return;
+            }
+            
+            alert(`Creating match: ${roomName}`);
+            closeModal('createMatchModal');
+        }
+
+        // Refresh matches
+        function refreshMatches() {
+            const container = document.getElementById('matchList');
+            container.innerHTML = '';
+            initMatches();
+            
+            // Show notification
+            showNotification('Matches refreshed!', 'success');
+        }
+
+        // Create match
+        function createMatch() {
+            showCustomMatches();
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Cancel matchmaking
+        function cancelMatchmaking() {
+            if (window.matchmakingInterval) {
+                clearInterval(window.matchmakingInterval);
+            }
+            closeModal('matchmakingModal');
+            showNotification('Matchmaking cancelled', 'warning');
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(0, 255, 170, 0.9)' : 'rgba(255, 170, 0, 0.9)'};
+                color: black;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Chat functionality
+        document.getElementById('sendChat').addEventListener('click', sendChat);
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChat();
+        });
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const container = document.getElementById('chatMessages');
+            const now = new Date();
+            const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <div class="message-user">YOU</div>
+                    <div class="message-time">${time}</div>
+                </div>
+                <div class="message-content">${message}</div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            input.value = '';
+            
+            // Simulate response
+            setTimeout(() => {
+                const responses = [
+                    "Nice!",
+                    "GG",
+                    "Anyone else?",
+                    "Want to play?",
+                    "Good luck!"
+                ];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'message';
+                responseDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-user">AUTO_BOT</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                    <div class="message-content">${randomResponse}</div>
+                `;
+                container.appendChild(responseDiv);
+                container.scrollTop = container.scrollHeight;
+            }, 1000);
+        }
+
+        // Tab switching
+        document.querySelectorAll('.store-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.chat-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                showNotification(`Navigating to ${section}...`, 'success');
+            });
+        });
+
+        // Privacy buttons
+        document.querySelectorAll('[data-privacy]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-privacy]').forEach(b => {
+                    b.style.background = '';
+                    b.style.color = '';
+                });
+                this.style.background = 'var(--hologreen)';
+                this.style.color = 'black';
+            });
+        });
+
+        // Initialize everything
+        window.onload = function() {
+            initStars();
+            simulateLoading();
+            setTimeout(() => {
+                initChat();
+                initMatches();
+            }, 1000);
+            
+            // Add CSS for notifications
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Update online count every 30 seconds
+            setInterval(() => {
+                const online = Math.floor(2000 + Math.random() * 500);
+                document.querySelector('.chat-title:nth-child(2)').textContent = `Online: ${online}`;
+            }, 30000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BALL SORT X // CORRUPT FLOW</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cyber-teal: #00ffcc;
+            --cyber-purple: #cc00ff;
+            --cyber-pink: #ff00aa;
+            --cyber-blue: #0066ff;
+            --cyber-yellow: #ffff00;
+            --cyber-orange: #ff6600;
+            --matrix-green: #00ff00;
+            --dark-bg: #0a0a1a;
+            --panel-bg: rgba(10, 20, 40, 0.9);
+            --tube-glow: rgba(0, 255, 204, 0.3);
+            --ball-glow: rgba(255, 0, 170, 0.5);
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0a0a2a 50%, #000000 100%);
+            font-family: 'Orbitron', 'Courier New', monospace;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 204, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(204, 0, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, rgba(255, 0, 170, 0.1) 0%, transparent 40%);
+            z-index: -2;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 204, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 204, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        /* Left Panel - Controls & Info */
+        .left-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-title {
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.2), rgba(204, 0, 255, 0.2));
+            border: 4px solid var(--cyber-teal);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-title::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--cyber-teal), var(--cyber-purple), transparent);
+            animation: titleScan 3s infinite linear;
+        }
+
+        @keyframes titleScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .title-main {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--cyber-teal), var(--cyber-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .title-sub {
+            font-size: 22px;
+            color: var(--cyber-pink);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px var(--cyber-pink);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--panel-bg);
+            border: 3px solid var(--cyber-teal);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: var(--cyber-teal);
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(0, 255, 204, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-5px);
+        }
+
+        .control-btn:active {
+            transform: translateY(2px);
+        }
+
+        .control-btn.start {
+            border-color: var(--cyber-teal);
+            background: rgba(0, 255, 204, 0.1);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+        }
+
+        .control-btn.start:hover {
+            background: rgba(0, 255, 204, 0.3);
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.5);
+        }
+
+        .control-btn.reset {
+            border-color: var(--cyber-pink);
+            background: rgba(255, 0, 170, 0.1);
+            box-shadow: 0 0 30px rgba(255, 0, 170, 0.3);
+        }
+
+        .control-btn.reset:hover {
+            background: rgba(255, 0, 170, 0.3);
+            box-shadow: 0 0 50px rgba(255, 0, 170, 0.5);
+        }
+
+        .control-btn.undo {
+            border-color: var(--cyber-blue);
+            background: rgba(0, 102, 255, 0.1);
+        }
+
+        .control-btn.hint {
+            border-color: var(--cyber-yellow);
+            background: rgba(255, 255, 0, 0.1);
+        }
+
+        /* Difficulty Selector */
+        .difficulty-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--cyber-purple);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--cyber-teal);
+        }
+
+        .difficulty-btn.active {
+            background: rgba(204, 0, 255, 0.2);
+            border-color: var(--cyber-teal);
+            box-shadow: 0 0 20px rgba(204, 0, 255, 0.5);
+        }
+
+        .difficulty-label {
+            font-size: 16px;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .difficulty-desc {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Player Display */
+        .player-display {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 0, 40, 0.8));
+            border: 3px solid;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-display.p1 {
+            border-color: var(--cyber-teal);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
+        }
+
+        .player-display.p2 {
+            border-color: var(--cyber-pink);
+            box-shadow: 0 0 30px rgba(255, 0, 170, 0.2);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .player-label {
+            font-size: 20px;
+            font-weight: bold;
+            color: currentColor;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .player-score {
+            font-size: 32px;
+            font-weight: 900;
+            color: currentColor;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            color: currentColor;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Game Area */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Game Header */
+        .game-header {
+            background: var(--panel-bg);
+            border: 3px solid var(--cyber-purple);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value-large {
+            font-size: 36px;
+            color: var(--cyber-teal);
+            font-weight: bold;
+            text-shadow: 0 0 15px var(--cyber-teal);
+        }
+
+        .stat-label-large {
+            font-size: 14px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .game-mode {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--cyber-yellow);
+            border-radius: 10px;
+            padding: 12px 25px;
+            color: var(--cyber-yellow);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Tubes Container */
+        .tubes-container {
+            background: rgba(10, 20, 40, 0.5);
+            border: 4px solid var(--cyber-purple);
+            border-radius: 20px;
+            padding: 40px;
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 30px;
+            align-content: start;
+            overflow-y: auto;
+            max-height: calc(100vh - 300px);
+            position: relative;
+        }
+
+        .tube {
+            background: linear-gradient(180deg, 
+                rgba(0, 255, 204, 0.1) 0%,
+                rgba(0, 0, 0, 0.8) 30%,
+                rgba(0, 0, 0, 0.9) 100%);
+            border: 4px solid var(--tube-glow);
+            border-radius: 8px 8px 20px 20px;
+            width: 120px;
+            height: 400px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .tube:hover {
+            border-color: var(--cyber-teal);
+            transform: translateY(-10px);
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.5);
+        }
+
+        .tube.selected {
+            border-color: var(--cyber-yellow);
+            transform: translateY(-15px);
+            box-shadow: 0 0 60px rgba(255, 255, 0, 0.6);
+        }
+
+        .tube.completed {
+            border-color: var(--matrix-green);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.4);
+        }
+
+        .tube::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: rgba(0, 255, 204, 0.3);
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* Balls */
+        .ball {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                inset 0 -10px 20px rgba(0, 0, 0, 0.6),
+                inset 0 10px 20px rgba(255, 255, 255, 0.2),
+                0 0 30px var(--ball-glow);
+            z-index: 2;
+        }
+
+        .ball:hover {
+            transform: translateX(-50%) scale(1.1);
+            filter: brightness(1.2);
+        }
+
+        .ball.selected {
+            animation: ballPulse 1s infinite alternate;
+            z-index: 10;
+        }
+
+        @keyframes ballPulse {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.15); }
+        }
+
+        .ball.red { background: linear-gradient(135deg, #ff0066, #cc0055); --ball-glow: rgba(255, 0, 102, 0.7); }
+        .ball.blue { background: linear-gradient(135deg, #0066ff, #0055cc); --ball-glow: rgba(0, 102, 255, 0.7); }
+        .ball.green { background: linear-gradient(135deg, #00ff66, #00cc55); --ball-glow: rgba(0, 255, 102, 0.7); }
+        .ball.yellow { background: linear-gradient(135deg, #ffff00, #cccc00); --ball-glow: rgba(255, 255, 0, 0.7); }
+        .ball.purple { background: linear-gradient(135deg, #cc00ff, #aa00cc); --ball-glow: rgba(204, 0, 255, 0.7); }
+        .ball.orange { background: linear-gradient(135deg, #ff6600, #cc5500); --ball-glow: rgba(255, 102, 0, 0.7); }
+        .ball.pink { background: linear-gradient(135deg, #ff00aa, #cc0088); --ball-glow: rgba(255, 0, 170, 0.7); }
+        .ball.cyan { background: linear-gradient(135deg, #00ffff, #00cccc); --ball-glow: rgba(0, 255, 255, 0.7); }
+
+        /* Right Panel - Extras */
+        .right-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            background: var(--panel-bg);
+            border: 3px solid var(--cyber-pink);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .mode-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--cyber-pink);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn:hover {
+            transform: translateX(5px);
+            border-color: var(--cyber-teal);
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 0, 170, 0.2);
+            border-color: var(--cyber-teal);
+            box-shadow: 0 0 30px rgba(255, 0, 170, 0.3);
+        }
+
+        .mode-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--cyber-pink);
+        }
+
+        .mode-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .mode-desc {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Power-ups */
+        .powerups-panel {
+            background: var(--panel-bg);
+            border: 3px solid var(--cyber-yellow);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .powerups-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .powerup-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--cyber-yellow);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .powerup-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.4);
+        }
+
+        .powerup-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .powerup-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--cyber-yellow);
+        }
+
+        .powerup-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .powerup-cost {
+            font-size: 12px;
+            color: var(--cyber-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Settings */
+        .settings-panel {
+            background: var(--panel-bg);
+            border: 3px solid var(--cyber-blue);
+            border-radius: 15px;
+            padding: 25px;
+            flex-grow: 1;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: white;
+        }
+
+        .setting-control {
+            display: flex;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--cyber-teal);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Instructions */
+        .instructions-panel {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(40, 0, 80, 0.8));
+            border: 3px solid var(--cyber-purple);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .instructions-title {
+            color: var(--cyber-teal);
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions-content {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        /* Victory Screen */
+        .victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .victory-content {
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.1), rgba(204, 0, 255, 0.1));
+            border: 4px solid var(--cyber-teal);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .victory-content::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--cyber-teal), var(--cyber-purple), var(--cyber-pink));
+            border-radius: 32px;
+            animation: victoryBorder 3s linear infinite;
+            z-index: -1;
+            filter: blur(10px);
+        }
+
+        @keyframes victoryBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .victory-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: victoryFloat 2s infinite ease-in-out;
+        }
+
+        @keyframes victoryFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+
+        .victory-title {
+            font-size: 60px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--cyber-teal), var(--cyber-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .victory-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .victory-stat {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--cyber-teal);
+        }
+
+        .victory-stat-value {
+            font-size: 32px;
+            color: var(--cyber-teal);
+            font-weight: bold;
+        }
+
+        .victory-stat-label {
+            font-size: 14px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+            
+            .tubes-container {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--cyber-teal), var(--cyber-purple));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--cyber-purple), var(--cyber-teal));
+        }
+        .sentinel-tag {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        background: rgba(0, 0, 0, 0.65);
+        color: #00ffaa;
+        font-size: 0.75rem;
+        letter-spacing: 0.2rem;
+        padding: 6px 14px;
+        border: 1px solid rgba(0, 255, 170, 0.6);
+        border-radius: 999px;
+        z-index: 100;
+        font-family: 'Orbitron', 'Courier New', monospace;
+    }
+
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="sentinel-tag">BALLSORT_HTML_V2</div>
+    <!-- Animated Background -->
+    <div class="bg-overlay"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Game Title -->
+            <div class="game-title">
+                <div class="title-main">BALL SORT X</div>
+                <div class="title-sub">DANCER: CORRUPT FLOW</div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="panel-section">
+                    <div class="section-title"><i class="fas fa-gamepad"></i> CONTROLS</div>
+                    <div class="control-grid">
+                        <button class="control-btn start" id="startBtn">
+                            <i class="fas fa-play"></i> START
+                        </button>
+                        <button class="control-btn reset" id="resetBtn">
+                            <i class="fas fa-redo"></i> RESET
+                        </button>
+                        <button class="control-btn undo" id="undoBtn">
+                            <i class="fas fa-undo"></i> UNDO
+                        </button>
+                        <button class="control-btn hint" id="hintBtn">
+                            <i class="fas fa-lightbulb"></i> HINT
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-title"><i class="fas fa-sliders-h"></i> DIFFICULTY</div>
+                    <div class="difficulty-grid">
+                        <div class="difficulty-btn active" data-difficulty="easy">
+                            <div class="difficulty-label">EASY</div>
+                            <div class="difficulty-desc">4 Colors</div>
+                        </div>
+                        <div class="difficulty-btn" data-difficulty="medium">
+                            <div class="difficulty-label">MEDIUM</div>
+                            <div class="difficulty-desc">6 Colors</div>
+                        </div>
+                        <div class="difficulty-btn" data-difficulty="hard">
+                            <div class="difficulty-label">HARD</div>
+                            <div class="difficulty-desc">8 Colors</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-title"><i class="fas fa-users"></i> PLAYERS</div>
+                    <div style="display: flex; gap: 15px;">
+                        <div class="player-display p1">
+                            <div class="player-header">
+                                <div class="player-label">PLAYER 1</div>
+                                <div class="player-score" id="p1Score">0</div>
+                            </div>
+                            <div class="player-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="p1Moves">0</div>
+                                    <div class="stat-label">Moves</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="p1Time">0:00</div>
+                                    <div class="stat-label">Time</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="player-display p2">
+                            <div class="player-header">
+                                <div class="player-label">PLAYER 2</div>
+                                <div class="player-score" id="p2Score">0</div>
+                            </div>
+                            <div class="player-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="p2Moves">0</div>
+                                    <div class="stat-label">Moves</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="p2Time">0:00</div>
+                                    <div class="stat-label">Time</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions-panel">
+                <div class="instructions-title">
+                    <i class="fas fa-info-circle"></i> HOW TO PLAY
+                </div>
+                <div class="instructions-content">
+                    <p>1. Click a tube to select the top ball</p>
+                    <p>2. Click another tube to move the ball</p>
+                    <p>3. Sort all balls by color into matching tubes</p>
+                    <p>4. Only move balls onto same colors or empty tubes</p>
+                    <p>5. Complete in the fewest moves for the highest score!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Game Header -->
+            <div class="game-header">
+                <div class="game-stats">
+                    <div class="stat-box">
+                        <div class="stat-value-large" id="totalMoves">0</div>
+                        <div class="stat-label-large">MOVES</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value-large" id="timer">0:00</div>
+                        <div class="stat-label-large">TIME</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value-large" id="completedTubes">0/8</div>
+                        <div class="stat-label-large">COMPLETED</div>
+                    </div>
+                </div>
+                <div class="game-mode" id="gameModeDisplay">CLASSIC MODE</div>
+            </div>
+
+            <!-- Tubes Container -->
+            <div class="tubes-container" id="tubesContainer">
+                <!-- Tubes will be generated here -->
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <div class="section-title"><i class="fas fa-chess-board"></i> GAME MODES</div>
+                <div class="mode-grid">
+                    <div class="mode-btn active" data-mode="classic">
+                        <div class="mode-icon">🎮</div>
+                        <div class="mode-name">CLASSIC</div>
+                        <div class="mode-desc">Sort balls by color</div>
+                    </div>
+                    <div class="mode-btn" data-mode="timed">
+                        <div class="mode-icon">⏱️</div>
+                        <div class="mode-name">TIME ATTACK</div>
+                        <div class="mode-desc">Race against the clock</div>
+                    </div>
+                    <div class="mode-btn" data-mode="competitive">
+                        <div class="mode-icon">⚔️</div>
+                        <div class="mode-name">COMPETITIVE</div>
+                        <div class="mode-desc">2-player battle</div>
+                    </div>
+                    <div class="mode-btn" data-mode="puzzle">
+                        <div class="mode-icon">🧩</div>
+                        <div class="mode-name">PUZZLE</div>
+                        <div class="mode-desc">Pre-designed challenges</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Power-ups -->
+            <div class="powerups-panel">
+                <div class="section-title"><i class="fas fa-bolt"></i> POWER-UPS</div>
+                <div class="powerups-grid">
+                    <div class="powerup-btn" data-powerup="swap">
+                        <div class="powerup-icon">🔄</div>
+                        <div class="powerup-name">SWAP</div>
+                        <div class="powerup-cost">50 <i class="fas fa-gem" style="color: var(--cyber-pink);"></i></div>
+                    </div>
+                    <div class="powerup-btn" data-powerup="peek">
+                        <div class="powerup-icon">👁️</div>
+                        <div class="powerup-name">PEEK</div>
+                        <div class="powerup-cost">30 <i class="fas fa-gem" style="color: var(--cyber-pink);"></i></div>
+                    </div>
+                    <div class="powerup-btn" data-powerup="shuffle">
+                        <div class="powerup-icon">🎲</div>
+                        <div class="powerup-name">SHUFFLE</div>
+                        <div class="powerup-cost">75 <i class="fas fa-gem" style="color: var(--cyber-pink);"></i></div>
+                    </div>
+                    <div class="powerup-btn" data-powerup="solve">
+                        <div class="powerup-icon">💡</div>
+                        <div class="powerup-name">SOLVE</div>
+                        <div class="powerup-cost">200 <i class="fas fa-gem" style="color: var(--cyber-pink);"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="settings-panel">
+                <div class="section-title"><i class="fas fa-cog"></i> SETTINGS</div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-label">Sound Effects</div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="soundToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">Music</div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="musicToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">Animations</div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="animToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">Auto-hint</div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="hintToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div class="victory-screen" id="victoryScreen">
+        <div class="victory-content">
+            <div class="victory-icon">🏆</div>
+            <div class="victory-title" id="victoryTitle">VICTORY!</div>
+            <div class="victory-stats">
+                <div class="victory-stat">
+                    <div class="victory-stat-value" id="victoryTime">0:00</div>
+                    <div class="victory-stat-label">TIME</div>
+                </div>
+                <div class="victory-stat">
+                    <div class="victory-stat-value" id="victoryMoves">0</div>
+                    <div class="victory-stat-label">MOVES</div>
+                </div>
+                <div class="victory-stat">
+                    <div class="victory-stat-value" id="victoryScore">0</div>
+                    <div class="victory-stat-label">SCORE</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; margin-top: 30px;">
+                <button class="control-btn start" onclick="restartGame()">
+                    <i class="fas fa-redo"></i> PLAY AGAIN
+                </button>
+                <button class="control-btn reset" onclick="closeVictory()">
+                    <i class="fas fa-times"></i> CONTINUE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration
+        const gameConfig = {
+            difficulty: 'hard',
+            mode: 'classic',
+            currentPlayer: 1,
+            selectedTube: null,
+            selectedBall: null,
+            moves: 0,
+            timer: 0,
+            timerInterval: null,
+            gameActive: false,
+            tubes: [],
+            colors: [],
+            maxBallsPerTube: 4,
+            totalTubes: 8,
+            undoStack: [],
+            soundEnabled: true,
+            musicEnabled: true,
+            animationsEnabled: true,
+            scores: [0, 0],
+            playerTimes: [0, 0],
+            playerMoves: [0, 0],
+            powerUps: {
+                swap: 3,
+                peek: 5,
+                shuffle: 2,
+                solve: 1
+            }
+        };
+
+        // Color Palettes for Different Difficulties
+        const colorPalettes = {
+            easy: ['red', 'blue', 'green', 'yellow'],
+            medium: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'],
+            hard: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
+        };
+
+        // DOM Elements
+        const tubesContainer = document.getElementById('tubesContainer');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const totalMoves = document.getElementById('totalMoves');
+        const timerDisplay = document.getElementById('timer');
+        const completedTubes = document.getElementById('completedTubes');
+        const victoryScreen = document.getElementById('victoryScreen');
+        const gameModeDisplay = document.getElementById('gameModeDisplay');
+
+        // Player Elements
+        const p1Score = document.getElementById('p1Score');
+        const p2Score = document.getElementById('p2Score');
+        const p1Moves = document.getElementById('p1Moves');
+        const p2Moves = document.getElementById('p2Moves');
+        const p1Time = document.getElementById('p1Time');
+        const p2Time = document.getElementById('p2Time');
+
+        // Victory Elements
+        const victoryTitle = document.getElementById('victoryTitle');
+        const victoryTime = document.getElementById('victoryTime');
+        const victoryMoves = document.getElementById('victoryMoves');
+        const victoryScore = document.getElementById('victoryScore');
+
+        // Initialize Game
+        function initGame() {
+            // Reset game state
+            gameConfig.moves = 0;
+            gameConfig.timer = 0;
+            gameConfig.selectedTube = null;
+            gameConfig.selectedBall = null;
+            gameConfig.gameActive = false;
+            gameConfig.tubes = [];
+            gameConfig.undoStack = [];
+            gameConfig.currentPlayer = 1;
+            
+            // Clear tubes container
+            tubesContainer.innerHTML = '';
+            
+            // Set colors based on difficulty
+            gameConfig.colors = [...colorPalettes[gameConfig.difficulty]];
+            
+            // Calculate number of tubes needed
+            const numColors = gameConfig.colors.length;
+            const numTubes = gameConfig.totalTubes;
+            
+            // Create balls array (4 of each color)
+            let balls = [];
+            gameConfig.colors.forEach(color => {
+                for (let i = 0; i < gameConfig.maxBallsPerTube; i++) {
+                    balls.push(color);
+                }
+            });
+            
+            // Shuffle balls
+            shuffleArray(balls);
+            
+            // Initialize tubes
+            gameConfig.tubes = [];
+            for (let i = 0; i < numTubes; i++) {
+                gameConfig.tubes.push([]);
+            }
+            
+            // Distribute balls to tubes
+            distributeBalls(balls);
+            
+            // Create tube elements
+            createTubeElements();
+            
+            // Update display
+            updateDisplay();
+            
+            // Clear timer
+            if (gameConfig.timerInterval) {
+                clearInterval(gameConfig.timerInterval);
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function distributeBalls(balls) {
+            let ballIndex = 0;
+            let tubeIndex = 0;
+            
+            while (ballIndex < balls.length) {
+                // Add ball to current tube if it has space
+                if (gameConfig.tubes[tubeIndex].length < gameConfig.maxBallsPerTube) {
+                    gameConfig.tubes[tubeIndex].push(balls[ballIndex]);
+                    ballIndex++;
+                }
+                
+                // Move to next tube
+                tubeIndex = (tubeIndex + 1) % gameConfig.tubes.length;
+            }
+        }
+
+        function createTubeElements() {
+            tubesContainer.innerHTML = '';
+            
+            gameConfig.tubes.forEach((tubeBalls, index) => {
+                const tube = document.createElement('div');
+                tube.className = 'tube';
+                tube.dataset.index = index;
+                
+                // Add balls to tube
+                tubeBalls.forEach((ballColor, ballIndex) => {
+                    const ball = document.createElement('div');
+                    ball.className = `ball ${ballColor}`;
+                    ball.dataset.color = ballColor;
+                    ball.dataset.tubeIndex = index;
+                    ball.dataset.ballIndex = ballIndex;
+                    
+                    // Position ball in tube
+                    const ballPosition = 380 - (ballIndex * 90); // From bottom
+                    ball.style.bottom = `${ballPosition}px`;
+                    
+                    tube.appendChild(ball);
+                });
+                
+                tube.addEventListener('click', () => handleTubeClick(index));
+                tubesContainer.appendChild(tube);
+            });
+            
+            // Add empty tubes (if any)
+            const emptyTubesCount = gameConfig.totalTubes - gameConfig.tubes.length;
+            for (let i = 0; i < emptyTubesCount; i++) {
+                const tube = document.createElement('div');
+                tube.className = 'tube';
+                tube.dataset.index = gameConfig.tubes.length + i;
+                tube.addEventListener('click', () => handleTubeClick(gameConfig.tubes.length + i));
+                tubesContainer.appendChild(tube);
+            }
+        }
+
+        function handleTubeClick(tubeIndex) {
+            if (!gameConfig.gameActive) return;
+            
+            const tube = gameConfig.tubes[tubeIndex];
+            const tubeElement = document.querySelector(`.tube[data-index="${tubeIndex}"]`);
+            
+            if (gameConfig.selectedTube === null) {
+                // First click - select tube
+                if (tube && tube.length > 0) {
+                    gameConfig.selectedTube = tubeIndex;
+                    tubeElement.classList.add('selected');
+                    
+                    // Highlight the top ball
+                    const topBall = tubeElement.querySelector('.ball:last-child');
+                    if (topBall) {
+                        topBall.classList.add('selected');
+                        gameConfig.selectedBall = tube[tube.length - 1];
+                    }
+                }
+            } else {
+                // Second click - move ball
+                if (gameConfig.selectedTube === tubeIndex) {
+                    // Clicking same tube - deselect
+                    deselectTube();
+                } else {
+                    // Attempt to move ball
+                    const sourceTube = gameConfig.tubes[gameConfig.selectedTube];
+                    const targetTube = gameConfig.tubes[tubeIndex];
+                    
+                    if (isValidMove(sourceTube, targetTube)) {
+                        // Save state for undo
+                        gameConfig.undoStack.push({
+                            source: gameConfig.selectedTube,
+                            target: tubeIndex,
+                            ball: gameConfig.selectedBall
+                        });
+                        
+                        // Move ball
+                        const ball = sourceTube.pop();
+                        targetTube.push(ball);
+                        
+                        // Update moves
+                        gameConfig.moves++;
+                        gameConfig.playerMoves[gameConfig.currentPlayer - 1]++;
+                        
+                        // Check for player switch (in competitive mode)
+                        if (gameConfig.mode === 'competitive') {
+                            gameConfig.currentPlayer = gameConfig.currentPlayer === 1 ? 2 : 1;
+                            updatePlayerDisplay();
+                        }
+                        
+                        // Update display
+                        updateTubeElements();
+                        updateDisplay();
+                        
+                        // Check win condition
+                        if (checkWinCondition()) {
+                            endGame(true);
+                        }
+                    }
+                    
+                    // Deselect tube
+                    deselectTube();
+                }
+            }
+        }
+
+        function isValidMove(sourceTube, targetTube) {
+            if (!sourceTube || sourceTube.length === 0) return false;
+            
+            const ball = sourceTube[sourceTube.length - 1];
+            
+            if (!targetTube) return true; // Empty tube
+            
+            if (targetTube.length >= gameConfig.maxBallsPerTube) return false;
+            
+            if (targetTube.length === 0) return true;
+            
+            return targetTube[targetTube.length - 1] === ball;
+        }
+
+        function deselectTube() {
+            if (gameConfig.selectedTube !== null) {
+                const tubeElement = document.querySelector(`.tube[data-index="${gameConfig.selectedTube}"]`);
+                if (tubeElement) {
+                    tubeElement.classList.remove('selected');
+                    const ball = tubeElement.querySelector('.ball.selected');
+                    if (ball) ball.classList.remove('selected');
+                }
+                gameConfig.selectedTube = null;
+                gameConfig.selectedBall = null;
+            }
+        }
+
+        function updateTubeElements() {
+            // Remove all balls
+            document.querySelectorAll('.ball').forEach(ball => ball.remove());
+            
+            // Add balls back
+            gameConfig.tubes.forEach((tubeBalls, tubeIndex) => {
+                const tubeElement = document.querySelector(`.tube[data-index="${tubeIndex}"]`);
+                
+                // Check if tube is completed
+                const isCompleted = tubeBalls.length === gameConfig.maxBallsPerTube && 
+                                   tubeBalls.every(color => color === tubeBalls[0]);
+                tubeElement.classList.toggle('completed', isCompleted);
+                
+                // Add balls
+                tubeBalls.forEach((ballColor, ballIndex) => {
+                    const ball = document.createElement('div');
+                    ball.className = `ball ${ballColor}`;
+                    ball.dataset.color = ballColor;
+                    ball.dataset.tubeIndex = tubeIndex;
+                    ball.dataset.ballIndex = ballIndex;
+                    
+                    // Position ball in tube
+                    const ballPosition = 380 - (ballIndex * 90);
+                    ball.style.bottom = `${ballPosition}px`;
+                    
+                    // Animation for moved ball
+                    if (gameConfig.animationsEnabled) {
+                        ball.style.animation = 'ballPulse 0.5s ease-out';
+                        setTimeout(() => {
+                            ball.style.animation = '';
+                        }, 500);
+                    }
+                    
+                    tubeElement.appendChild(ball);
+                });
+            });
+        }
+
+        function updateDisplay() {
+            // Update moves
+            totalMoves.textContent = gameConfig.moves;
+            
+            // Update timer
+            const minutes = Math.floor(gameConfig.timer / 60);
+            const seconds = gameConfig.timer % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update completed tubes
+            const completed = gameConfig.tubes.filter(tube => {
+                return tube.length === gameConfig.maxBallsPerTube && 
+                       tube.every(color => color === tube[0]);
+            }).length;
+            completedTubes.textContent = `${completed}/${gameConfig.totalTubes}`;
+            
+            // Update player stats
+            p1Moves.textContent = gameConfig.playerMoves[0];
+            p2Moves.textContent = gameConfig.playerMoves[1];
+            
+            const p1TimeFormatted = formatTime(gameConfig.playerTimes[0]);
+            const p2TimeFormatted = formatTime(gameConfig.playerTimes[1]);
+            p1Time.textContent = p1TimeFormatted;
+            p2Time.textContent = p2TimeFormatted;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updatePlayerDisplay() {
+            // Update player highlights
+            document.querySelectorAll('.player-display').forEach((display, index) => {
+                const isActive = (index === 0 && gameConfig.currentPlayer === 1) ||
+                                (index === 1 && gameConfig.currentPlayer === 2);
+                display.style.boxShadow = isActive ? 
+                    `0 0 40px ${index === 0 ? 'rgba(0, 255, 204, 0.5)' : 'rgba(255, 0, 170, 0.5)'}` : 
+                    '';
+            });
+        }
+
+        function checkWinCondition() {
+            return gameConfig.tubes.every(tube => {
+                return tube.length === 0 || 
+                       (tube.length === gameConfig.maxBallsPerTube && 
+                        tube.every(color => color === tube[0]));
+            });
+        }
+
+        function startGame() {
+            if (gameConfig.gameActive) return;
+            
+            gameConfig.gameActive = true;
+            gameConfig.moves = 0;
+            gameConfig.timer = 0;
+            gameConfig.playerMoves = [0, 0];
+            gameConfig.playerTimes = [0, 0];
+            
+            // Start timer
+            if (gameConfig.timerInterval) {
+                clearInterval(gameConfig.timerInterval);
+            }
+            
+            gameConfig.timerInterval = setInterval(() => {
+                gameConfig.timer++;
+                gameConfig.playerTimes[gameConfig.currentPlayer - 1]++;
+                updateDisplay();
+            }, 1000);
+            
+            // Update UI
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> PAUSE';
+            gameModeDisplay.textContent = `${gameConfig.mode.toUpperCase()} MODE`;
+            updatePlayerDisplay();
+        }
+
+        function pauseGame() {
+            gameConfig.gameActive = false;
+            if (gameConfig.timerInterval) {
+                clearInterval(gameConfig.timerInterval);
+                gameConfig.timerInterval = null;
+            }
+            startBtn.innerHTML = '<i class="fas fa-play"></i> RESUME';
+        }
+
+        function endGame(victory) {
+            gameConfig.gameActive = false;
+            
+            if (gameConfig.timerInterval) {
+                clearInterval(gameConfig.timerInterval);
+                gameConfig.timerInterval = null;
+            }
+            
+            if (victory) {
+                // Calculate score
+                const timeBonus = Math.max(0, 10000 - (gameConfig.timer * 10));
+                const movesBonus = Math.max(0, 5000 - (gameConfig.moves * 20));
+                const difficultyMultiplier = {
+                    easy: 1,
+                    medium: 1.5,
+                    hard: 2
+                }[gameConfig.difficulty];
+                
+                const score = Math.floor((timeBonus + movesBonus) * difficultyMultiplier);
+                
+                // Update player score
+                gameConfig.scores[gameConfig.currentPlayer - 1] += score;
+                
+                // Update victory screen
+                victoryTitle.textContent = 'VICTORY!';
+                victoryTime.textContent = formatTime(gameConfig.timer);
+                victoryMoves.textContent = gameConfig.moves;
+                victoryScore.textContent = score;
+                
+                // Update player scores
+                p1Score.textContent = gameConfig.scores[0];
+                p2Score.textContent = gameConfig.scores[1];
+                
+                // Show victory screen
+                victoryScreen.style.display = 'flex';
+                
+                // Victory animation
+                if (gameConfig.animationsEnabled) {
+                    createVictoryParticles();
+                }
+            }
+        }
+
+        function createVictoryParticles() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: fixed;
+                        width: 10px;
+                        height: 10px;
+                        background: ${Math.random() > 0.5 ? 'var(--cyber-teal)' : 'var(--cyber-pink)'};
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 999;
+                        top: 50%;
+                        left: 50%;
+                        animation: particleFloat 1s ease-out forwards;
+                    `;
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 200 + Math.random() * 300;
+                    const x = Math.cos(angle) * distance;
+                    const y = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--x', `${x}px`);
+                    particle.style.setProperty('--y', `${y}px`);
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }, i * 50);
+            }
+        }
+
+        function restartGame() {
+            closeVictory();
+            initGame();
+            startGame();
+        }
+
+        function closeVictory() {
+            victoryScreen.style.display = 'none';
+        }
+
+        function undoMove() {
+            if (gameConfig.undoStack.length === 0 || !gameConfig.gameActive) return;
+            
+            const lastMove = gameConfig.undoStack.pop();
+            const sourceTube = gameConfig.tubes[lastMove.source];
+            const targetTube = gameConfig.tubes[lastMove.target];
+            
+            // Move ball back
+            const ball = targetTube.pop();
+            sourceTube.push(ball);
+            
+            // Update moves
+            gameConfig.moves--;
+            gameConfig.playerMoves[gameConfig.currentPlayer - 1]--;
+            
+            // Update display
+            updateTubeElements();
+            updateDisplay();
+            deselectTube();
+        }
+
+        function giveHint() {
+            if (!gameConfig.gameActive) return;
+            
+            // Find a valid move
+            for (let i = 0; i < gameConfig.tubes.length; i++) {
+                const sourceTube = gameConfig.tubes[i];
+                if (sourceTube.length === 0) continue;
+                
+                for (let j = 0; j < gameConfig.tubes.length; j++) {
+                    if (i === j) continue;
+                    
+                    const targetTube = gameConfig.tubes[j];
+                    if (isValidMove(sourceTube, targetTube)) {
+                        // Flash the source and target tubes
+                        const sourceElement = document.querySelector(`.tube[data-index="${i}"]`);
+                        const targetElement = document.querySelector(`.tube[data-index="${j}"]`);
+                        
+                        sourceElement.style.boxShadow = '0 0 40px var(--cyber-yellow)';
+                        targetElement.style.boxShadow = '0 0 40px var(--cyber-yellow)';
+                        
+                        setTimeout(() => {
+                            sourceElement.style.boxShadow = '';
+                            targetElement.style.boxShadow = '';
+                        }, 1000);
+                        
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', () => {
+            if (!gameConfig.gameActive) {
+                startGame();
+            } else {
+                pauseGame();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (gameConfig.gameActive) {
+                if (confirm('Are you sure you want to reset the game?')) {
+                    initGame();
+                }
+            } else {
+                initGame();
+            }
+        });
+
+        undoBtn.addEventListener('click', undoMove);
+        hintBtn.addEventListener('click', giveHint);
+
+        // Difficulty buttons
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameConfig.difficulty = this.dataset.difficulty;
+                initGame();
+            });
+        });
+
+        // Mode buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameConfig.mode = this.dataset.mode;
+                gameModeDisplay.textContent = `${gameConfig.mode.toUpperCase()} MODE`;
+                initGame();
+            });
+        });
+
+        // Power-up buttons
+        document.querySelectorAll('.powerup-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const powerup = this.dataset.powerup;
+                if (gameConfig.powerUps[powerup] > 0) {
+                    usePowerUp(powerup);
+                    gameConfig.powerUps[powerup]--;
+                    updatePowerupDisplay();
+                }
+            });
+        });
+
+        function usePowerUp(powerup) {
+            switch(powerup) {
+                case 'swap':
+                    // Swap two random balls
+                    break;
+                case 'peek':
+                    // Show colors of all balls
+                    break;
+                case 'shuffle':
+                    // Shuffle balls in incomplete tubes
+                    break;
+                case 'solve':
+                    // Auto-solve one step
+                    break;
+            }
+        }
+
+        function updatePowerupDisplay() {
+            document.querySelectorAll('.powerup-btn').forEach(btn => {
+                const powerup = btn.dataset.powerup;
+                const count = gameConfig.powerUps[powerup];
+                const costElement = btn.querySelector('.powerup-cost');
+                costElement.textContent = `${count} uses`;
+                
+                btn.classList.toggle('disabled', count === 0);
+            });
+        }
+
+        // Settings toggles
+        document.getElementById('soundToggle').addEventListener('change', function() {
+            gameConfig.soundEnabled = this.checked;
+        });
+
+        document.getElementById('musicToggle').addEventListener('change', function() {
+            gameConfig.musicEnabled = this.checked;
+        });
+
+        document.getElementById('animToggle').addEventListener('change', function() {
+            gameConfig.animationsEnabled = this.checked;
+        });
+
+        // Add CSS for particle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes particleFloat {
+                0% {
+                    transform: translate(0, 0);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(var(--x), var(--y));
+                    opacity: 0;
+                    filter: blur(5px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize the game
+        initGame();
+        updatePowerupDisplay();
+    </script>
+</body>
+</html>
