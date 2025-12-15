@@ -3,6 +3,7 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.EconomyRepository
 import com.neon.connectsort.core.data.AudioSettings
 import com.neon.game.common.GameDifficulty
 import com.neon.game.common.GameMode
@@ -22,11 +23,13 @@ data class SettingsUiState(
     val showTutorials: Boolean = true,
     val gameDifficulty: GameDifficulty = GameDifficulty.MEDIUM,
     val gameMode: GameMode = GameMode.CLASSIC,
-    val enabledPowerUps: Set<PowerUp> = setOf(PowerUp.BOMB, PowerUp.SHIELD, PowerUp.SWAP)
+    val enabledPowerUps: Set<PowerUp> = setOf(PowerUp.BOMB, PowerUp.SHIELD, PowerUp.SWAP),
+    val analyticsEnabled: Boolean = true
 )
 
 class SettingsViewModel(
-    private val repository: AppPreferencesRepository
+    private val repository: AppPreferencesRepository,
+    private val economy: EconomyRepository
 ) : ViewModel() {
 
     private val _settings = MutableStateFlow(SettingsUiState())
@@ -49,7 +52,8 @@ class SettingsViewModel(
                     showTutorials = prefs.showTutorials,
                     gameDifficulty = difficulty,
                     gameMode = gameMode,
-                    enabledPowerUps = powerUps
+                    enabledPowerUps = powerUps,
+                    analyticsEnabled = prefs.analyticsEnabled
                 )
             }.collect {
                 _settings.value = it
@@ -105,12 +109,19 @@ class SettingsViewModel(
             repository.setDifficulty(2)
             repository.setGameMode(GameMode.CLASSIC)
             repository.setPowerUps(setOf(PowerUp.BOMB, PowerUp.SHIELD, PowerUp.SWAP))
+            repository.setAnalytics(true)
+            economy.resetProgress()
         }
     }
 
     fun clearCache() {
-        // Persistence handled by DataStore; nothing to clear here.
+        viewModelScope.launch {
+            economy.clearCache()
+        }
     }
+
+    fun toggleAnalytics() =
+        viewModelScope.launch { repository.setAnalytics(!settings.value.analyticsEnabled) }
 
     private fun updateAudio(transform: (AudioSettings) -> AudioSettings) {
         viewModelScope.launch {

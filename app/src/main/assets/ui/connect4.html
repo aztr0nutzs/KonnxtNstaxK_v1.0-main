@@ -2592,5 +2592,106 @@
             createBioParticles(x, y, color, 3);
         }, 1500);
     </script>
+
+    <div id="neon-hud">
+        <div class="hud-row">
+            <span class="hud-label">Player</span>
+            <span class="hud-value" data-player-name>NEON</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">Coins</span>
+            <span class="hud-value" data-coin-value>0</span>
+        </div>
+        <div class="hud-actions">
+            <button data-match="ball_sort">Play Ball Sort</button>
+            <button data-match="connect_four">Play Connect 4</button>
+            <button data-shop="power_surge">Power Pack</button>
+        </div>
+    </div>
+    <style>
+        #neon-hud {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            background: rgba(2, 8, 20, 0.8);
+            border: 1px solid rgba(0, 255, 170, 0.6);
+            border-radius: 16px;
+            padding: 12px 16px;
+            color: #90f9ff;
+            font-family: 'Orbitron', sans-serif;
+            z-index: 999;
+            backdrop-filter: blur(6px);
+            min-width: 180px;
+        }
+        #neon-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        #neon-hud .hud-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        #neon-hud .hud-value {
+            font-weight: 600;
+        }
+        #neon-hud .hud-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        #neon-hud button {
+            flex: 1 1 80px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 255, 170, 0.1);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        (function () {
+            function updateCoins(value) {
+                const target = document.querySelector('[data-coin-value]');
+                if (target) {
+                    target.textContent = value;
+                }
+            }
+
+            function updatePlayer(name) {
+                const target = document.querySelector('[data-player-name]');
+                if (target) {
+                    target.textContent = name;
+                }
+            }
+
+            window.neonUpdateCoins = updateCoins;
+            window.neonUpdatePlayer = updatePlayer;
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const bridge = window.NeonBridge;
+                if (bridge) {
+                    neonUpdateCoins(bridge.getCoinBalance());
+                    neonUpdatePlayer(bridge.getPlayerName());
+                }
+
+                document.querySelectorAll('[data-match]').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        window.NeonBridge?.performAction('findMatch', button.dataset.match);
+                    });
+                });
+
+                document.querySelectorAll('[data-shop]').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        window.NeonBridge?.performAction('purchase', button.dataset.shop);
+                    });
+                });
+            });
+        })();
+    </script>
+
 </body>
 </html>

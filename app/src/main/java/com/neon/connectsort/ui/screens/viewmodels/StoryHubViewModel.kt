@@ -2,14 +2,17 @@ package com.neon.connectsort.ui.screens.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neon.connectsort.core.data.AppPreferencesRepository
 import androidx.annotation.StringRes
 import com.neon.connectsort.R
+import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.EconomyRepository
+import com.neon.connectsort.ui.audio.AnalyticsTracker
+import com.neon.connectsort.ui.audio.AudioManager
 import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 enum class StoryGameMode {
@@ -32,33 +35,54 @@ data class StoryChapter(
 )
 
 class StoryHubViewModel(
-    private val repository: AppPreferencesRepository
+    private val repository: AppPreferencesRepository,
+    private val economy: EconomyRepository,
+    private val analyticsTracker: AnalyticsTracker,
+    private val audioManager: AudioManager
 ) : ViewModel() {
 
-    private val _chapters = MutableStateFlow(initialChapters())
+    private val baseChapters = initialChapters()
+    private val _chapters = MutableStateFlow(baseChapters)
     val chapters: StateFlow<List<StoryChapter>> = _chapters.asStateFlow()
 
     private val _activeChapterId = MutableStateFlow<String?>(null)
     val activeChapterId: StateFlow<String?> = _activeChapterId.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            economy.storyProgressFlow.collect { progress ->
+                _chapters.value = baseChapters.map { chapter ->
+                    val unlocked = chapter.id in progress.unlockedChapters || !chapter.isLocked
+                    chapter.copy(
+                        isLocked = !unlocked,
+                        isCompleted = chapter.id in progress.completedChapters
+                    )
+                }
+                _activeChapterId.value = progress.activeChapter
+            }
+        }
+    }
+
     fun startChapter(chapter: StoryChapter) {
         _activeChapterId.value = chapter.id
         viewModelScope.launch {
             repository.setDifficulty(chapter.requiredDifficulty.level)
+            economy.setActiveStoryChapter(chapter.id)
+            analyticsTracker.logEvent("story_chapter_started", mapOf("chapter" to chapter.id))
+            audioManager.playSample(AudioManager.Sample.SELECT)
         }
     }
 
     fun markChapterCompleted(chapterId: String, success: Boolean) {
         if (!success) return
 
-        _chapters.update { chapters ->
-            chapters.map { chapter ->
-                when {
-                    chapter.id == chapterId -> chapter.copy(isCompleted = true)
-                    chapter.unlocksWithChapterId == chapterId -> chapter.copy(isLocked = false)
-                    else -> chapter
-                }
+        viewModelScope.launch {
+            economy.markChapterCompleted(chapterId)
+            baseChapters.firstOrNull { it.unlocksWithChapterId == chapterId }?.let { next ->
+                economy.unlockStoryChapter(next.id)
             }
+            analyticsTracker.logEvent("story_chapter_completed", mapOf("chapter" to chapterId))
+            audioManager.playSample(AudioManager.Sample.VICTORY)
         }
     }
 

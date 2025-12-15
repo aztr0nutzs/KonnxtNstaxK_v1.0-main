@@ -16,6 +16,7 @@ fun HtmlAssetScreen(
     assetPath: String,
     modifier: Modifier = Modifier,
     enableJavaScript: Boolean = false,
+    bridge: HtmlBridge? = null
 ) {
     val context = LocalContext.current
     val assetUrl = "file:///android_asset/$assetPath"
@@ -26,6 +27,10 @@ fun HtmlAssetScreen(
             WebView(context).apply {
                 settings.javaScriptEnabled = enableJavaScript
                 settings.domStorageEnabled = enableJavaScript
+                bridge?.let {
+                    addJavascriptInterface(it, "NeonBridge")
+                    it.attachWebView(this)
+                }
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
@@ -36,6 +41,7 @@ fun HtmlAssetScreen(
             }
         },
         update = { webView ->
+            bridge?.attachWebView(webView)
             if (webView.url != assetUrl) {
                 webView.loadUrl(assetUrl)
             }

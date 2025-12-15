@@ -3,10 +3,12 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.EconomyRepository
+import com.neon.connectsort.core.data.GameTitle
 import com.neon.game.common.GameDifficulty
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 data class LobbyState(
@@ -20,17 +22,28 @@ data class LobbyState(
     val gameDifficulty: GameDifficulty = GameDifficulty.MEDIUM
 )
 
-class LobbyViewModel(repository: AppPreferencesRepository) : ViewModel() {
-    val state: StateFlow<LobbyState> = repository.prefsFlow.map {
+class LobbyViewModel(
+    private val preferencesRepository: AppPreferencesRepository,
+    private val economy: EconomyRepository
+) : ViewModel() {
+    val state: StateFlow<LobbyState> = combine(
+        economy.coinBalance,
+        economy.unlockedChips,
+        economy.selectedChipId,
+        economy.highScoreFlow(GameTitle.BALL_SORT),
+        economy.highScoreFlow(GameTitle.MULTIPLIER),
+        economy.highScoreFlow(GameTitle.CONNECT_FOUR)
+    ) { coins, unlocked, selected, ballSort, multiplier, connectFour ->
         LobbyState(
-            totalCoins = it.coins,
-            unlockedCharacterIds = it.unlockedCharacterIds,
-            selectedCharacterId = it.selectedCharacterId,
-            highScoreBallSort = it.highScoreBallSort,
-            highScoreMultiplier = it.highScoreMultiplier,
-            highScoreConnectFour = it.highScoreConnectFour,
-            gameDifficulty = GameDifficulty.fromLevel(it.gameDifficulty)
+            totalCoins = coins,
+            unlockedCharacterIds = unlocked,
+            selectedCharacterId = selected,
+            highScoreBallSort = ballSort,
+            highScoreMultiplier = multiplier,
+            highScoreConnectFour = connectFour
         )
+    }.combine(preferencesRepository.getDifficultyFlow()) { state, difficulty ->
+        state.copy(gameDifficulty = difficulty)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

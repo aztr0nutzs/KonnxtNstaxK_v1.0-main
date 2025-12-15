@@ -139,6 +139,13 @@ fun SettingsScreen(
 
             item { SettingsCategory("Data") }
             item {
+                SettingToggle(
+                    label = "Analytics & Crash Reporting",
+                    isChecked = settings.analyticsEnabled,
+                    onCheckedChange = { viewModel.toggleAnalytics() }
+                )
+            }
+            item {
                 HolographicButton(
                     text = "RESET PROGRESS",
                     onClick = { viewModel.resetProgress() },
@@ -358,4 +365,3 @@ fun PowerUpSelector(
         }
     }
 }
-

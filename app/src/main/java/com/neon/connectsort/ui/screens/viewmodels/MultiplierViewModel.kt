@@ -3,6 +3,10 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.EconomyRepository
+import com.neon.connectsort.core.data.GameTitle
+import com.neon.connectsort.ui.audio.AnalyticsTracker
+import com.neon.connectsort.ui.audio.AudioManager
 import com.neon.game.common.GameDifficulty
 import com.neon.game.common.GameResult
 import com.neon.game.multiplier.MultiplierGame
@@ -13,7 +17,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class MultiplierViewModel(
-    private val repository: AppPreferencesRepository
+    private val preferencesRepository: AppPreferencesRepository,
+    private val economy: EconomyRepository,
+    private val analyticsTracker: AnalyticsTracker,
+    private val audioManager: AudioManager
 ) : ViewModel() {
     private val game = MultiplierGame()
 
@@ -25,7 +32,7 @@ class MultiplierViewModel(
 
     init {
         viewModelScope.launch {
-            repository.getDifficultyFlow().collect { difficulty ->
+            preferencesRepository.getDifficultyFlow().collect { difficulty ->
                 game.start(difficulty)
                 hasRecordedHighScore = false
                 updateState()
@@ -33,8 +40,8 @@ class MultiplierViewModel(
         }
 
         viewModelScope.launch {
-            repository.prefsFlow.collect { prefs ->
-                storedHighScore = prefs.highScoreMultiplier
+            economy.highScoreFlow(GameTitle.MULTIPLIER).collect { highScore ->
+                storedHighScore = highScore
             }
         }
     }
@@ -46,7 +53,7 @@ class MultiplierViewModel(
 
     fun onStartGame(difficulty: GameDifficulty) {
         viewModelScope.launch {
-            repository.setDifficulty(difficulty.level)
+            preferencesRepository.setDifficulty(difficulty.level)
         }
     }
 
@@ -68,8 +75,18 @@ class MultiplierViewModel(
     private fun maybeSaveHighScore() {
         if (hasRecordedHighScore || game.score <= storedHighScore) return
         hasRecordedHighScore = true
+        storedHighScore = game.score
         viewModelScope.launch {
-            repository.setHighScoreMultiplier(game.score)
+            economy.setHighScore(GameTitle.MULTIPLIER, game.score)
+            analyticsTracker.logEvent(
+                "multiplier_high_score",
+                mapOf("score" to game.score, "streak" to game.bestStreak)
+            )
+            audioManager.playSample(AudioManager.Sample.VICTORY)
+            val reward = 200 + game.score * 3
+            economy.adjustCoins(reward)
+            analyticsTracker.logEvent("multiplier_reward", mapOf("reward" to reward))
+            audioManager.playSample(AudioManager.Sample.COIN)
         }
     }
 

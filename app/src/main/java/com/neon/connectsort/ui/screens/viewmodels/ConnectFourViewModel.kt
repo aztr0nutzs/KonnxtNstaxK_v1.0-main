@@ -3,6 +3,10 @@ package com.neon.connectsort.ui.screens.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neon.connectsort.core.data.AppPreferencesRepository
+import com.neon.connectsort.core.data.EconomyRepository
+import com.neon.connectsort.core.data.GameTitle
+import com.neon.connectsort.ui.audio.AnalyticsTracker
+import com.neon.connectsort.ui.audio.AudioManager
 import com.neon.game.common.GameDifficulty
 import com.neon.game.common.GameResult
 import com.neon.game.connectfour.ConnectFourAi
@@ -12,9 +16,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class ConnectFourViewModel(
-    private val repository: AppPreferencesRepository
+    private val preferencesRepository: AppPreferencesRepository,
+    private val economy: EconomyRepository,
+    private val analyticsTracker: AnalyticsTracker,
+    private val audioManager: AudioManager
 ) : ViewModel() {
     private val game = ConnectFourGame()
     private val ai = ConnectFourAi()
@@ -29,10 +37,11 @@ class ConnectFourViewModel(
     private var aiScore = 0
     private var lastWinner: Int? = null
     private var hasRecordedHighScore = false
+    private var resultLogged = false
 
     init {
         viewModelScope.launch {
-            repository.getDifficultyFlow().collect { difficulty ->
+            preferencesRepository.getDifficultyFlow().collect { difficulty ->
                 game.reset(difficulty)
                 hasRecordedHighScore = false
                 updateGameState()
@@ -40,8 +49,8 @@ class ConnectFourViewModel(
         }
 
         viewModelScope.launch {
-            repository.prefsFlow.collect { prefs ->
-                storedHighScore = prefs.highScoreConnectFour
+            economy.highScoreFlow(GameTitle.CONNECT_FOUR).collect { highScore ->
+                storedHighScore = highScore
                 updateGameState()
             }
         }
@@ -78,6 +87,7 @@ class ConnectFourViewModel(
     fun resetGame() {
         game.reset(game.getDifficulty())
         hasRecordedHighScore = false
+        resultLogged = false
         lastWinner = null
         updateGameState()
     }
@@ -89,6 +99,7 @@ class ConnectFourViewModel(
         aiScore = 0
         lastWinner = null
         hasRecordedHighScore = false
+        resultLogged = false
         game.reset(game.getDifficulty())
         updateGameState()
     }
@@ -131,28 +142,50 @@ class ConnectFourViewModel(
         pendingDrop = null
 
         if (game.isGameOver) {
-            if (!isLocalMultiplayer) {
-                maybeSaveHighScore(newState)
-            } else {
-                hasRecordedHighScore = false
+            if (!resultLogged) {
+                analyticsTracker.logEvent(
+                    "connect_four_result",
+                    mapOf(
+                        "winner" to winnerId,
+                        "playerScore" to playerScore,
+                        "aiScore" to aiScore
+                    )
+                )
+                resultLogged = true
             }
+            maybeSaveHighScore(newState)
         } else {
             hasRecordedHighScore = false
+            resultLogged = false
         }
     }
 
     private fun maybeSaveHighScore(state: ConnectFourGameState) {
-        if (state.winner != 1) {
+        if (!state.isGameOver) {
             hasRecordedHighScore = false
             return
         }
-
         if (hasRecordedHighScore) return
-        if (state.playerScore <= storedHighScore) return
-
+        val winnerScore = max(state.playerScore, state.aiScore)
+        if (winnerScore <= storedHighScore) return
         hasRecordedHighScore = true
+        storedHighScore = winnerScore
         viewModelScope.launch {
-            repository.setHighScoreConnectFour(state.playerScore)
+            economy.setHighScore(GameTitle.CONNECT_FOUR, winnerScore)
+            analyticsTracker.logEvent(
+                "connect_four_high_score",
+                mapOf("winnerScore" to winnerScore, "winningPlayer" to state.winner)
+            )
+            audioManager.playSample(AudioManager.Sample.VICTORY)
+            if (state.winner == 1) {
+                val reward = 150 + state.playerScore * 10
+                economy.adjustCoins(reward)
+                analyticsTracker.logEvent(
+                    "connect_four_reward",
+                    mapOf("reward" to reward, "score" to state.playerScore)
+                )
+                audioManager.playSample(AudioManager.Sample.COIN)
+            }
         }
     }
 }

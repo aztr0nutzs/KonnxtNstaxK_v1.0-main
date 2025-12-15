@@ -171,7 +171,11 @@ fun BallSortScreen(
                 PlayerStats(gameState)
             }
 
-            PowerUps(gameState.enabledPowerUps) { viewModel.usePowerUp(it) }
+            PowerUps(
+                enabledPowerUps = gameState.enabledPowerUps,
+                inventory = gameState.powerUpInventory,
+                onPowerUpClick = { viewModel.usePowerUp(it) }
+            )
 
             BallSortControlRow(
                 isPaused = isPaused,
@@ -227,10 +231,27 @@ private fun BallSortHeader(
             )
         }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             GameModeDisplay(gameState.gameMode)
             if (gameState.gameMode == GameMode.TIMED || gameState.gameMode == GameMode.COMPETITIVE) {
                 Text(text = "Time: ${gameState.timer}", color = Color.White)
+            }
+            gameState.abilityName?.let { ability ->
+                Text(
+                    text = "Ability: $ability",
+                    color = NeonColors.hologramPink,
+                    fontSize = 12.sp
+                )
+                gameState.abilityDescription?.let { description ->
+                    Text(
+                        text = description,
+                        color = NeonColors.textSecondary,
+                        fontSize = 10.sp
+                    )
+                }
             }
         }
     }
@@ -500,16 +521,22 @@ private fun PlayerStat(label: String, score: Int, isActive: Boolean) {
 }
 
 @Composable
-private fun PowerUps(enabledPowerUps: Set<PowerUp>, onPowerUpClick: (PowerUp) -> Unit) {
+private fun PowerUps(
+    enabledPowerUps: Set<PowerUp>,
+    inventory: Map<PowerUp, Int>,
+    onPowerUpClick: (PowerUp) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         for (powerUp in enabledPowerUps) {
+            val available = inventory[powerUp] ?: 0
             HolographicButton(
-                text = powerUp.name,
+                text = "${powerUp.name} ($available)",
                 onClick = { onPowerUpClick(powerUp) },
-                glowColor = NeonColors.hologramPurple
+                glowColor = NeonColors.hologramPurple,
+                enabled = available > 0
             )
         }
     }

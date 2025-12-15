@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,8 @@ fun CharacterChipsScreen(
     val characters by viewModel.characters.collectAsState()
     val selectedCharacter by viewModel.selectedCharacter.collectAsState()
     val unlockedCharacters by viewModel.unlockedCharacters.collectAsState()
+    val playerCredits by viewModel.playerCredits.collectAsState()
+    val equippedAbility by viewModel.equippedAbility.collectAsState()
 
     Box(
         modifier = Modifier
@@ -80,7 +83,7 @@ fun CharacterChipsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            CharacterChipsHeader(navController)
+            CharacterChipsHeader(navController, playerCredits)
 
             SelectedCharacterShowcase(
                 character = selectedCharacter ?: characters.firstOrNull(),
@@ -96,14 +99,18 @@ fun CharacterChipsScreen(
             )
 
             selectedCharacter?.let { character ->
-                CharacterAbilitiesPanel(character = character)
+                CharacterAbilitiesPanel(
+                    character = character,
+                    equippedAbility = equippedAbility,
+                    onSelectAbility = { viewModel.equipAbility(it) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun CharacterChipsHeader(navController: NavController) {
+fun CharacterChipsHeader(navController: NavController, credits: Int) {
     var glitchOffset by remember { mutableStateOf(0f) }
 
     LaunchedEffect(Unit) {
@@ -180,7 +187,7 @@ fun CharacterChipsHeader(navController: NavController) {
                     color = NeonColors.hologramYellow
                 )
                 Text(
-                    text = "5,280 ⚡",
+                    text = "$credits ⚡",
                     style = MaterialTheme.typography.titleLarge,
                     color = NeonColors.hologramYellow
                 )
@@ -491,7 +498,11 @@ fun CharacterChipCard(
 }
 
 @Composable
-fun CharacterAbilitiesPanel(character: CharacterChip) {
+fun CharacterAbilitiesPanel(
+    character: CharacterChip,
+    equippedAbility: ChipAbility?,
+    onSelectAbility: (ChipAbility) -> Unit
+) {
     HolographicCard(
         modifier = Modifier.fillMaxWidth(),
         title = "NEURAL PROTOCOLS",
@@ -527,7 +538,11 @@ fun CharacterAbilitiesPanel(character: CharacterChip) {
             ) {
                 character.abilities.forEach { ability ->
                     item {
-                        AbilityCard(ability = ability)
+                        AbilityCard(
+                            ability = ability,
+                            isSelected = equippedAbility?.name == ability.name,
+                            onSelect = { onSelectAbility(ability) }
+                        )
                     }
                 }
             }
@@ -551,9 +566,20 @@ fun CharacterAbilitiesPanel(character: CharacterChip) {
 }
 
 @Composable
-fun AbilityCard(ability: ChipAbility) {
+fun AbilityCard(
+    ability: ChipAbility,
+    isSelected: Boolean,
+    onSelect: () -> Unit
+) {
     HolographicCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSelect)
+            .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) NeonColors.hologramGreen else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            ),
         title = null
     ) {
         Column(
@@ -562,6 +588,13 @@ fun AbilityCard(ability: ChipAbility) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (isSelected) {
+                Text(
+                    text = "Equipped",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeonColors.hologramGreen
+                )
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
