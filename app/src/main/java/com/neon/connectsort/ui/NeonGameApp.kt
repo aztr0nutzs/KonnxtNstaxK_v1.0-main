@@ -5,11 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,13 +19,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neon.connectsort.core.data.AppPreferencesRepository
 import com.neon.connectsort.core.data.EconomyRepository
-import com.neon.connectsort.core.data.userPreferencesDataStore
 import com.neon.connectsort.navigation.AppDestination
 import com.neon.connectsort.ui.audio.AnalyticsTracker
 import com.neon.connectsort.ui.audio.AudioManager
+import com.neon.connectsort.ui.components.GameWebBridge
 import com.neon.connectsort.ui.components.HtmlAssetScreen
-import com.neon.connectsort.ui.components.HtmlBridge
-import com.neon.connectsort.ui.components.HtmlBridgeAction
 import com.neon.connectsort.ui.screens.CharacterChipsScreen
 import com.neon.connectsort.ui.screens.MultiplierScreen
 import com.neon.connectsort.ui.screens.SettingsScreen
@@ -36,7 +35,13 @@ import com.neon.connectsort.ui.screens.viewmodels.*
 @Composable
 fun NeonGameApp() {
     val context = LocalContext.current
-    val dataStore = remember { context.userPreferencesDataStore }
+    val dataStoreScope = rememberCoroutineScope()
+    val dataStore = remember(context) {
+        PreferenceDataStoreFactory.create(
+            scope = dataStoreScope,
+            produceFile = { context.preferencesDataStoreFile("user_prefs.preferences_pb") }
+        )
+    }
     val preferencesRepository = remember { AppPreferencesRepository(dataStore) }
     val economyRepository = remember { EconomyRepository(dataStore) }
     val analyticsTracker = remember { AnalyticsTracker(preferencesRepository.analyticsEnabledFlow()) }
@@ -62,33 +67,7 @@ fun NeonGameApp() {
         }
     }
     val navController = rememberNavController()
-    val htmlBridge = remember(navController, analyticsTracker) {
-        HtmlBridge { action ->
-            val payload = when (action) {
-                is HtmlBridgeAction.FindMatch -> action.destination
-                is HtmlBridgeAction.PurchaseItem -> action.itemId
-            }
-            analyticsTracker.logEvent(
-                "html_action",
-                mapOf(
-                    "action" to action::class.simpleName,
-                    "payload" to payload
-                )
-            )
-            when (action) {
-                is HtmlBridgeAction.FindMatch -> {
-                    when (action.destination?.lowercase()) {
-                        "ball_sort" -> navController.navigate(AppDestination.BallSort.buildRoute(1))
-                        "connect_four" -> navController.navigate(AppDestination.ConnectFour.route)
-                        else -> navController.navigate(AppDestination.Lobby.route)
-                    }
-                }
-                is HtmlBridgeAction.PurchaseItem -> {
-                    navController.navigate(AppDestination.Shop.route)
-                }
-            }
-        }
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     // ViewModels
     val multiplierViewModel: MultiplierViewModel = viewModel(factory = viewModelFactory)
@@ -96,15 +75,18 @@ fun NeonGameApp() {
     val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
     val characterChipsViewModel: CharacterChipsViewModel = viewModel(factory = viewModelFactory)
     val storyHubViewModel: StoryHubViewModel = viewModel(factory = viewModelFactory)
+    val ballSortViewModel: BallSortViewModel = viewModel(factory = viewModelFactory)
 
-    val selectedCharacter by characterChipsViewModel.selectedCharacter.collectAsState()
-
-    LaunchedEffect(htmlBridge) {
-        economyRepository.coinBalance.collect { htmlBridge.updateCoinBalance(it) }
-    }
-
-    LaunchedEffect(selectedCharacter) {
-        htmlBridge.updatePlayerName(selectedCharacter?.name ?: "NEON")
+    val webBridge = remember(navController, shopViewModel, ballSortViewModel, storyHubViewModel, characterChipsViewModel) {
+        GameWebBridge(
+            economyRepository = economyRepository,
+            navControllerProvider = { navController },
+            shopViewModel = shopViewModel,
+            ballSortViewModel = ballSortViewModel,
+            storyHubViewModel = storyHubViewModel,
+            characterChipsViewModel = characterChipsViewModel,
+            scope = coroutineScope
+        )
     }
 
     NavHost(
@@ -117,7 +99,8 @@ fun NeonGameApp() {
                 assetPath = "ui/lobby.html",
                 modifier = Modifier.fillMaxSize(),
                 enableJavaScript = true,
-                bridge = htmlBridge
+                enableDomStorage = true,
+                webAppInterface = webBridge
             )
         }
         composable(
@@ -135,7 +118,8 @@ fun NeonGameApp() {
                     assetPath = "ui/connect4.html",
                     modifier = Modifier.fillMaxSize(),
                     enableJavaScript = true,
-                    bridge = htmlBridge
+                    enableDomStorage = true,
+                    webAppInterface = webBridge
                 )
             }
         composable(
@@ -151,7 +135,8 @@ fun NeonGameApp() {
                     assetPath = "ui/ball_sort.html",
                     modifier = Modifier.fillMaxSize(),
                     enableJavaScript = true,
-                    bridge = htmlBridge
+                    enableDomStorage = true,
+                    webAppInterface = webBridge
                 )
             }
         composable(

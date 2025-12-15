@@ -84,7 +84,7 @@ class MultiplierViewModel(
             )
             audioManager.playSample(AudioManager.Sample.VICTORY)
             val reward = 200 + game.score * 3
-            economy.adjustCoins(reward)
+            economy.earnCoins(reward)
             analyticsTracker.logEvent("multiplier_reward", mapOf("reward" to reward))
             audioManager.playSample(AudioManager.Sample.COIN)
         }

@@ -84,7 +84,7 @@ class CharacterChipsViewModel(
         viewModelScope.launch {
             val balance = _playerCredits.value
             if (balance < character.price) return@launch
-            economy.adjustCoins(-character.price)
+            if (!economy.spendCoins(character.price)) return@launch
             economy.unlockChip(character.id)
             economy.selectChip(character.id)
             analyticsTracker.logEvent(

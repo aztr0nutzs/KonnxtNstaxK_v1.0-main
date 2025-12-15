@@ -177,15 +177,17 @@ class ConnectFourViewModel(
                 mapOf("winnerScore" to winnerScore, "winningPlayer" to state.winner)
             )
             audioManager.playSample(AudioManager.Sample.VICTORY)
-            if (state.winner == 1) {
-                val reward = 150 + state.playerScore * 10
-                economy.adjustCoins(reward)
-                analyticsTracker.logEvent(
-                    "connect_four_reward",
-                    mapOf("reward" to reward, "score" to state.playerScore)
-                )
-                audioManager.playSample(AudioManager.Sample.COIN)
+            val reward = if (state.winner == 1) {
+                150 + state.playerScore * 10
+            } else {
+                50.coerceAtLeast(state.playerScore * 5)
             }
+            economy.earnCoins(reward)
+            analyticsTracker.logEvent(
+                "connect_four_reward",
+                mapOf("reward" to reward, "score" to state.playerScore, "winner" to state.winner)
+            )
+            audioManager.playSample(AudioManager.Sample.COIN)
         }
     }
 }

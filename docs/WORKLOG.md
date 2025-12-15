@@ -367,3 +367,24 @@
 - Copied the provided HTML files into `app/src/main/assets/ui/`, added the required visible sentinel tags, and bumped the app version so installs remain unique.
 - Enabled JavaScript/dom storage for the WebView so the shipped HTML animations, loading overlay removal, and dynamic UI states can actually run.
 - Verified via `adb logcat -s HtmlAssetScreen` that `HTML_LOADED:ui/lobby.html`, `HTML_LOADED:ui/connect4.html`, and `HTML_LOADED:ui/ball_sort.html` appear while the `<div class="sentinel-tag">LOBBY_HTML_V2</div>` / `<div class="sentinel-tag">CONNECT4_HTML_V2</div>` / `<div class="sentinel-tag">BALLSORT_HTML_V2</div>` markers render on-screen.
+
+**Task:** JS bridge integration + Ball Sort power-up improvements
+
+**Files Changed:**
+- `app/src/main/java/com/neon/connectsort/ui/components/HtmlAssetScreen.kt`
+- `app/src/main/java/com/neon/connectsort/ui/components/GameWebBridge.kt`
+- `app/src/main/java/com/neon/connectsort/ui/NeonGameApp.kt`
+- `app/src/main/assets/ui/lobby.html`
+- `app/src/main/assets/ui/connect4.html`
+- `app/src/main/assets/ui/ball_sort.html`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/BallSortViewModel.kt`
+- `app/src/main/java/com/neon/connectsort/ui/screens/viewmodels/ConnectFourViewModel.kt`
+- `app/src/main/java/com/neon/connectsort/core/data/EconomyRepository.kt`
+- `app/src/test/java/com/neon/connectsort/core/data/EconomyRepositoryTest.kt`
+- `docs/DECISIONS.md`
+
+**Summary:**
+- Added explicit `enableJavaScript`/`enableDomStorage` toggles and lifecycle-safe teardown to `HtmlAssetScreen`, and introduced `GameWebBridge` (exposed to JS as `Android`) for coins, username, purchase, navigation, power-ups, and story publishing callbacks.
+- Wired navigation to pass the new bridge, updated all three HTML surfaces to fetch live data from `Android.*` instead of hard-coded currency, and routed Lobby/Connect Four/Ball Sort to the WebView-backed screens with required `HTML_ACTIVE:<file>` logs.
+- Expanded the Ball Sort palette, added user-driven SWAP selection, safer shuffle/solve helpers, and a BFS-backed solver, plus guard rails for pending swap state.
+- Economy now offers `earnCoins`/`spendCoins` with validation; Connect Four rewards/records high scores regardless of winner; added unit coverage for coin validation flows.

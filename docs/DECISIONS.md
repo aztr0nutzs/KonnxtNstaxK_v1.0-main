@@ -103,6 +103,20 @@
 **Decision:**
 - Character chips are now fully described inside `core.domain.CharacterChip`, including rarity (`ChipRarity`), narrative metadata, and a sealed `ChipAbility` tree that encodes bonus points, shields, and extra moves plus their energy/cooldown/effect payloads. This keeps domain logic separate from the ViewModel/UI layers while supplying the data needed to render ability cards.
 - The static roster lives in `core.data.ChipRepository`, giving every consumer the same canonical list of chips; the ViewModel maps unlock flags/high scores back onto those chips so the UI sees only the derived state it cares about. This avoids duplicated lists and makes it easy to extend the roster with new abilities or balance tweaks later.
+
+## 2025-12-11 - WebView bridge & HTML reuse
+
+**Decision:**
+- Kept the rich HTML prototypes and hosted them in a managed `WebView` with explicit `enableJavaScript/enableDomStorage` toggles plus lifecycle-aware teardown to avoid leaks.
+- Added a single `WebAppInterface` (`addJavascriptInterface(..., "Android")`) exposing `getCoins()`, `getUsername()`, `purchaseItem()`, and `startMatch()` so the HTML surfaces can read live economy data and delegate navigation/purchases to Kotlin instead of hard-coded values.
+- Navigation now routes Lobby/Connect Four/Ball Sort to the HTML assets; the legacy Compose-only UIs remain as fallbacks but no longer duplicate the WebView flows.
+
+## 2025-12-12 - HTML as authoritative UI
+
+**Decision:**
+- The shipped HTML (lobby.html, connect4.html, ball_sort.html) is the sole UI for those screens; Compose variants are no longer reachable. WebView now logs `HTML_ACTIVE:<file>` per page load to prove runtime rendering.
+- `GameWebBridge` (exposed as `Android`) is the only channel for UI->Kotlin actions: coins, selected character, navigation, shop purchases, power-ups, and story publish. All placeholders in HTML were replaced with live `Android.*` calls and periodic sync to keep coin/name displays fresh.
+- JavaScript and DOM storage are force-enabled in `HtmlAssetScreen` for these routes to ensure the HTML animations and interactive controls execute as authored.
 ## 2025-12-11 - HTML WebView Integration Strategy
 
 **Decision:**

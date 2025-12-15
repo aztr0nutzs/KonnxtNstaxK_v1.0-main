@@ -33,7 +33,13 @@ class LobbyViewModel(
         economy.highScoreFlow(GameTitle.BALL_SORT),
         economy.highScoreFlow(GameTitle.MULTIPLIER),
         economy.highScoreFlow(GameTitle.CONNECT_FOUR)
-    ) { coins, unlocked, selected, ballSort, multiplier, connectFour ->
+    ) { values ->
+        val coins = values[0] as Int
+        val unlocked = values[1] as Set<String>
+        val selected = values[2] as String?
+        val ballSort = values[3] as Int
+        val multiplier = values[4] as Int
+        val connectFour = values[5] as Int
         LobbyState(
             totalCoins = coins,
             unlockedCharacterIds = unlocked,

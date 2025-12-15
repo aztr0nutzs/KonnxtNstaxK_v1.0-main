@@ -57,6 +57,7 @@ class EconomyRepository(private val dataStore: DataStore<Preferences>) {
     val coinBalance: Flow<Int> = dataStore.data.map { prefs ->
         prefs[Keys.COINS] ?: DEFAULT_COIN_BALANCE
     }
+    val coinBalanceFlow: Flow<Int> = coinBalance
 
     val purchasedItems: Flow<Set<String>> = dataStore.data.map { prefs ->
         prefs[Keys.PURCHASED_ITEMS] ?: emptySet()
@@ -84,7 +85,7 @@ class EconomyRepository(private val dataStore: DataStore<Preferences>) {
 
     val powerUpInventoryFlow: Flow<Map<PowerUp, Int>> = dataStore.data.map { prefs ->
         defaultPowerUpInventory.mapValues { (powerUp, default) ->
-            prefs[powerUpKeys[powerUp]] ?: default
+            powerUpKeys[powerUp]?.let { prefs[it] } ?: default
         }
     }
 
@@ -97,10 +98,29 @@ class EconomyRepository(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun adjustCoins(delta: Int) {
+        if (delta == 0) return
         dataStore.edit { prefs ->
             val current = prefs[Keys.COINS] ?: DEFAULT_COIN_BALANCE
             prefs[Keys.COINS] = (current + delta).coerceAtLeast(0)
         }
+    }
+
+    suspend fun earnCoins(amount: Int) {
+        if (amount <= 0) return
+        adjustCoins(amount)
+    }
+
+    suspend fun spendCoins(amount: Int): Boolean {
+        if (amount <= 0) return true
+        var success = false
+        dataStore.edit { prefs ->
+            val current = prefs[Keys.COINS] ?: DEFAULT_COIN_BALANCE
+            if (current >= amount) {
+                prefs[Keys.COINS] = current - amount
+                success = true
+            }
+        }
+        return success
     }
 
     suspend fun setCoins(amount: Int) {
@@ -234,8 +254,10 @@ class EconomyRepository(private val dataStore: DataStore<Preferences>) {
             prefs[Keys.COINS] = DEFAULT_COIN_BALANCE
             prefs[Keys.PURCHASED_ITEMS] = emptySet()
             prefs[Keys.UNLOCKED_CHIPS] = DEFAULT_UNLOCKED_CHARACTERS
-            prefs[Keys.EQUIPPED_CHIP] = DEFAULT_UNLOCKED_CHARACTERS.firstOrNull()
-            prefs[Keys.EQUIPPED_ABILITY] = null
+            DEFAULT_UNLOCKED_CHARACTERS.firstOrNull()?.let { prefs[Keys.EQUIPPED_CHIP] = it } ?: prefs.remove(
+                Keys.EQUIPPED_CHIP
+            )
+            prefs.remove(Keys.EQUIPPED_ABILITY)
             prefs[Keys.STORY_COMPLETED] = emptySet()
             prefs[Keys.STORY_UNLOCKED] = DEFAULT_STORY_UNLOCKED
             prefs[Keys.STORY_ACTIVE] = DEFAULT_STORY_ACTIVE

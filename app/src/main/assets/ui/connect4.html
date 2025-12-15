@@ -2655,40 +2655,60 @@
     <script>
         (function () {
             function updateCoins(value) {
-                const target = document.querySelector('[data-coin-value]');
-                if (target) {
+                document.querySelectorAll('[data-coin-value]').forEach(function (target) {
                     target.textContent = value;
-                }
+                });
             }
 
             function updatePlayer(name) {
-                const target = document.querySelector('[data-player-name]');
-                if (target) {
+                document.querySelectorAll('[data-player-name]').forEach(function (target) {
                     target.textContent = name;
-                }
+                });
             }
 
             window.neonUpdateCoins = updateCoins;
             window.neonUpdatePlayer = updatePlayer;
 
+            function syncAndroidState() {
+                const android = window.Android;
+                if (!android) return;
+                if (android.getCoins) updateCoins(android.getCoins());
+                if (android.getSelectedCharacter) updatePlayer(android.getSelectedCharacter());
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
-                const bridge = window.NeonBridge;
-                if (bridge) {
-                    neonUpdateCoins(bridge.getCoinBalance());
-                    neonUpdatePlayer(bridge.getPlayerName());
-                }
+                syncAndroidState();
 
                 document.querySelectorAll('[data-match]').forEach(function (button) {
                     button.addEventListener('click', function () {
-                        window.NeonBridge?.performAction('findMatch', button.dataset.match);
+                        if (window.Android && window.Android.startBallSort && button.dataset.match === 'ball_sort') {
+                            window.Android.startBallSort(1);
+                        } else if (window.Android && window.Android.startConnectFour && button.dataset.match === 'connect_four') {
+                            window.Android.startConnectFour();
+                        } else if (window.Android && window.Android.startLobby) {
+                            window.Android.startLobby();
+                        }
                     });
                 });
 
                 document.querySelectorAll('[data-shop]').forEach(function (button) {
                     button.addEventListener('click', function () {
-                        window.NeonBridge?.performAction('purchase', button.dataset.shop);
+                        if (window.Android && window.Android.purchaseItem) {
+                            window.Android.purchaseItem(button.dataset.shop);
+                        }
                     });
                 });
+
+                const backButtons = document.querySelectorAll('[data-back]');
+                backButtons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        if (window.Android && window.Android.startLobby) {
+                            window.Android.startLobby();
+                        }
+                    });
+                });
+
+                setInterval(syncAndroidState, 1000);
             });
         })();
     </script>

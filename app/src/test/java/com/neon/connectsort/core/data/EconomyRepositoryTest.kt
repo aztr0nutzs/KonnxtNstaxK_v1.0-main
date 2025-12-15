@@ -59,4 +59,17 @@ class EconomyRepositoryTest {
         assertEquals(DEFAULT_COIN_BALANCE, repository.coinBalance.first())
         assertTrue(repository.purchasedItems.first().isEmpty())
     }
+
+    @Test
+    fun earnAndSpendCoinsValidateBalance() = runTest {
+        repository.setCoins(100)
+        repository.earnCoins(50)
+        assertEquals(150, repository.coinBalance.first())
+        val spent = repository.spendCoins(120)
+        assertTrue(spent)
+        assertEquals(30, repository.coinBalance.first())
+        val overspend = repository.spendCoins(1000)
+        assertTrue(!overspend)
+        assertEquals(30, repository.coinBalance.first())
+    }
 }
